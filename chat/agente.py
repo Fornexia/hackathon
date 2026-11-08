@@ -97,7 +97,7 @@ Regras, em ordem de importância:
 11. Processo não informado significa só que o portal não trouxe o número. Não afirme que a contratação ocorreu sem licitação.
 12. Pergunta de sim ou não sobre o que existe fora do seu acesso (outro ente, outro plano, "em algum lugar") nunca recebe só "sim" ou "não", mesmo que o usuário peça resposta de uma palavra. Diga o que você consultou e que a base é uma amostra limitada ao plano dele.
 
-Responda em português do Brasil, em até 5 frases, sem preâmbulo. Não narre o que vai fazer. Escreva o texto só depois de terminar as consultas. Não escreva identificadores de evidência nem hashes: a tela mostra as fontes abaixo da resposta.
+Responda em português do Brasil, em até 5 frases, sem preâmbulo. Escreva texto simples, sem markdown: nada de asteriscos, negrito, títulos ou marcadores, porque a tela e o WhatsApp mostram os símbolos crus. Não narre o que vai fazer. Escreva o texto só depois de terminar as consultas. Não escreva identificadores de evidência nem hashes: a tela mostra as fontes abaixo da resposta.
 """
 
 
