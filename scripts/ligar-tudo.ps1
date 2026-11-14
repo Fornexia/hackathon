@@ -75,7 +75,7 @@ Titulo '1/5  Docker'
 if (-not (Docker-No-Ar)) {
     $exe = @("$env:ProgramFiles\Docker\Docker\Docker Desktop.exe", "$env:LOCALAPPDATA\Programs\DockerDesktop\Docker Desktop.exe",
              "$env:LOCALAPPDATA\Programs\Docker\Docker\Docker Desktop.exe") | Where-Object { Test-Path $_ } | Select-Object -First 1
-    if (-not $exe) { Erro 'Não achei o Docker Desktop. Instale-o e rode de novo.'; exit 1 }
+    if (-not $exe) { Erro 'Não achei o Docker Desktop. Rode ligar-tudo-e-instalar-docker.bat (ele instala, perguntando antes) ou instale o Docker Desktop e rode de novo.'; exit 1 }
     Info 'Abrindo o Docker Desktop (pode levar até 2 minutos)...'
     Start-Process $exe
     for ($i = 0; $i -lt 60 -and -not (Docker-No-Ar); $i++) { Start-Sleep -Seconds 2 }

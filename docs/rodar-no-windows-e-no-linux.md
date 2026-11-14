@@ -162,6 +162,16 @@ docker compose --env-file .env -f infra/docker-compose.yml down -v
 | `... down` | Remove o contêiner e **mantém os dados** (ficam no volume) |
 | `... down -v` | Remove o contêiner **e apaga os dados** do banco. Só use para recomeçar do zero |
 
+### Windows, primeira vez: um comando só (instala o Docker se faltar)
+
+Dois cliques em **`ligar-tudo-e-instalar-docker.bat`** (ou `powershell -ExecutionPolicy Bypass -File scripts\instalar-e-ligar.ps1`). Ele faz, nesta ordem:
+1. **Docker Desktop:** se já existe, segue. Se não existe, **explica e pergunta [S/N]** antes de rodar `winget install -e --id Docker.DockerDesktop`. O Windows pede permissão de administrador; o Docker pode pedir para ativar o WSL 2 e **reiniciar** (reinicie e rode o mesmo comando de novo); na primeira abertura mostra uma janela de termos de uso (aceite). A licença do Docker Desktop depende do tamanho da empresa: https://www.docker.com/legal/docker-subscription-service-agreement
+2. **`.env` e `site\hackathon-config.php`:** se faltarem, cria com chaves novas (`conferir_ambiente.py --preparar`); se existirem, não mexe.
+3. **Outros programas** (git, Python, PHP, bun, `.venv`): só confere e mostra o comando do guia para o que faltar. **Não instala.**
+4. **Chama o `ligar-tudo`**, que abre o Docker, sobe o MariaDB e o Neo4j (o Docker **baixa as imagens sozinho** na primeira vez) e o resto.
+
+`-Teste` mostra o que faria sem instalar nada; `-Sim` responde "sim" sozinho. Pode rodar de novo à vontade: só faz o que falta. **Verificado em 14/11/2026 só o caminho de uma máquina que já tem Docker e o modo `-Teste`; a instalação de verdade (winget, administrador, WSL, reinício) não foi testada**, porque esta máquina já tinha Docker.
+
 ### Instalar no Windows (PowerShell)
 
 Abra o **PowerShell** (menu Iniciar → "PowerShell"). Não precisa ser administrador, exceto para o Docker Desktop.
