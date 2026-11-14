@@ -10,6 +10,11 @@ da fonte, e cada perfil vê só o que está autorizado a ver.
 > agente isolado (worker) ligado ao site e os ataques rodados com o modelo real. Veja
 > [Onde estamos no desafio](#onde-estamos-no-desafio), [Site e chat (Dev A)](#site-e-chat-dev-a) e [Pendências conhecidas](#pendências-conhecidas).
 > Detalhes do site e do chat: [spec](docs/specs/001-site-e-chat/spec.md), [plano técnico](docs/specs/001-site-e-chat/plan.md) e [tasks](docs/specs/001-site-e-chat/tasks.md).
+>
+> **Site institucional (portfólio FornexIA, React):** esta branch também traz a página institucional da empresa, com painel de
+> administração, modo claro/escuro e revisão de acessibilidade. **Para entender tudo o que foi feito, leia só o
+> [`DIARIO-DE-MODIFICACOES.md`](DIARIO-DE-MODIFICACOES.md)** (é autossuficiente, pensado para uma pessoa ou um modelo que
+> acabou de baixar o repositório). Resumo em [Site institucional (portfólio React)](#site-institucional-portfólio-react).
 
 ## Estrutura
 
@@ -28,6 +33,11 @@ da fonte, e cada perfil vê só o que está autorizado a ver.
 | `docs/apresentacao/` | Página de demonstração para o cliente e gerador da base de conhecimento |
 | `docs/` | Backlog, tarefas, resultados dos testes de segurança |
 | `logs/` | Registro de consultas (`consultas.jsonl`), não versionado |
+| raiz: `App.tsx`, `Admin.tsx`, `Testar.tsx`, `Sections.tsx`, `Fundadores.tsx`, `content.ts`, `theme.ts`, `hooks.ts`… | **Site institucional em React/Vite** (portfólio da FornexIA). Não confundir com `site/` (PHP) |
+| `components/fornex-laptop/` | Notebook animado da página inicial |
+| `styles/` | CSS do site institucional: `pro.css`, `light.css` (tema claro), `admin.css`, `testar.css` |
+| `public/content.json` | Conteúdo publicado (fundadores, história, contatos, imagens) lido pelo site institucional |
+| `DIARIO-DE-MODIFICACOES.md` | **Diário completo das mudanças do site institucional** |
 
 ## Onde estamos no desafio
 
@@ -42,6 +52,49 @@ da fonte, e cada perfil vê só o que está autorizado a ver.
 | Multi-tenant | **Testado** com três entes: o mesmo CNPJ tem fatos em cada um, e cada perfil vê só os seus | `fixtures/gerar_exemplo.py` |
 | Proteção contra ataques de prompt | **20 ataques catalogados.** A camada de dados está testada. Os testes com o modelo real estão pendentes | [`docs/seguranca/ataques-de-prompt.md`](docs/seguranca/ataques-de-prompt.md) |
 | Site com contas, planos e chat | **Pronto e testado com worker falso.** Cadastro, login, assinatura, fila de perguntas, telefones do WhatsApp e tela de administração. O deploy real na Hostinger ainda não foi feito | [Site e chat (Dev A)](#site-e-chat-dev-a) |
+
+## Site institucional (portfólio React)
+
+Página institucional da **FornexIA** ("quem somos"): apresenta a empresa, os planos, os fundadores e leva o visitante a testar o
+sistema. É um projeto **separado** do site PHP (`site/`): stack **React 19 + Vite 8 + Tailwind 4 + TypeScript**, exportado do
+Figma Make e depois evoluído. Branch de origem: `portfolio-fornexia-rafaella`. Trabalho recente na branch
+`melhorias-planos-fundadores-admin`. O histórico detalhado, as decisões e os cuidados estão no
+[`DIARIO-DE-MODIFICACOES.md`](DIARIO-DE-MODIFICACOES.md).
+
+### O que tem
+
+| Rota | O quê |
+|---|---|
+| `/` | Página institucional: início, quem somos, nossa história, como funciona, recursos, para quem é, planos, clientes, fundadores, perguntas frequentes, chamada para testar, contato e rodapé |
+| `/#/testar` | "Testar o nosso sistema": dois cartões, **usar pelo site** (link configurável) e **WhatsApp** |
+| `/#/admin` | Administração: fundadores (foto, cargo, biografia, WhatsApp, LinkedIn), história da empresa, contatos e redes sociais, links da página de teste, imagens do site, exportar/importar dados |
+
+Pontos principais:
+
+- **Planos:** três cartões do mesmo tamanho, ordem **Profissional, Essencial (meio, recomendado), Corporativo**. O selo acompanha o mouse
+  (e o foco do teclado); sem mouse em cima, fica no Essencial.
+- **Modo claro e escuro:** botão sol/lua no cabeçalho. Começa pela preferência do sistema e lembra a escolha.
+- **Acessibilidade:** auditoria com axe-core (WCAG 2.2 AA) em 22 varreduras, **0 violações**; navegação completa por teclado, link
+  "Pular para o conteúdo", respeita "reduzir movimento". Não substitui teste com leitor de tela real (veja o diário).
+- **Conteúdo editável sem servidor:** o admin grava no `localStorage` do navegador. Para **publicar para todos**, exporte o
+  `content.json` no admin e substitua `public/content.json`. A senha do admin é local e **não é segurança real**; para produção,
+  integrar com o login do `site/` (PHP) é o próximo passo.
+
+### Como rodar
+
+```bash
+npm ci --ignore-scripts        # instala pelas versões travadas, sem executar scripts de pacotes
+npm run dev -- --host 127.0.0.1 --port 5173   # http://127.0.0.1:5173/
+npm run build                  # gera dist/
+npx tsc --noEmit               # checagem de tipos
+```
+
+### Antes de publicar
+
+- Em `public/content.json`, o campo `trial[0].url` (link do cartão "Usar o sistema pelo site") está **vazio**: definir o endereço
+  definitivo (ou preencher em `/#/admin`). Para testar localmente, pode-se usar `http://127.0.0.1:8080/chat.html` sem commitar.
+- Os depoimentos e números da seção "Clientes" (`+1.200 consultas`, `98%`, "Carlos M.", "Renata S.") são **fictícios**.
+- O texto da história e os espaços dos fundadores são **exemplos**: editar em `/#/admin`.
 
 ## Site e chat (Dev A)
 
