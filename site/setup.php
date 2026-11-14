@@ -105,7 +105,7 @@ foreach ($tabelas as $nome => $sql) {
 // Plano único de demonstração (R$ 149 por mês, sem franquia nem excedente). O valor é hipótese, não preço validado.
 // Franquia e excedente ficam em 0: o banco ainda tem as colunas, mas o plano único não as usa.
 $planos = [
-    ['Único', 149.00, 0, 0.00, ['pe-estado', 'pe-garanhuns']],
+    ['Único', 149.00, 0, 0.00, ['pe-estado', 'pe-garanhuns', 'br-uniao']],
 ];
 $st = $pdo->prepare('INSERT INTO planos (nome, preco_mensal, franquia, preco_excedente, tenants) VALUES (?, ?, ?, ?, ?)
                      ON DUPLICATE KEY UPDATE preco_mensal = VALUES(preco_mensal), franquia = VALUES(franquia),

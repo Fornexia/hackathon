@@ -5,7 +5,7 @@
   // Dentro do painel da página inicial, a página se ajusta ao espaço pequeno.
   if (/[?&]embutido\b/.test(location.search) || window.self !== window.top) document.documentElement.classList.add('embutido')
   const $ = s => document.querySelector(s)
-  const ENTES = { 'pe-garanhuns': 'Município de Garanhuns', 'pe-estado': 'Estado de Pernambuco' }
+  const ENTES = { 'pe-garanhuns': 'Município de Garanhuns', 'pe-estado': 'Estado de Pernambuco', 'br-uniao': 'União (governo federal)' }
   const ROTULOS = {
     cobertura: 'Verificando o que a base cobre',
     buscar_fornecedor: 'Procurando o fornecedor',
@@ -40,6 +40,7 @@
   }
   const mostrar = (id, sim) => { $(id).hidden = !sim }
   const nomeDoEnte = id => ENTES[id] || id
+  const juntar = nomes => nomes.length > 1 ? nomes.slice(0, -1).join(', ') + ' e ' + nomes[nomes.length - 1] : nomes.join('')     // A, B e C
   const dinheiro = n => n.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 0 })
 
   // ---------- telas ----------
@@ -83,7 +84,7 @@
 
   // ---------- plano no chat ----------
   function mostrarPlanoAtual() {
-    $('#plano-info').textContent = 'Consulta: ' + estado.plano.tenants.map(nomeDoEnte).join(' e ')
+    $('#plano-info').textContent = 'Consulta: ' + juntar(estado.plano.tenants.map(nomeDoEnte))
   }
 
   // ---------- entrar e criar conta ----------
@@ -128,7 +129,7 @@
         const ul = el('ul')
         if (p.franquia > 0) ul.append(el('li', '', p.franquia.toLocaleString('pt-BR') + ' perguntas por mês'))
         if (p.preco_excedente > 0) ul.append(el('li', '', 'Excedente: ' + p.preco_excedente.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) + ' por pergunta'))
-        ul.append(el('li', '', 'Consulta: ' + p.tenants.map(nomeDoEnte).join(' e ')))
+        ul.append(el('li', '', 'Consulta: ' + juntar(p.tenants.map(nomeDoEnte))))
         cartao.append(ul)
         const b = el('button', 'botao cheio', 'Ativar plano de demonstração')
         b.type = 'button'

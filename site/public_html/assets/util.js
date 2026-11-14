@@ -19,8 +19,9 @@
     return m ? `${m[3]}/${m[2]}/${m[1]} ${m[4]}:${m[5]}` : ''
   }
 
-  const ENTES = { 'pe-garanhuns': 'Município de Garanhuns', 'pe-estado': 'Estado de Pernambuco' }
-  const nomesDosEntes = tenants => (tenants || []).map(t => ENTES[t] || t).join(' e ')
+  const ENTES = { 'pe-garanhuns': 'Município de Garanhuns', 'pe-estado': 'Estado de Pernambuco', 'br-uniao': 'União (governo federal)' }
+  const juntar = nomes => nomes.length > 1 ? nomes.slice(0, -1).join(', ') + ' e ' + nomes[nomes.length - 1] : nomes.join('')     // A, B e C
+  const nomesDosEntes = tenants => juntar((tenants || []).map(t => ENTES[t] || t))
 
-  window.U = { el, formatarTelefone, dataHora, nomesDosEntes }
+  window.U = { el, formatarTelefone, dataHora, nomesDosEntes, juntar }
 })()

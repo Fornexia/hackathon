@@ -219,7 +219,7 @@ class TestA01Banco(Base):
         self.assertEqual(sql("SELECT COUNT(*) FROM planos WHERE nome LIKE 'Antigo %'"), "0")
         self.assertEqual(c.me()["plano"]["nome"], "Único")
         self.assertEqual(sql(f"SELECT plano_id FROM perguntas WHERE id={pid}"), str(plano_unico()))
-        self.assertEqual(json.loads(sql(f"SELECT tenants FROM perguntas WHERE id={pid}")), ["pe-estado", "pe-garanhuns"])
+        self.assertEqual(json.loads(sql(f"SELECT tenants FROM perguntas WHERE id={pid}")), ["pe-estado", "pe-garanhuns"])   # a pergunta guarda os entes do plano ANTIGO em que foi feita (Antigo B, com dois entes)
 
     def test_setup_recusa_rodar_pela_web(self):
         r = chamar(self.base, "GET", "/setup.php")
@@ -346,7 +346,7 @@ class TestA04Planos(Base):
         reais = [p for p in r.corpo if not p["nome"].startswith("Teste ")]
         self.assertEqual([p["nome"] for p in reais], ["Único"])
         unico = reais[0]
-        self.assertEqual(unico["tenants"], ["pe-estado", "pe-garanhuns"])
+        self.assertEqual(unico["tenants"], ["pe-estado", "pe-garanhuns", "br-uniao"])
         self.assertEqual((unico["preco_mensal"], unico["franquia"], unico["preco_excedente"]), (149.0, 0, 0.0))
 
     def test_ativa_sem_pagamento_e_me_mostra_o_plano(self):
@@ -386,7 +386,7 @@ class TestA05Perguntas(Base):
         self.assertIn("plano", r["erro"])
 
     def test_copia_os_entes_do_plano(self):
-        for plano_id, esperado in [(plano_garanhuns(), ["pe-garanhuns"]), (plano_unico(), ["pe-estado", "pe-garanhuns"])]:
+        for plano_id, esperado in [(plano_garanhuns(), ["pe-garanhuns"]), (plano_unico(), ["pe-estado", "pe-garanhuns", "br-uniao"])]:
             sql("DELETE FROM perguntas")
             c = self.cliente_com_plano(plano_id)
             pid = c.perguntar()["id"]
@@ -443,7 +443,7 @@ class TestA05Perguntas(Base):
         c = self.cliente_com_plano(plano_unico())
         pid = c.perguntar()["id"]
         c.assinar(plano_garanhuns())
-        self.assertEqual(json.loads(sql(f"SELECT tenants FROM perguntas WHERE id={pid}")), ["pe-estado", "pe-garanhuns"])
+        self.assertEqual(json.loads(sql(f"SELECT tenants FROM perguntas WHERE id={pid}")), ["pe-estado", "pe-garanhuns", "br-uniao"])
 
     def test_texto_e_guardado_sem_executar_nada(self):
         c = self.cliente_com_plano()
@@ -524,7 +524,7 @@ class TestA07Worker(Base):
         p1 = worker(self.base, "POST", "/api/worker/proxima")
         self.assertEqual((p1["id"], p1["texto"], p1["tenants"], p1["ver_pessoal"]), (ida, "primeira", ["pe-garanhuns"], False))
         p2 = worker(self.base, "POST", "/api/worker/proxima")
-        self.assertEqual((p2["id"], p2["tenants"]), (idb, ["pe-estado", "pe-garanhuns"]))
+        self.assertEqual((p2["id"], p2["tenants"]), (idb, ["pe-estado", "pe-garanhuns", "br-uniao"]))
         self.assertEqual(worker(self.base, "POST", "/api/worker/proxima").status, 204)
         self.assertEqual(sql(f"SELECT status FROM perguntas WHERE id={ida}"), "processando")
 
@@ -626,7 +626,7 @@ class TestA07Worker(Base):
             sql(f"INSERT INTO telefones (usuario_id, numero, status) SELECT id, '{numero}', '{status}' FROM usuarios WHERE email='{cli.email}'")
         r = worker(self.base, "GET", "/api/worker/telefones")
         self.assertEqual({t["numero"]: t["tenants"] for t in r.corpo},
-                         {"5587999990001": ["pe-garanhuns"], "5587999990002": ["pe-estado", "pe-garanhuns"]})
+                         {"5587999990001": ["pe-garanhuns"], "5587999990002": ["pe-estado", "pe-garanhuns", "br-uniao"]})
 
 
 def numero_unico() -> str:
@@ -828,7 +828,7 @@ class TestA09Admin(Base):
         self.assertEqual(r["decidido_por"]["email"], adm.email)
         self.assertNotEqual(sql(f"SELECT aprovado_por FROM telefones WHERE id={tid}"), "NULL")
         no_worker = {t["numero"]: t["tenants"] for t in worker(self.base, "GET", "/api/worker/telefones").corpo}
-        self.assertEqual(no_worker[n], ["pe-estado", "pe-garanhuns"])
+        self.assertEqual(no_worker[n], ["pe-estado", "pe-garanhuns", "br-uniao"])
         self.assertEqual(dono.req("GET", "/api/telefones", csrf=False).corpo[0]["status"], "aprovado")   # o dono vê o resultado
 
     def test_revogar_corta_o_acesso(self):

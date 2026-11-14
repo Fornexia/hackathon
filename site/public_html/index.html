@@ -247,7 +247,8 @@ footer p { margin: 0; max-width: 66ch; }
   });
 
   /* ---------- Planos, lidos de /api/planos ---------- */
-  var ENTES = { 'pe-garanhuns': 'Município de Garanhuns', 'pe-estado': 'Estado de Pernambuco' };
+  var ENTES = { 'pe-garanhuns': 'Município de Garanhuns', 'pe-estado': 'Estado de Pernambuco', 'br-uniao': 'União (governo federal)' };
+  function juntar(nomes) { return nomes.length > 1 ? nomes.slice(0, -1).join(', ') + ' e ' + nomes[nomes.length - 1] : nomes.join(''); }
   var lista = document.getElementById('lista-planos');
 
   function el(tag, classe, texto) {
@@ -269,7 +270,7 @@ footer p { margin: 0; max-width: 66ch; }
       var ul = el('ul');
       if (p.franquia > 0) ul.appendChild(el('li', '', p.franquia.toLocaleString('pt-BR') + ' perguntas por mês'));
       if (p.preco_excedente > 0) ul.appendChild(el('li', '', 'Excedente: ' + brl(p.preco_excedente, 2) + ' por pergunta'));
-      ul.appendChild(el('li', '', 'Consulta: ' + p.tenants.map(function (t) { return ENTES[t] || t; }).join(' e ')));
+      ul.appendChild(el('li', '', 'Consulta: ' + juntar(p.tenants.map(function (t) { return ENTES[t] || t; }))));
       ul.appendChild(el('li', '', 'Site e WhatsApp, com a prova de cada fato'));
       ul.appendChild(el('li', '', 'Até 3 números de WhatsApp por conta, liberados após aprovação'));
       c.appendChild(ul);
