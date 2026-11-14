@@ -1,44 +1,68 @@
 /* Página "Modelos lado a lado". As cores dos modelos são fixas por modelo (a cor segue a entidade, nunca a posição). */
 .viz {
+  --viz-surface: #09223e;     /* igual ao cartão escuro: contorno dos pontos */
+  --viz-grade: #16355a;       /* linhas de grade: hairline, uma etapa fora da superfície */
+  --viz-eixo: #35577a;
+  --viz-mudo: #9db4c6;        /* texto de eixo */
+  --viz-ink: #f4fbff;
+  --viz-ink-2: #c9d8e4;
+  --viz-falha: #4a6480;       /* "não passou": cinza neutro, nunca a cor do modelo */
+  --viz-clara: #8aa6bf;       /* "certa, mas sem prova" na legenda */
+  display: grid; gap: 22px;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-tema="escuro"]) .viz {
+    --viz-surface: #ffffff;
+    --viz-grade: #e1e0d9;
+    --viz-eixo: #c3c2b7;
+    --viz-mudo: #6f6d68;
+    --viz-ink: #14263f;
+    --viz-ink-2: #4b5b70;
+    --viz-falha: #cfcec6;
+    --viz-clara: #b7bcc6;
+  }
+}
+:root[data-tema="claro"] .viz {
   --viz-surface: #ffffff;
-  --viz-grade: #e1e0d9;       /* linhas de grade: hairline, uma etapa fora da superfície */
+  --viz-grade: #e1e0d9;
   --viz-eixo: #c3c2b7;
-  --viz-mudo: #6f6d68;        /* texto de eixo */
+  --viz-mudo: #6f6d68;
   --viz-ink: #14263f;
   --viz-ink-2: #4b5b70;
-  --viz-falha: #cfcec6;       /* "não passou": cinza neutro, nunca a cor do modelo */
-  display: grid; gap: 22px;
+  --viz-falha: #cfcec6;
+  --viz-clara: #b7bcc6;
 }
 
 /* filtro de modelos: a legenda também liga e desliga */
 .viz-filtro { display: flex; flex-wrap: wrap; gap: 8px; }
-.viz-filtro button { display: inline-flex; align-items: center; gap: 9px; min-height: 40px; padding: 6px 14px 6px 11px; border: 1px solid var(--regra);
-  background: var(--cartao); border-radius: 999px; font: 600 14px var(--texto); color: var(--tinta); cursor: pointer; }
+.viz-filtro button { display: inline-flex; align-items: center; gap: 9px; min-height: 40px; padding: 6px 14px 6px 11px; border: 1px solid var(--borda);
+  background: var(--cartao); border-radius: 999px; font: 600 14px var(--texto); color: var(--tinta); cursor: pointer; transition: border-color .2s; }
+.viz-filtro button:hover { border-color: var(--verde); }
 .viz-filtro button[aria-pressed="false"] { opacity: .5; }
 .viz-filtro button[aria-pressed="false"] .viz-chave { background: transparent !important; box-shadow: inset 0 0 0 2px var(--viz-eixo); }
 .viz-filtro small { color: var(--tinta-3); font-weight: 500; }
 .viz-chave { width: 14px; height: 14px; border-radius: 4px; flex: none; }
 
-.viz-resumo { margin: 0; padding: 12px 14px; border-left: 3px solid var(--verde); background: var(--verde-fraco); border-radius: 0 6px 6px 0; font-size: 15px; color: var(--tinta); }
+.viz-resumo { margin: 0; padding: 12px 14px; border-left: 3px solid var(--verde); background: var(--verde-fraco); border-radius: 0 10px 10px 0; font-size: 15px; color: var(--tinta); }
 
 /* um cartão por modelo, lado a lado */
 .viz-modelos { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
-.viz-modelo { background: var(--cartao); border: 1px solid var(--regra); border-radius: 14px; padding: 15px 16px; display: grid; gap: 4px; align-content: start; }
+.viz-modelo { background: var(--cartao); border: 1px solid var(--borda); border-radius: 14px; padding: 15px 16px; display: grid; gap: 4px; align-content: start; }
 .viz-modelo h3 { margin: 0; font-size: 15px; display: flex; align-items: center; gap: 9px; color: var(--tinta); }
 .viz-modelo .prov { margin: 0; font-size: 13px; color: var(--tinta-3); }
-.viz-modelo .heroi { font-size: 34px; font-weight: 800; color: var(--marinho); line-height: 1.15; margin-top: 4px; }
+.viz-modelo .heroi { font-size: 34px; font-weight: 800; color: var(--titulo); line-height: 1.15; margin-top: 4px; }
 .viz-modelo .heroi small { font-size: 15px; font-weight: 600; color: var(--tinta-2); margin-left: 6px; }
 .viz-modelo dl { margin: 6px 0 0; display: grid; grid-template-columns: 1fr auto; gap: 3px 10px; font-size: 14px; }
 .viz-modelo dt { color: var(--tinta-2); }
 .viz-modelo dd { margin: 0; font-weight: 600; color: var(--tinta); text-align: right; font-variant-numeric: tabular-nums; }
 
 /* cartões de gráfico */
-.viz-card { background: var(--cartao); border: 1px solid var(--regra); border-radius: 14px; padding: 18px 18px 14px; display: grid; gap: 12px; min-width: 0; }
+.viz-card { background: var(--cartao); border: 1px solid var(--borda); border-radius: 14px; padding: 18px 18px 14px; display: grid; gap: 12px; min-width: 0; }
 .viz-card > header { display: flex; justify-content: space-between; align-items: flex-start; gap: 14px; }
-.viz-card h2 { margin: 0 0 2px; font-size: 19px; color: var(--marinho); }
+.viz-card h2 { margin: 0 0 2px; font-size: 19px; color: var(--titulo); }
 .viz-card .apoio { margin: 0; font-size: 14px; max-width: 70ch; }
-.viz-alterna { flex: none; border: 1px solid var(--regra); background: var(--cartao); border-radius: 8px; padding: 6px 12px; min-height: 36px; font: 600 13px var(--texto); color: var(--tinta); cursor: pointer; }
-.viz-alterna:hover { background: var(--papel); }
+.viz-alterna { flex: none; border: 1px solid var(--borda); background: var(--cartao); border-radius: 10px; padding: 6px 12px; min-height: 36px; font: 600 13px var(--texto); color: var(--tinta); cursor: pointer; transition: background .2s, border-color .2s; }
+.viz-alterna:hover { background: var(--papel-2); border-color: var(--verde); }
 .viz-corpo { min-width: 0; }
 .viz-rolagem { overflow-x: auto; padding-bottom: 6px; }
 .viz-card .tabela { border-radius: 8px; }
@@ -53,20 +77,20 @@
 
 /* SVG */
 .viz svg { display: block; max-width: none; overflow: visible; }
-.viz svg text { font: 12.5px var(--texto); fill: var(--viz-mudo); }
+.viz svg text { font: 13px var(--texto); fill: var(--viz-mudo); }
 .viz svg text.forte { fill: var(--viz-ink); font-weight: 600; }
 .viz svg text.valor { fill: var(--viz-ink); font-weight: 600; font-variant-numeric: tabular-nums; }
 .viz svg .grade { stroke: var(--viz-grade); stroke-width: 1; shape-rendering: crispEdges; }
 .viz svg .eixo { stroke: var(--viz-eixo); stroke-width: 1; shape-rendering: crispEdges; }
 .viz svg [data-dica] { cursor: default; }
-.viz svg [data-dica]:focus-visible { outline: 3px solid var(--verde); outline-offset: 2px; }
+.viz svg [data-dica]:focus-visible { outline: 2px solid var(--foco); outline-offset: 3px; }
 .viz-legenda { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; color: var(--tinta-2); margin-bottom: 4px; }
 .viz-legenda span { display: inline-flex; align-items: center; gap: 7px; }
 .viz-legenda i { width: 14px; height: 10px; border-radius: 3px; display: inline-block; }
 
 /* dica flutuante: reforça, nunca é o único jeito de ler um valor */
-.viz-dica { position: fixed; z-index: 60; max-width: 340px; padding: 9px 12px; border-radius: 8px; background: #14263f; color: #fff; font-size: 13px; line-height: 1.45;
-  box-shadow: 0 6px 20px rgba(11, 37, 69, .28); pointer-events: none; }
+.viz-dica { position: fixed; z-index: 60; max-width: 340px; padding: 9px 12px; border-radius: 10px; background: var(--dica-bg); color: #f4fbff; border: 1px solid var(--borda); font-size: 13px; line-height: 1.45;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, .3); pointer-events: none; }
 .viz-dica b { display: block; margin-bottom: 2px; }
 .viz-dica .l { display: flex; align-items: center; gap: 7px; }
 .viz-dica .c { width: 10px; height: 10px; border-radius: 3px; flex: none; box-shadow: 0 0 0 1.5px #fff; }
