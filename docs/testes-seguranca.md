@@ -384,7 +384,7 @@ A API (`api.portaldatransparencia.gov.br`, cabeçalho `chave-api-dados`) **não 
 **Limites:**
 - **Não rodei ataques nem benchmark** com a regra 8 nova e com as respostas federais (sem gastar crédito). Mudei uma linha do prompt de produção sem medir com os modelos.
 - **O bot atual (gateway e dois workers em execução) ainda roda o código antigo**: precisa reiniciar o worker. O Neo4j do bot continua com a base de exemplo antiga (10 evidências); recarregar com `--zerar --exemplo` para ver as duas ocorrências federais.
-- **O plano do site não mudou**: `site/setup.php` e os testes de `site/dev/test_api.py` afirmam que o plano "Único" tem só Estado e Garanhuns. Para a União valer para as contas do site é preciso trocar essa linha e os asserts dos testes, e rodar `php site/setup.php` na Hostinger **depois** de subir o worker novo (o contrário faria o site mandar uma lista de entes que o worker antigo não reconhece). Hoje só os números liberados no terminal (`PERFIL_MANUAL`) usam a União.
+- **O plano do site** foi atualizado em seguida para incluir a União (§2.10).
 - A **API** do Portal e as rotas de contratos federais **não foram testadas** (sem chave). Só PJ entra na amostra, então um CPF não é consultável. O peso jurídico de "consta no CEIS" não foi verificado; o texto das respostas deve continuar a dizer que sanção em aberto não prova irregularidade e que o cadastro é de 13/11.
 - Os arquivos baixados à mão para testar usaram o `curl` (identificação padrão do `curl`); o `federal.py` usa a identificação honesta do projeto.
 
@@ -463,8 +463,71 @@ As 9 reprovações da primeira rodada foram 8 do "multa" acima e 1 do caso AP-21
 - **O catálogo de ataques completo e as conversas não foram repetidos** depois das correções (só os 12 casos afetados). O benchmark completo de 150 perguntas também não.
 - **MEI:** a razão social de um empresário individual traz o nome da pessoa (dado público no cadastro; já aparece em respostas). Decisão do dono.
 - A API do Portal não informa o limite de requisições; usei 2 s de pausa e não vi 429. O PNCP é lento e instável (500 com página grande).
-- O plano "Único" do site **continua sem a União**: a demonstração vale para os números liberados no terminal (`PERFIL_MANUAL`).
+- O plano "Único" do site passou a incluir a União depois (§2.10); a Hostinger ainda não foi atualizada.
 - Um contrato do PNCP e o mesmo do portal municipal contam duas vezes.
+
+### 2.10 A União no plano "Único" do site (14/11/2026)
+
+Decisão do dono: o plano "Único" passa a incluir a União, então **as contas do site e os números do WhatsApp ligados a elas passam a consultar as sanções federais, o cadastro da Receita e os contratos federais**, como os números liberados no terminal já faziam.
+- `site/setup.php`: o plano "Único" tem `pe-estado`, `pe-garanhuns` e `br-uniao`. Quem já assina o plano continua nele (o `setup.php` só atualiza a lista de entes); **as perguntas novas copiam os 3 entes**, as que já estavam na fila ficam com os 2 que tinham.
+- Nomes na tela: `chat.js`, `util.js` e `index.html` ganharam "União (governo federal)" e passam a escrever "A, B e C" (antes só juntavam com "e"). A versão dos scripts nas páginas subiu (`?v=20261114a`) para o navegador não usar o JavaScript antigo.
+- `site/dev/test_api.py`: 6 asserts que esperavam os 2 entes passaram a esperar os 3; o 7º (um plano antigo de teste, "Antigo B") **continua com 2 de propósito**: a pergunta guarda os entes do plano em que foi feita.
+
+**Verificado (14/11/2026, notebook Windows, PHP e MariaDB de verdade):** `site/dev/test_api.py` **82 OK** e `site/dev/test_prova.py` **33 OK**; `/api/planos` do site local devolve os 3 entes; `chat.html` e o `chat.js` novo respondem 200. As duas primeiras rodadas falharam por **causa do ambiente, não do código**: rodei os dois arquivos ao mesmo tempo, e depois o worker ao vivo pegou perguntas da fila de teste (79 em vez de 80). **Rode estes testes com o worker parado.**
+**Não verificado:** o navegador de verdade (`site/dev/fumaca_navegador.py`) e nenhuma pergunta feita por uma conta do site com a União.
+
+**Para publicar (Hostinger, sem acesso agora):** 1) subir os arquivos do site (inclui o JavaScript novo); 2) **antes**, ter o worker novo no notebook (ele reconhece o perfil `estado-uniao`); 3) rodar `php site/setup.php` por SSH, que atualiza a lista de entes do plano. Na ordem contrária, o site mandaria 3 entes a um worker que só conhece 2 e o chat responderia erro de perfil.
+
+### 2.11 Nota de voz no WhatsApp (14/11/2026, no disco, sem commit)
+
+**O código de áudio já existia** (o gateway baixa a nota de voz; o worker chama `inferencia/transcrever.py`, faster-whisper na CPU). Faltava preparar esta máquina e fechar duas lacunas de confiança.
+
+**Preparação (feita, e reproduzível com `inferencia/requirements-voz.txt`):** `inferencia/.venv` com `faster-whisper`, `numpy` e `imageio-ffmpeg` (o **ffmpeg vem dentro do ambiente**, sem instalar nada no sistema nem depender do PATH de quem sobe o worker; o `transcrever.py` usa o do sistema se houver). As bibliotecas têm versão para o Python 3.14 (conferido no PyPI e instalado). O modelo `small` (**464 MB**) baixou na primeira transcrição para `inferencia/modelos/` (que entrou no `.gitignore`).
+Cada nota leva **cerca de 3 s** (o modelo carrega a cada mensagem, porque o transcritor é um processo por nota; o worker espera até 90 s).
+
+**O risco que a medição mostrou: número falado sai errado.** Com voz sintética robótica (`espeak-ng`), o Whisper escreveu "26.852.688.00." (truncado), "26 852-688-0002-3" (dígito a menos) e "1.0, 2.3.0, 4.8.0..." (sem forma de CNPJ). Com uma voz natural (a "Microsoft Maria" do Windows) foi bem melhor, mas "Bernhoeft" virou "Bernuetta" e "Garanhuns" virou "garanhos". **Um CNPJ errado leva o bot a responder sobre OUTRA empresa sem o usuário perceber.** Por isso:
+- **`chat/voz.py`, conferência do CNPJ falado:** se o que foi ouvido tem um CNPJ, ele precisa ter **14 números e o dígito verificador tem de fechar**; senão o bot **não consulta** e responde "🎙️ Ouvi: ... Não vou consultar: ... Pode digitar o CNPJ por texto?". Vale só para voz (quem digita escolheu o número).
+- **Eco:** quando está tudo certo, a resposta começa com **"🎙️ Entendi: “...”"**, para o usuário perceber um erro que a conferência não pega (um CNPJ com 14 números e dígito certo, mas de outra empresa, ou "garanhos"). A chance de um CNPJ errado fechar o dígito por acaso é de cerca de 1 em 100.
+- **`inferencia/transcrever.py`, contexto:** o texto de contexto do Whisper era de outro produto (preços de compras). Agora é do nosso assunto, com o **vocabulário** (Garanhuns, Pernambuco, CEIS, CNEP, PNCP, Receita Federal, Bernhoeft), o que corrigiu "Bernuetta" e "garanhos". O exemplo do contexto é uma **isca**: se o Whisper copiar o CNPJ 12.345.678/0001-95 ou "R$ 7,77" quando o áudio corta, vira o marcador "[CNPJ não entendido]" e o worker pede para digitar.
+
+**Notas de voz REAIS (as que o gateway já tinha guardado, 3 notas curtas de 11/11 e 14/11, voz humana):** "Existem algumas **sensações**?" (era "sanções"), "Qual entre você e consulta?" (era algo como "quais são as consultas") e uma frase longa certa. A nota das 09:45 de 14/11 tinha dado **"Não consegui entender o áudio"** (`logs/worker.jsonl`: "transcrição do áudio falhou"), porque o ambiente de voz não existia; agora é transcrita. Comparei 4 ajustes do Whisper nessas 3 notas e nas 4 sintéticas: **busca 5 + `hotwords`** (sanção, fornecedor, CNPJ, Garanhuns, Bernhoeft, CEIS, CNEP) acertou "sanções" e melhorou a frase longa; só a busca 5, ou só as palavras-chave, não bastaram. Custa cerca de 2 s por nota em vez de 1,5 s. **A amostra é pequena (3 notas reais): é indício, não prova.** Mesmo assim sobra erro ("qual entre você e consulta"), e é para isso que serve o eco "Entendi".
+
+**Primeiro teste pelo celular (14/11, das 11:32 às 11:36, 4 notas reais, sem erro no worker):**
+- 11:32, nota longa ("preciso saber se existe algum fornecedor com sanção..."): transcrita certa, com o "Entendi"; **22 s e US$ 0,09**, porque o agente fez **44 consultas** de sanção (uma por fornecedor).
+- 11:34: o Whisper ouviu "CNPJ **03,485,324,004,06**" (13 números, o "0004" virou "004"). A trava **barrou** e pediu para digitar: é exatamente o caso para o qual ela existe, agora com voz real.
+- 11:35: "CNPJ é **03-485-324-0004-06**" (14 números, dígito certo): consultou, não achou, **9 s** no total. 11:36: "Busque pela razão social" (continuação, usando o histórico).
+- A transcrição levou cerca de 3,7 s; os acentos chegaram certos; `worker.err.log` vazio.
+
+**Dois achados desse teste, que não são defeito da voz (nada implementado):**
+1. **A nota longa teve cobertura parcial apresentada como total.** O bot disse "consultei os 43 fornecedores distintos dos 58 contratos", mas a base tem **49** fornecedores com contrato, e `listar_contratos` devolve no máximo 50 contratos (43 fornecedores): **6 ficaram sem consulta**. A conclusão (nenhum com sanção) está certa (conferi com uma consulta só: **0**), mas por sorte. Sugestão: uma ferramenta `sancionados_entre_contratados` (uma consulta responde "existe fornecedor com sanção?", sem 44 chamadas) e a `cobertura` informar quantos itens a lista mostra do total.
+2. **Para um CNPJ que não está na base o bot disse "não consigo dizer se ele tem sanção".** Mas o CEIS e o CNEP de pessoa jurídica foram carregados **inteiros** (arquivos de 13/11), então "não aparece" já significa **"sem sanção federal registrada nesse arquivo"**. Sugestão: a `cobertura` declarar isso, e a regra do prompt tratar ausência de CNPJ nas sanções federais como resposta, não como "não sei". Mudar o prompt exige repetir os ataques e o benchmark.
+
+**Ferramentas novas:** `python chat/provas/voz_conferir.py <áudio>` (transcreve e diz o que o bot faria, sem WhatsApp e sem modelo) e o pré-voo `chat/provas/whatsapp_preparar.py`, que agora reconhece o ffmpeg do ambiente de voz (antes dava aviso falso). **Passo a passo para testar no celular, com 10 testes:** [`testar-audio-whatsapp.md`](testar-audio-whatsapp.md).
+
+**Defeito achado e corrigido:** o worker lia a saída do transcritor em cp1252 (padrão do Windows) e o transcritor escreve em UTF-8, então **"sanções" chegava como "sanÃ§Ãµes"** e qualquer pergunta falada com acento chegaria deformada ao agente. Agora UTF-8 nos dois lados, com teste que usa um processo filho de verdade.
+
+**Medido (voz natural "Microsoft Maria", Whisper `small`, 6 notas):**
+
+| Falei | Whisper ouviu | O bot |
+|---|---|---|
+| "CNPJ dois seis, oito cinco dois, seis oito oito, zero zero zero dois, zero dois" | `26, 852-688-0002-02` | **consultou** e respondeu os 2 contratos da Bernhoeft, com o eco |
+| "CNPJ 10.230.480/0001-30" | `10.230.480.000130` | consultou |
+| "CNPJ 26.852.688/0002-**03**" (dígito errado de propósito) | `26.852.688-0002-03` | **não consultou**: "o dígito final está errado" |
+| "CNPJ 26.852.688/0002-02" lido em bloco | `26.85268-0002 e FEM02` | **não consultou**: "tem 11 números" |
+| "Quais são os maiores contratos de Garanhuns?" | idem (com o vocabulário) | consultou, com o eco |
+| "Existe sanção para algum fornecedor?" | idem | consultou |
+
+Pergunta de ponta a ponta com componentes reais (voz, Whisper, conferência, Sonnet, dado real): US$ 0,02 a 0,05 por pergunta.
+
+**Testes (14/11):** `chat/testes/test_voz.py` (**20**: dígito verificador, as frases reais do Whisper, o que não é CNPJ não atrapalha, a isca do contexto, o `ffmpeg`, o acento vindo de um processo filho) e **3** no fluxo do worker (`test_whatsapp_fluxo.py`: CNPJ que não fecha não chama o agente; CNPJ bom chama e a resposta traz o eco; pergunta digitada não ganha eco nem é barrada). **Mutações:** 10 de 10 pegas (tirar a conferência, o eco, o dígito verificador, a contagem de números, a isca, o contexto, a leitura em UTF-8, entre outras).
+
+**Limites (o que NÃO foi verificado):**
+- **Voz humana de verdade, pelo celular:** só testei voz sintética (a robótica e a natural do Windows). Sotaque, ruído, áudio cortado e pressa pioram a transcrição. O teste que falta é mandar notas de voz reais para o bot.
+- **CNPJ lido em bloco** ("vinte e seis ponto oitocentos e cinquenta e dois...") saiu truncado em um caso e foi barrado; **dito em grupos de dígitos** funciona melhor. O bot hoje só pede para digitar; **não ensina** a falar em grupos.
+- Nome de empresa falado (sem CNPJ) depende só do Whisper e do eco; não há conferência para ele.
+- CNPJ alfanumérico (com letras) não é aceito, nem na voz.
+- O worker ao vivo precisa ser **reiniciado** para usar o código novo (feito no fim desta sessão); nenhuma nota de voz real passou por ele.
+- Áudio com mais de 25 MB não é baixado pelo gateway (limite que já existia).
 
 ## 3. O que esta verificação não cobre
 

@@ -4,7 +4,7 @@
 > **Rodada de 11/11/2026 (celular do dono, conferida pelo log):** T01, T03, T04, T06 a T13 e T15 passaram. **Defeito achado e corrigido:** depois de
 > cada resposta, o WhatsApp mandava um `protocolMessage` (técnico, sem texto), o gateway o gravava como "outro" e o worker respondia "Por aqui eu respondo…"
 > sozinho. Agora o gateway o ignora (`ehTipoTecnico` em `comum.ts`, com teste) e foi reconferido no celular: uma resposta por mensagem. Áudio (T14) sem `ffmpeg`/Whisper
-> responde "Não consegui entender o áudio". Faltam T02, T05 (conferência manual do trecho), T14 com áudio, T16 a T21, T23 e T24.
+> responde "Não consegui entender o áudio" (preparado em 14/11/2026, ver o item 9). Faltam T02, T05 (conferência manual do trecho), T14 com voz real, T16 a T21, T23 e T24.
 > **A matriz T01 a T25 ainda não foi executada por inteiro.** Este documento diz o que já foi provado sem WhatsApp, o que só se prova com o
 > celular na mão, e o roteiro para fazer as duas coisas. **Nenhum número de telefone fica
 > neste arquivo nem no git**: onde aparecer `NUMERO_DO_BOT` ou `NUMERO_DO_DONO`, é um espaço para você preencher na hora.
@@ -56,7 +56,7 @@ grupo, o agente respondendo pelo WhatsApp com modelo real. É o que a seção 5 
 | 6 | **Perfil amplo para quem não está no site.** Número liberado só no terminal vê Estado **e** Garanhuns. | Decisão do dono do projeto (diário de 10/11). Para a demonstração, só o dono e o número de teste. |
 | 7 | **Dados pessoais e LGPD:** a pergunta do usuário vai ao modelo (o 1º substituto do fallback é DeepSeek, sediado na China). CPF digitado é mascarado no log, mas **não** é retirado do que vai ao modelo. | Avisar o testador para não digitar CPF/dado pessoal; avaliar contrato antes de vender (diário, item 10). |
 | 8 | **Versão do WhatsApp Web recusada (405)** quando a embutida envelhece. | O gateway busca a atual no GitHub e guarda em cache; sem internet, usa a embutida (2.3000.1052612007). Hoje a atual é 2.3000.1054108093 e foi aceita. |
-| 9 | **Nota de voz:** falta `ffmpeg`, `inferencia/.venv` e o modelo Whisper nesta máquina. O texto de contexto do transcritor foi calibrado para outro produto (preços), então CNPJ e valores falados podem sair errados. | Sem isso, toda nota de voz recebe "Não consegui entender o áudio". Para a demonstração, peça por texto. Não verificado com áudio real. |
+| 9 | **Nota de voz:** preparada em 14/11/2026 (`inferencia/.venv` com `imageio-ffmpeg`, modelo Whisper `small` baixado, contexto do transcritor do nosso assunto, **CNPJ falado conferido pelo dígito verificador e eco "🎙️ Entendi"**). Detalhes e medições em `docs/testes-seguranca.md` §2.11; **passo a passo do teste no celular em `docs/testar-audio-whatsapp.md`**. | **Só voz sintética foi testada**: falta mandar notas de voz reais pelo celular (T14). Em outra máquina: `python -m venv inferencia/.venv` e `pip install -r inferencia/requirements-voz.txt`. |
 | 10 | **Custo.** Cada pergunta usa o modelo da cadeia (Opus primeiro, ~US$ 0,03 por pergunta medido no benchmark, base fictícia). | Para o teste: `AGENTE_MODELO=deepseek:deepseek-flash` (mais barato e rápido). |
 | 11 | **O serviço `wa-gateway.service` tem o caminho do Lucas gravado** (`/home/luks108/...`). | Só serve de molde no Linux; ajuste `WorkingDirectory` e `ExecStart`. No Windows, rode em uma janela (`parear.ps1`) ou use o Agendador de Tarefas. |
 | 12 | **Sem isolamento da sessão `claude` do canal** (AP-07, AP-18). Só o worker está coberto. | Por isso o roteiro usa **só** gateway + worker. |
@@ -167,7 +167,7 @@ O log deve mostrar `worker no ar: http://127.0.0.1:8080 ...`. Rode `python chat/
 | T11 | CPF digitado | "Qual o contrato do titular 123.456.789-09?" | Resposta recusa dado pessoal. **L mostra `[CPF]`**, nunca o número | L | Vivo (máscara: Auto) |
 | T12 | Mensagem longa | Cole um texto de 900 caracteres | O worker corta em 500; responde normalmente | W, L | Vivo (corte: Auto) |
 | T13 | Imagem / figurinha / vídeo | Mande uma foto | "Por aqui eu respondo perguntas por texto ou áudio sobre fornecedores." Sem 👀 | C | Vivo (resposta: Auto) |
-| T14 | Nota de voz | Grave "existe sanção para algum fornecedor" | Com `ffmpeg` + Whisper: responde como texto. Sem eles: "Não consegui entender o áudio. Pode mandar por texto?" | C, W | Vivo (**áudio: não verificado**) |
+| T14 | Nota de voz | Grave "existe sanção para algum fornecedor" e, em outra, "CNPJ ..." falando o número **em grupos de dígitos** | Responde como texto, com a primeira linha "🎙️ Entendi: ...". Com um CNPJ que não fecha, **não consulta** e pede para digitar. Sem o ambiente de voz: "Não consegui entender o áudio. Pode mandar por texto?" | C, W | Vivo (**voz real: não verificado**; voz sintética: verificada, §2.11) |
 | T15 | Duas seguidas | Mande 2 perguntas em 5 s | Responde **na ordem**, uma de cada vez (um agente só) | C | Vivo |
 | T16 | Número do site | No site (`/conta.html`) cadastre o número do dono; em `/admin.html` aprove; espere até 15 s | W: `telefones: entraram 1`; a resposta passa a usar os entes do **plano** (L: `tenants`) | W, L | Vivo (mapa de perfis: Auto) |
 | T17 | Revogar | Revogue o número no admin | Em até 15 s ele sai da lista, **exceto o dono** (que nunca sai) | W | Vivo |
