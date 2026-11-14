@@ -38,3 +38,6 @@ site/painel.json
 
 # Configuração do editor (pessoal)
 .vscode/
+
+# Modelos de voz baixados (Whisper, algumas centenas de MB): voltam a ser baixados na primeira transcrição
+inferencia/modelos/

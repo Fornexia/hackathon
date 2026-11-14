@@ -27,6 +27,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 import agente  # noqa: E402
 import deteccao  # noqa: E402
 import registro  # noqa: E402  (log por subsistema: logs/worker.jsonl, seguranca.jsonl e saude.jsonl)
+import voz  # noqa: E402  (conferência do CNPJ falado e eco do que foi ouvido)
 
 RAIZ = agente.RAIZ
 _ENV = RAIZ / ".env"
@@ -330,7 +331,9 @@ def texto_whatsapp(resposta: str, fontes: list[dict]) -> str:
 
 def transcrever(arquivo: str) -> str | None:
     try:
-        r = subprocess.run([str(PYTHON_AUDIO), str(TRANSCRITOR), arquivo], capture_output=True, text=True, timeout=90)
+        # UTF-8 nos dois lados: sem isso o Windows lê a saída em cp1252 e "sanções" vira "sanÃ§Ãµes" (visto em 14/11/2026).
+        r = subprocess.run([str(PYTHON_AUDIO), str(TRANSCRITOR), arquivo], capture_output=True, text=True, encoding="utf-8", errors="replace",
+                           env={**os.environ, "PYTHONIOENCODING": "utf-8"}, timeout=90)
         return r.stdout.strip() or None if r.returncode == 0 else None
     except (OSError, subprocess.TimeoutExpired):
         return None
@@ -371,11 +374,18 @@ def atender_whatsapp(m: dict):
     rid = f"wa:{m['id']}"
     espera = _espera_ms(m)
     r("entrada_na_fila", request_id=rid, canal="whatsapp", tipo=m.get("tipo"), espera_ms=espera, grupo=bool(m.get("grupo")))
+    por_voz = False
     if m["tipo"] == "audio" and m.get("arquivo"):
         texto = transcrever(m["arquivo"])
         if not texto:
             pedir({"op": "enviar", "chat_id": chat, "texto": "Não consegui entender o áudio. Pode mandar por texto?", "request_id": rid})
             _sem_agente(rid, t0, False, motivo="ferramenta", detalhe="transcrição do áudio falhou", via="sem_agente")
+            return
+        por_voz = True
+        problema = voz.conferir_cnpj_falado(texto)
+        if problema:      # CNPJ falado que não fecha: não consulta, pede para digitar (um CNPJ errado levaria a outra empresa)
+            pedir({"op": "enviar", "chat_id": chat, "texto": voz.pedir_para_digitar(texto, problema), "request_id": rid})
+            _sem_agente(rid, t0, True, via="sem_agente", razao="cnpj_falado_nao_confere")
             return
     elif m["tipo"] == "texto":
         texto = m["texto"].strip()
@@ -396,6 +406,8 @@ def atender_whatsapp(m: dict):
     inicio = time.monotonic()
     r("inicio", request_id=rid, canal="whatsapp", espera_ms=espera, entes=len(tenants))
     saida, leitor, desfecho = responder_whatsapp(texto, tenants, f"wa:{chat}", request_id=rid)
+    if por_voz and desfecho == "concluida":
+        saida = (voz.eco(texto) + saida)[:4000]      # o usuário vê o que foi entendido
     pedir({"op": "enviar", "chat_id": chat, "texto": saida, "request_id": rid})
     motivo = None
     if desfecho != "concluida":

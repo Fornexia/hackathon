@@ -1,0 +1,9 @@
+# Ambiente da nota de voz (inferencia/.venv). Criar e instalar:
+#   python -m venv inferencia/.venv
+#   inferencia/.venv/Scripts/python -m pip install -r inferencia/requirements-voz.txt        (Windows)
+#   inferencia/.venv/bin/python -m pip install -r inferencia/requirements-voz.txt            (Linux)
+# O modelo Whisper (`small`, cerca de 460 MB) é baixado na primeira transcrição e fica em inferencia/modelos/ (fora do git).
+# O imageio-ffmpeg traz o ffmpeg dentro do ambiente: não precisa instalar nada no sistema.
+faster-whisper>=1.2
+numpy
+imageio-ffmpeg

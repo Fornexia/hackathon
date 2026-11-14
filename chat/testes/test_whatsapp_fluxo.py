@@ -212,6 +212,37 @@ class TestTiposDeMensagem(Base):
         self.assertEqual(agente.chamadas[0]["pergunta"], "existe sanção para a empresa tal")
         self.assertEqual(self.saida()[-1]["op"], "enviar")
 
+    def test_audio_com_cnpj_que_nao_fecha_nao_consulta_e_pede_para_digitar(self):
+        """Medido com voz sintética: o Whisper truncou o CNPJ. Um CNPJ errado levaria a outra empresa, então o bot não consulta."""
+        for ouvido in ("Quais contratos tem o CNPJ 26.852.688.00.", "Me fale sobre o CNPJ 26 852-688-0002-3", "CNPJ 26.852.688/0002-03"):
+            agente = agente_falso()
+            self.chegam(msg(1, texto="", tipo="audio", arquivo=str(self.estado / "a.ogg")))
+            with mock.patch.object(worker, "transcrever", return_value=ouvido):
+                self.passo(cursor=0, agente=agente)
+            self.assertEqual(agente.chamadas, [], ouvido)
+            enviada = self.saida()[-1]
+            self.assertEqual(enviada["op"], "enviar")
+            self.assertIn("Ouvi:", enviada["texto"])
+            self.assertIn("digitar o CNPJ", enviada["texto"])
+            shutil.rmtree(self.estado / "outbox"); (self.estado / "outbox").mkdir()
+            self.inbound.unlink()
+
+    def test_audio_com_cnpj_valido_consulta_e_a_resposta_mostra_o_que_foi_entendido(self):
+        agente = agente_falso()
+        with mock.patch.object(worker, "transcrever", return_value="Quais contratos tem o CNPJ 26.852.688/0002-02?"):
+            self.chegam(msg(1, texto="", tipo="audio", arquivo=str(self.estado / "a.ogg")))
+            self.passo(agente=agente)
+        self.assertEqual(agente.chamadas[0]["pergunta"], "Quais contratos tem o CNPJ 26.852.688/0002-02?")
+        enviada = self.saida()[-1]["texto"]
+        self.assertTrue(enviada.startswith("🎙️ Entendi: “Quais contratos tem o CNPJ 26.852.688/0002-02?”"), enviada[:80])
+
+    def test_pergunta_por_texto_nao_ganha_o_eco_e_cnpj_ruim_digitado_nao_e_barrado(self):
+        agente = agente_falso()
+        self.chegam(msg(1, texto="CNPJ 26.852.688.00"))          # quem digita escolheu o número: a conferência é só da voz
+        self.passo(agente=agente)
+        self.assertEqual(len(agente.chamadas), 1)
+        self.assertNotIn("Entendi:", self.saida()[-1]["texto"])
+
     def test_audio_sem_transcricao_pede_texto_e_nao_chama_o_agente(self):
         agente = agente_falso()
         self.chegam(msg(1, texto="", tipo="audio", arquivo=str(self.estado / "a.ogg")))     # transcrever devolve None (sem ffmpeg/whisper)

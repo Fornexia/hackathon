@@ -204,9 +204,26 @@ except Exception as e:  # noqa: BLE001
 
 bloco("5. Áudio (nota de voz) — opcional")
 venv_audio = RAIZ / "inferencia" / ".venv"
-mostrar("OK" if venv_audio.is_dir() else "AVISO", "venv de transcrição (faster-whisper) existe" if venv_audio.is_dir() else "inferencia/.venv não existe",
-        "sem ela toda nota de voz recebe 'Não consegui entender o áudio'; o teste de texto não depende disso")
-mostrar("OK" if shutil.which("ffmpeg") else "AVISO", "ffmpeg encontrado" if shutil.which("ffmpeg") else "ffmpeg não encontrado", "winget install Gyan.FFmpeg (Windows) ou apt install ffmpeg")
+py_audio = venv_audio / ("Scripts/python.exe" if NT else "bin/python")
+
+
+def venv_importa(*modulos: str) -> bool:
+    """Roda o Python do ambiente de voz só para ver se os módulos importam (não carrega modelo, não transcreve nada)."""
+    try:
+        return subprocess.run([str(py_audio), "-c", "import " + ", ".join(modulos)], capture_output=True, timeout=60).returncode == 0
+    except (OSError, subprocess.TimeoutExpired):
+        return False
+
+
+mostrar("OK" if venv_audio.is_dir() else "AVISO", "venv de transcrição existe" if venv_audio.is_dir() else "inferencia/.venv não existe",
+        "python -m venv inferencia/.venv e pip install -r inferencia/requirements-voz.txt; sem ela toda nota de voz recebe 'Não consegui entender o áudio'; o teste de texto não depende disso")
+if venv_audio.is_dir():
+    bibliotecas = venv_importa("faster_whisper", "numpy")
+    mostrar("OK" if bibliotecas else "AVISO", "faster-whisper e numpy instalados no venv de transcrição" if bibliotecas else "faster-whisper ou numpy não importam no venv",
+            "pip install -r inferencia/requirements-voz.txt (com o Python de inferencia/.venv)")
+tem_ffmpeg = bool(shutil.which("ffmpeg")) or (venv_audio.is_dir() and venv_importa("imageio_ffmpeg"))
+mostrar("OK" if tem_ffmpeg else "AVISO", ("ffmpeg encontrado (no sistema ou no pacote imageio-ffmpeg do venv de voz)" if tem_ffmpeg else "ffmpeg não encontrado"),
+        "pip install imageio-ffmpeg no venv de voz (já está no requirements-voz.txt), ou winget install Gyan.FFmpeg / apt install ffmpeg")
 modelos = RAIZ / "inferencia" / "modelos" / "whisper"
 mostrar("OK" if modelos.is_dir() and any(modelos.iterdir()) else "AVISO", "modelo Whisper baixado" if modelos.is_dir() and any(modelos.iterdir()) else "modelo Whisper ainda não baixado",
         "o primeiro uso baixa o modelo (precisa de internet)")
