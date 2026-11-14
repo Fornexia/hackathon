@@ -83,7 +83,8 @@ export default function FornexLaptop({
   } as CSSProperties;
 
   const onMove = (e: MouseEvent<HTMLDivElement>) => {
-    if (!parallax) return;
+    // sem inclinação para quem pediu menos movimento no sistema
+    if (!parallax || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const r = e.currentTarget.getBoundingClientRect();
     setTilt({
       ry: ((e.clientX - r.left) / r.width - 0.5) * 10,

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ArrowRight,
   BarChart3,
@@ -25,6 +25,23 @@ import {
 import FornexLaptop from "./components/fornex-laptop/FornexLaptop";
 import assistente from "./components/fornex-laptop/assets/assistente-laptop.jpg";
 import areaTecnica from "./components/fornex-laptop/assets/area-tecnica.jpg";
+import Admin from "./Admin";
+import Fundadores from "./Fundadores";
+import Testar from "./Testar";
+import ThemeToggle from "./ThemeToggle";
+import { Contato, Faq, Historia, ParaQuem, QuemSomos, SiteFooter, TestarCta } from "./Sections";
+import { useContent } from "./content";
+import { useHashRoute, useReveal, useScrolled } from "./hooks";
+
+/** [texto do menu, id da seção]. Os ids precisam existir como id="..." nas seções abaixo. */
+const NAV_ITEMS: [string, string][] = [
+  ["Quem somos", "quem-somos"],
+  ["Solução", "solucao"],
+  ["Recursos", "recursos"],
+  ["Planos", "planos"],
+  ["Fundadores", "fundadores"],
+  ["Contato", "contato"],
+];
 
 const steps = [
   { icon: Search, title: "1. Pesquise", text: "Informe o CNPJ ou nome do fornecedor." },
@@ -69,19 +86,6 @@ const features = [
 const plans = [
   {
     icon: Layers3,
-    name: "Essencial",
-    description: "Ideal para pequenas operações.",
-    price: "149",
-    items: [
-      "Até 70 consultas/mês",
-      "1 usuário",
-      "Consultas com IA",
-      "Evidências com fontes oficiais",
-    ],
-    action: "Começar agora",
-  },
-  {
-    icon: Layers3,
     name: "Profissional",
     description: "Para equipes em crescimento.",
     price: "399",
@@ -92,7 +96,23 @@ const plans = [
       "Suporte prioritário",
     ],
     action: "Assinar Profissional",
+    tag: "Para crescer",
+  },
+  {
+    // plano do meio e recomendado (destaque padrão): menor preço de entrada
+    icon: Layers3,
+    name: "Essencial",
+    description: "Ideal para pequenas operações.",
+    price: "149",
+    items: [
+      "Até 70 consultas/mês",
+      "1 usuário",
+      "Consultas com IA",
+      "Evidências com fontes oficiais",
+    ],
+    action: "Começar agora",
     featured: true,
+    tag: "Melhor custo-benefício",
   },
   {
     icon: Building2,
@@ -106,12 +126,13 @@ const plans = [
       "Suporte dedicado",
     ],
     action: "Falar com um especialista",
+    tag: "Para grandes equipes",
   },
 ];
 
 function Brand({ compact = false }: { compact?: boolean }) {
   return (
-    <a href="#inicio" className="brand" aria-label="FornexIA — página inicial">
+    <a href="#inicio" className="brand">
       <span className="brand-mark">
         <Layers3 />
       </span>
@@ -119,52 +140,90 @@ function Brand({ compact = false }: { compact?: boolean }) {
         Fornex<span>IA</span>
         {!compact && <small>DADOS PÚBLICOS. DECISÕES SEGURAS.</small>}
       </span>
+      <span className="sr-only">, página inicial</span>
     </a>
   );
 }
 
-function DashboardMockup() {
+function DashboardMockup({ src }: { src: string }) {
   return (
     <div className="laptop1">
-      <FornexLaptop screenSrc={assistente} screenAlt="Assistente FornexIA" />
+      <FornexLaptop screenSrc={src} screenAlt="Assistente FornexIA" />
     </div>
   );
 }
 
 export default function App() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const route = useHashRoute();
+  const scrolled = useScrolled();
+  const { images } = useContent();
+  useReveal(route);
+
+  // ao voltar para o site vindo de outra tela, vai até a seção do endereço (ex.: #faq)
+  useEffect(() => {
+    if (route !== "") {
+      window.scrollTo(0, 0);
+      return;
+    }
+    const id = decodeURIComponent(location.hash.slice(1));
+    if (!id) return;
+    const t = setTimeout(() => document.getElementById(id)?.scrollIntoView(), 60);
+    return () => clearTimeout(t);
+  }, [route]);
+
+  // Esc fecha o menu no celular
+  useEffect(() => {
+    if (!menuOpen) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setMenuOpen(false);
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [menuOpen]);
+
+  // título da página por tela (leitores de tela e abas do navegador)
+  useEffect(() => {
+    const titles: Record<string, string> = {
+      admin: "Administração | FornexIA",
+      testar: "Testar o nosso sistema | FornexIA",
+    };
+    document.title = titles[route] ?? "FornexIA | Inteligência em fornecedores com dados públicos";
+  }, [route]);
+
+  if (route === "admin") return <Admin />;
+  if (route === "testar") return <Testar />;
 
   return (
-    <main>
-      <header className="site-header">
+    <>
+      <a className="skip-link" href="#principal">
+        Pular para o conteúdo
+      </a>
+      <header className={`site-header${scrolled ? " scrolled" : ""}`}>
         <div className="container nav-wrap">
           <Brand />
-          <nav className={menuOpen ? "nav-open" : ""} aria-label="Navegação principal">
-            {["Solução", "Recursos", "Planos", "Clientes", "Conteúdo"].map((item) => (
-              <a
-                key={item}
-                href={`#${item.toLowerCase().replace("ç", "c")}`}
-                onClick={() => setMenuOpen(false)}
-              >
-                {item}
+          <nav id="menu-principal" className={menuOpen ? "nav-open" : ""} aria-label="Navegação principal">
+            {NAV_ITEMS.map(([label, id]) => (
+              <a key={id} href={`#${id}`} onClick={() => setMenuOpen(false)}>
+                {label}
               </a>
             ))}
-            <a href="#contato" className="nav-login">
-              Entrar
-            </a>
-            <a href="#planos" className="button button-small">
-              Testar grátis
+            <a href="#/testar" className="button button-small">
+              Testar o nosso sistema
             </a>
           </nav>
+          <ThemeToggle />
           <button
             className="menu-button"
             onClick={() => setMenuOpen(!menuOpen)}
-            aria-label="Abrir menu"
+            aria-label={menuOpen ? "Fechar menu" : "Abrir menu"}
+            aria-expanded={menuOpen}
+            aria-controls="menu-principal"
           >
             {menuOpen ? <X /> : <Menu />}
           </button>
         </div>
       </header>
+
+      <main id="principal" tabIndex={-1}>
 
       <section className="hero" id="inicio">
         <div className="orb orb-one" />
@@ -180,10 +239,10 @@ export default function App() {
               conformidade nas análises de fornecedores.
             </p>
             <div className="hero-actions">
-              <a href="#planos" className="button">
-                Testar grátis por 7 dias <ArrowRight />
+              <a href="#/testar" className="button">
+                Testar o nosso sistema <ArrowRight />
               </a>
-              <a href="#solucao" className="button button-outline">
+              <a href="#conteudo" className="button button-outline">
                 <Play fill="currentColor" /> Ver como funciona
               </a>
             </div>
@@ -200,7 +259,7 @@ export default function App() {
             </div>
           </div>
           <div className="hero-visual">
-            <DashboardMockup />
+            <DashboardMockup src={images.hero || assistente} />
           </div>
         </div>
       </section>
@@ -231,13 +290,17 @@ export default function App() {
         </div>
       </section>
 
+      <QuemSomos />
+
+      <Historia />
+
       <section className="section process" id="conteudo">
         <div className="container">
-          <div className="section-heading">
+          <div className="section-heading reveal">
             <h2>Como a FornexIA funciona?</h2>
             <i />
           </div>
-          <div className="steps">
+          <div className="steps reveal">
             {steps.map(({ icon: Icon, title, text }, index) => (
               <div className="step-wrap" key={title}>
                 <article className="step-card">
@@ -255,9 +318,9 @@ export default function App() {
       </section>
 
       <section className="section features-section" id="recursos">
-        <div className="container feature-layout">
+        <div className="container feature-layout reveal">
           <div className="feature-mockup">
-            <FornexLaptop screenSrc={areaTecnica} screenAlt="Área técnica" badge={false}/>
+            <FornexLaptop screenSrc={images.features || areaTecnica} screenAlt="Área técnica" badge={false} />
           </div>
           <div>
             <div className="section-heading align-left">
@@ -279,9 +342,11 @@ export default function App() {
         </div>
       </section>
 
+      <ParaQuem />
+
       <section className="section pricing" id="planos">
         <div className="container pricing-layout">
-          <div className="pricing-intro">
+          <div className="pricing-intro reveal">
             <div className="section-heading align-left">
               <h2>Escolha o plano ideal para sua equipe</h2>
               <i />
@@ -290,12 +355,12 @@ export default function App() {
               Soluções flexíveis para diferentes volumes de análise e necessidades de compliance.
             </p>
           </div>
-          <div className="plans">
-            {plans.map(({ icon: Icon, name, description, price, items, action, featured }) => (
+          <div className="plans reveal">
+            {plans.map(({ icon: Icon, name, description, price, items, action, featured, tag }) => (
               <article className={`plan-card ${featured ? "featured" : ""}`} key={name}>
-                {featured && <span className="popular">Mais escolhido</span>}
+                <span className="popular">{tag}</span>
                 <h3>
-                  <Icon /> {name}
+                  <Icon aria-hidden="true" /> {name}
                 </h3>
                 <p>{description}</p>
                 <div className="price">
@@ -319,7 +384,7 @@ export default function App() {
       </section>
 
       <section className="section testimonials" id="clientes">
-        <div className="container testimonials-grid">
+        <div className="container testimonials-grid reveal">
           <div className="section-heading align-left">
             <h2>Quem já confia na FornexIA</h2>
             <i />
@@ -375,58 +440,17 @@ export default function App() {
         </div>
       </section>
 
-      <section className="cta-section" id="contato">
-        <div className="container">
-          <div className="cta-card">
-            <Layers3 className="cta-icon" />
-            <h2>
-              Pronto para tomar decisões
-              <br />
-              mais seguras com a FornexIA
-            </h2>
-            <div>
-              <a href="mailto:contato@fornexia.com.br" className="button">
-                Testar grátis por 7 dias <ArrowRight />
-              </a>
-              <p>
-                <span>
-                  <Check /> Sem cartão de crédito
-                </span>
-                <span>
-                  <Check /> Configuração rápida
-                </span>
-                <span>
-                  <Check /> Suporte durante o teste
-                </span>
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
+      <Fundadores />
 
-      <footer>
-        <div className="container footer-wrap">
-          <Brand />
-          <nav>
-            {["Solução", "Recursos", "Planos", "Conteúdo", "Contato"].map((item) => (
-              <a href={`#${item.toLowerCase().replace("ç", "c")}`} key={item}>
-                {item}
-              </a>
-            ))}
-          </nav>
-          <div className="socials">
-            <a href="#" aria-label="LinkedIn">
-              <BriefcaseBusiness />
-            </a>
-            <a href="#" aria-label="YouTube">
-              <Video />
-            </a>
-            <a href="#" aria-label="GitHub">
-              <Code2 />
-            </a>
-          </div>
-        </div>
-      </footer>
-    </main>
+      <Faq />
+
+      <TestarCta />
+
+      <Contato />
+
+      </main>
+
+      <SiteFooter brand={<Brand />} />
+    </>
   );
 }
