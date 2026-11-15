@@ -1,0 +1,72 @@
+name: Testes
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: testes-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  testes:
+    name: Python, PHP e bancos locais
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    env:
+      PYTHONUTF8: "1"
+      PYTHONIOENCODING: utf-8
+    steps:
+      - name: Baixar o codigo
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Instalar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+
+      - name: Instalar PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.2"
+          extensions: pdo_mysql, mysqli, curl, mbstring, openssl, fileinfo
+          coverage: none
+
+      - name: Instalar dependencias Python
+        run: |
+          python -m venv .venv
+          .venv/bin/python -m pip install -r requirements.txt
+
+      - name: Gerar configuracao descartavel
+        run: .venv/bin/python conferir_ambiente.py --preparar
+
+      - name: Subir MariaDB e Neo4j
+        run: |
+          docker compose -f site/dev/docker-compose.yml up -d --wait
+          docker compose --env-file .env -f infra/docker-compose.yml up -d --wait neo4j
+
+      - name: Preparar os bancos de teste
+        run: |
+          .venv/bin/python coleta/carregar_neo4j.py --zerar --exemplo
+          php site/setup.php
+
+      - name: Confirmar integracao Neo4j disponivel
+        env:
+          PYTHONPATH: consulta/testes
+        run: .venv/bin/python -c "import test_acesso_neo4j as teste; assert teste.MOTIVO is None, teste.MOTIVO"
+
+      - name: Executar as quatro suites gratuitas
+        run: .venv/bin/python scripts/testes_ci.py
+
+      - name: Encerrar bancos descartaveis
+        if: always()
+        run: |
+          docker compose -f site/dev/docker-compose.yml stop
+          docker compose --env-file .env -f infra/docker-compose.yml stop

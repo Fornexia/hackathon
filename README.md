@@ -1,5 +1,28 @@
 # Histórico de fornecedor com prova
 
+[![Testes](https://github.com/Luks108/hackathon/actions/workflows/testes.yml/badge.svg)](https://github.com/Luks108/hackathon/actions/workflows/testes.yml)
+
+O workflow **Testes** executa as suítes de consulta, chat, API e pacote de prova a cada push e pull request,
+com Python 3.13, PHP 8.2, MariaDB e Neo4j descartáveis. Não inicia worker, WhatsApp ou chamadas pagas de modelos.
+O selo mostra o resultado publicado pelo GitHub Actions; antes do primeiro push com o workflow, não há execução remota validada.
+Os logs de cada suíte e uma tabela de resultados ficam na página da execução.
+
+Para ensaiar os mesmos comandos localmente, com a `.venv`, os bancos e as tabelas preparados e o worker parado:
+
+```powershell
+.venv\Scripts\python scripts/testes_ci.py
+```
+
+No Linux: `.venv/bin/python scripts/testes_ci.py`. O script interrompe na primeira falha e devolve código diferente de zero.
+Testes exclusivos de Linux são pulados no Windows. A integração Neo4j exige a base pequena de `fixtures/exemplo`;
+o workflow confere sua disponibilidade antes dos testes. O teste opcional do canal requer Bun e suas dependências,
+que não são instalados neste workflow. O ensaio da API usa o banco local de desenvolvimento e limpa dados de teste.
+
+**Ensaio local verificado em 14/11/2026 (Windows, Python 3.13.3, PHP 8.2):**
+consulta 313/313, chat 250 aprovados e 12 pulados, API 82/82, pacote de prova 33/33.
+O comando acima terminou com código zero. Isso valida o ensaio local; a execução no runner Ubuntu e o selo verde remoto
+continuam pendentes do primeiro push autorizado.
+
 Projeto do **Desafio 1 — Portal Inteligente de Transparência com IA** do Hack Garanhuns Tech 2026.
 
 Consulta em linguagem natural a dados públicos de contratação. Toda resposta aponta para o trecho literal

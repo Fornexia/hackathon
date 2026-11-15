@@ -6,6 +6,8 @@
 
 ## Resumo
 
+NOVA TAREFA CI: workflow GitHub Actions configurado para push, pull_request e disparo manual, com Python 3.13, PHP 8.2 e bancos descartaveis. Ensaio local completo passou; validacao remota pendente de push autorizado. Sem worker, gateway ou chamadas pagas. Branch propria gpt/gabriella-ci-testes-2026-11-14.
+
 RESULTADO FINAL DA RODADA AUTORIZADA: DeepSeek aprovado no subconjunto, 54/59 (91,5%), mediana 12,4 s, custo estimado US$ 0,0712. Consulta preliminar OpenAI novamente HTTP 429; demais rodadas interrompidas conforme regra. Base pequena restaurada e site saudavel. Gabarito local criado por excecao expressamente autorizada. Relatos abaixo incluem etapas anteriores e bloqueios ja resolvidos.
 
 Continuacao apos autorizacao de custos: pre-verificacao detectou ausencia de dados/bench/gabarito.json. Nenhuma rodada paga iniciada e nenhum dado do Neo4j trocado. Solicitada decisao do usuario entre disponibilizar gabarito original e autorizar excecao para gera-lo localmente conforme guia. A autorizacao de custos nao revoga sozinha a proibicao de executar gabarito.
@@ -15,6 +17,11 @@ Atualizacao final desta continuacao: incompatibilidade de leitura corrigida some
 Verificacao retomada na API depois de consulta e chat aprovados. API falhou antes dos testes por incompatibilidade do formato de configuracao com a expressao regular. Sequencia interrompida conforme pedido. Nenhum benchmark ou ataque pago nesta tarefa; nenhum codigo de producao alterado.
 
 ## Feito
+
+- CI: .github/workflows/testes.yml instala dependencias, gera configuracoes locais com conferir_ambiente.py --preparar, sobe bancos por Compose, carrega fixtures pequenas e cria tabelas, exige integracao Neo4j disponivel, chama scripts/testes_ci.py e encerra bancos ao final. Permissao contents read, checkout sem persistir credenciais, timeout de 25 minutos. Nenhum segredo ou chave de provedor no workflow.
+- scripts/testes_ci.py executa quatro suites em ordem com o mesmo Python, UTF-8, interrupcao e exit 1 na primeira falha, tabela no terminal e no GITHUB_STEP_SUMMARY.
+- README com badge real do Actions, comando do ensaio, resultado local e aviso explicito de remoto nao validado.
+- Somente workflow, executor, README e diario destinados ao commit CI; alteracoes preexistentes de infra e teste da API preservadas fora dele.
 
 - Com autorizacao explicita, geradas fixtures deterministicas, carregada base de benchmark e criado gabarito local ausente; hash 68c08337c45daa58, 150 perguntas. Executado somente o subconjunto de 59 perguntas, nao o benchmark completo.
 - Respostas e gabarito locais em dados/bench, fora do Git. Nenhuma renotacao, repeticao de rodada, alteracao de gabarito em bench/ ou codigo de producao.
@@ -29,6 +36,17 @@ Verificacao retomada na API depois de consulta e chat aprovados. API falhou ante
 - Diario reconstruido a partir dos titulos de _modelo.md, preservando os resultados e pendencias do dia. Somente este diario destinado ao commit.
 
 ## Verificado (e como)
+
+### Ensaio CI, Windows local, 14/11/2026
+
+- .venv\Scripts\python -m pip check: No broken requirements found. Get-CimInstance filtrado pelos workers: nenhum processo encontrado antes do ensaio.
+- .venv\Scripts\python scripts/testes_ci.py: exit 0, quatro suites OK. Consulta 313/313 em 32,079 s; chat 262 testes, 250 aprovados e 12 pulados (Linux), 187,546 s; API 82/82 em 86,022 s; prova 33/33 em 51,484 s. Nenhuma chamada paga.
+- YAML analisado com PyYAML 6.0.2 instalado somente em pasta temporaria; gatilhos, permissao minima e comando do executor conferidos. Primeira leitura bloqueada por sandbox; passou com acesso a pasta temporaria.
+- Ensaio de falha controlada do executor com subprocesso simulado retornando 7: executor retornou 1, chamou somente a primeira suite e gravou resumo de falha; nao mascara falhas.
+- Template PHP conferido em memoria como compativel com a expressao original do teste; CI gera esse template, enquanto a correcao local preexistente do parser permanece fora do commit.
+- git pull buscou referencias, mas nao integrou mudancas: branch anterior sem upstream. Nenhum merge realizado. Consulta gh api repos/Luks108/hackathon/actions/permissions retornou HTTP 403; politica Actions nao confirmada remotamente.
+
+- Diagnostico posterior autorizado, Windows local: uma unica requisicao minima ao endpoint oficial Chat Completions, modelo GPT-4.1, max_completion_tokens 1, sem repeticao. Retorno HTTP 429, error.type insufficient_quota, error.code credit_balance_exhausted, sem Retry-After. Somente classificacao exibida; nenhuma chave ou mensagem sensivel registrada. Causa identificada: creditos pre-pagos esgotados na organizacao da API. Nenhuma alteracao de codigo ou configuracao. Documentacao oficial de error-codes orienta adicionar creditos antes de tentar novamente.
 
 ### Rodada autorizada, Windows local, 14/11/2026
 
@@ -114,6 +132,10 @@ Referencia de 13/11: Sonnet e DeepSeek Flash 56/59; medias 5,8 s e 7,2 s; custos
 - Sem push, PR ou merge. Commit limitado ao diario apos relatorio.
 
 ## Em aberto (por prioridade)
+
+- [ ] CI: autorizar push da branch gpt/gabriella-ci-testes-2026-11-14, confirmar GitHub Actions habilitado e acompanhar a primeira execucao para validar o selo remoto. Sem PR ou merge automaticos. (origem: 2026-11-14-anagmenezes)
+
+- [ ] Usuario adicionar creditos na plataforma OpenAI; diagnostico especifico credit_balance_exhausted confirmado. Aguardar confirmacao antes de novo teste e retomada do benchmark. (origem: 2026-11-14-anagmenezes)
 
 - [ ] Resolver HTTP 429 OpenAI antes de retomar seu subconjunto e ataques pagos. Investigar erro de agregacao N010 sem alterar automaticamente producao ou gabarito. Avaliar falsos negativos S02/V28 e ausencia de prova N033/N034 como achados. (origem: 2026-11-14-anagmenezes)
 
