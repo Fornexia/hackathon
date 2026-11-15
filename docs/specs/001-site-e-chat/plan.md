@@ -60,16 +60,18 @@ eventos(id, pergunta_id, seq,
 tentativas_login(email, ip, criada_em)
 ```
 
-### Planos de demonstração
+### Plano de demonstração
 
-Valores são hipótese, não preço validado.
+Conforme o [pitch de 06/11/2026](https://docs.google.com/presentation/d/1NlY17gKzXS5ouZpbqe8mq12_ZM9bOj81ZyqSALF42_4/edit):
 
-Há um **plano único**. Franquia e excedente ficam em 0 (as colunas existem no banco, mas o plano único não as usa).
-Antes havia dois planos, Município (R$ 990) e Estado (R$ 1.990); o `setup.php` move quem estava neles para o plano único e os remove.
+| Plano | Mensal | Entes da demonstração |
+|---|---|---|
+| Único | R$ 149 | `pe-estado`, `pe-garanhuns`, `br-uniao` (desde 14/11/2026) |
 
-| Plano | Mensal | Franquia | Excedente | Entes |
-|---|---|---|---|---|
-| Único | R$ 149 | 0 | R$ 0 | `pe-estado`, `pe-garanhuns` |
+Não há cobrança real nesta versão. O pitch não define franquia ou excedente; os campos legados ficam zerados,
+sem promessa de consultas ilimitadas. O `setup.php` migra as assinaturas ativas de Município e Estado para Único,
+preserva o histórico e mantém as ofertas antigas indisponíveis na API. O cadastro no site libera novos números
+automaticamente; o administrador ainda pode bloquear ou liberar novamente. Telefones antigos pendentes também são liberados pelo `setup.php`; números bloqueados continuam bloqueados.
 
 ## Contrato da API
 
@@ -88,7 +90,7 @@ Todas as rotas de escrita (`POST`, `DELETE`), inclusive cadastro e login, exigem
 | GET | `/api/planos` | Lista pública, com `tenants` como lista |
 | POST | `/api/assinatura` | `{plano_id}` ativa o plano de demonstração. Troca de plano cancela o anterior |
 | GET | `/api/telefones` | Os telefones do usuário: `[{id, numero, status, criado_em}]` |
-| POST | `/api/telefones` | `{numero}` cadastra e devolve `201 {id, numero, status: "pendente"}`. Exige plano ativo. Aceita `(87) 99999-9999`, `+55 87 99999-9999` e variações, e guarda sempre `55` + DDD + `9` + 8 dígitos (13 dígitos). Só celular brasileiro; letras ou texto junto do número: `400`. Número já cadastrado, em qualquer conta e em qualquer forma de escrever (inclusive sem o 9): `409`, sem revelar de quem é. Limite de 3 por conta: `400` |
+| POST | `/api/telefones` | `{numero}` cadastra e devolve `201 {id, numero, status: "aprovado"}`. Exige plano ativo. Aceita `(87) 99999-9999`, `+55 87 99999-9999` e variações, e guarda sempre `55` + DDD + `9` + 8 dígitos (13 dígitos). Só celular brasileiro; letras ou texto junto do número: `400`. Número já cadastrado, em qualquer conta e em qualquer forma de escrever (inclusive sem o 9): `409`, sem revelar de quem é. Limite de 3 por conta: `400` |
 | DELETE | `/api/telefones/{id}` | Remove o próprio telefone (`204`). De outra conta ou inexistente: `404`. Se estava aprovado, o worker deixa de listá-lo |
 | POST | `/api/perguntas` | `{texto}` devolve `{id}`. Sem plano: `403`. Mais de 500 caracteres: `400`. Já há uma aberta: `409` com `{erro, pergunta_id}` |
 | GET | `/api/perguntas/aberta` | `{pergunta}`: a pergunta em andamento do usuário, ou `null`. Serve para retomar ao recarregar a página |
@@ -105,7 +107,7 @@ Todas as rotas de escrita (`POST`, `DELETE`), inclusive cadastro e login, exigem
 Só o papel `admin` acessa: sem login `401`, usuário comum `403`, e `POST` sem `X-CSRF-Token` `403`. O papel é lido do banco a cada
 requisição, então perder o papel corta o acesso na hora. Repetir a mesma decisão devolve `200` e **não troca** quem decidiu
 primeiro. O número só chega ao worker (`GET /api/worker/telefones`) enquanto estiver `aprovado` **e** o dono tiver plano ativo.
-`aprovado_por` guarda o administrador da última decisão, seja aprovação ou revogação.
+`aprovado_por` guarda o administrador da última decisão, seja aprovação ou revogação; é nulo na liberação automática.
 
 ### Worker
 

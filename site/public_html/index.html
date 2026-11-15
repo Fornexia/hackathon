@@ -3,18 +3,21 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="color-scheme" content="light">
+<meta name="color-scheme" content="dark light">
+<meta name="theme-color" content="#03162d" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#f2f7fb" media="(prefers-color-scheme: light)">
 <title>FornexIA | Dados públicos. Decisões seguras.</title>
 <meta name="description" content="Pergunte em português sobre um fornecedor e receba o histórico com a fonte de cada número.">
-<link rel="canonical" href="https://hackathon.figueiredo.dev/">
+<link rel="canonical" href="https://fornexia.figueiredo.dev/">
 <meta property="og:type" content="website">
 <meta property="og:locale" content="pt_BR">
 <meta property="og:title" content="FornexIA">
 <meta property="og:description" content="Nós entregamos a resposta e a prova juntas.">
-<meta property="og:url" content="https://hackathon.figueiredo.dev/">
+<meta property="og:url" content="https://fornexia.figueiredo.dev/">
 <link rel="icon" href="icone.svg" type="image/svg+xml">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Noto+Sans:wght@400;500;600;700;800&display=swap">
-<link rel="stylesheet" href="assets/site.css?v=20261108c">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="assets/site.css?v=20261115a">
+<script src="assets/tema.js?v=20261115a"></script>
 <style>
 /* Landing: mesma identidade das páginas internas. A moldura deslocada guarda a prova, o centro do produto. */
 main#topo { display: block; padding: 0; }
@@ -25,35 +28,38 @@ html { scroll-behavior: smooth; scroll-padding-top: 76px; }
 .topo-nav nav { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
 .topo-nav nav a { color: var(--tinta); text-decoration: none; font-size: 15px; }
 .topo-nav nav a:hover { color: var(--verde); }
+.topo-nav nav a.botao { color: var(--verde); }
 .heroi { padding-block: 60px 68px; background: var(--cartao); }
 .heroi .faixa-centro { display: grid; grid-template-columns: minmax(0, 1.08fr) minmax(0, .92fr); gap: 56px; align-items: center; }
 .rotulo { font-size: 13px; font-weight: 700; letter-spacing: .09em; color: var(--verde); margin: 0 0 8px; text-transform: uppercase; }
-.heroi h1 { font-size: clamp(38px, 5.4vw, 60px); line-height: 1.08; font-weight: 800; color: var(--marinho); margin: 0 0 18px; }
+.heroi h1 { font-size: clamp(38px, 5.4vw, 60px); line-height: 1.08; font-weight: 800; color: var(--titulo); margin: 0 0 18px; }
 .lide { font-size: 19px; color: var(--tinta-2); max-width: 54ch; margin: 0; }
 .heroi .lide { padding-top: 16px; border-top: 1px solid var(--regra); }
 .acoes { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 26px; }
-.moldura { position: relative; border: 2px solid var(--marinho); border-radius: 30px; padding: 12px; }
-.moldura::before { content: ""; position: absolute; width: 62px; height: 62px; right: -20px; top: -20px; border: 4px solid var(--verde); border-radius: 15px; background: var(--cartao); }
-.zap { background: var(--marinho); border-radius: 20px; padding: 18px; display: flex; flex-direction: column; gap: 10px; }
-.zap-topo { color: #fff; font-weight: 600; font-size: 14px; padding: 0 44px 10px 0; border-bottom: 1px solid #16365f; margin: 0; }
-.bolha { background: #fff; color: var(--tinta); padding: 10px 13px; border-radius: 13px; font-size: 14.5px; line-height: 1.45; max-width: 92%; margin: 0; }
-.bolha.eu { align-self: flex-end; background: var(--verde-fraco); }
-.citacao { display: block; font: 400 12.5px/1.45 var(--mono); border-left: 3px solid var(--verde); padding-left: 9px; margin-top: 7px; color: var(--tinta-2); }
+.moldura { position: relative; border: 2px solid var(--linha-forte); border-radius: 30px; padding: 12px; }
+.moldura::before { content: ""; position: absolute; width: 62px; height: 62px; right: -20px; top: -20px; border: 4px solid var(--verde); border-radius: 15px; background: var(--papel); }
+.zap { background: var(--zap-bg); border-radius: 20px; padding: 18px; display: flex; flex-direction: column; gap: 10px; }
+.zap-topo { color: #f4fbff; font-weight: 600; font-size: 14px; padding: 0 44px 10px 0; border-bottom: 1px solid var(--zap-linha); margin: 0; }
+.bolha { background: var(--bolha-bg); color: var(--bolha-texto); padding: 10px 13px; border-radius: 13px; font-size: 14.5px; line-height: 1.45; max-width: 92%; margin: 0; }
+.bolha.eu { align-self: flex-end; background: var(--bolha-eu); }
+.citacao { display: block; font: 400 13px/1.45 var(--mono); border-left: 3px solid var(--bolha-destaque); padding-left: 9px; margin-top: 7px; color: var(--bolha-apoio); }
 .bloco { padding-block: 62px; background: var(--cartao); }
 .bloco.claro { background: var(--papel); }
-.bloco h2 { font-size: clamp(28px, 3.4vw, 38px); font-weight: 800; color: var(--marinho); margin: 0 0 12px; }
+.bloco h2 { font-size: clamp(28px, 3.4vw, 38px); font-weight: 800; color: var(--titulo); margin: 0 0 12px; }
 .bloco .apoio-secao { color: var(--tinta-2); max-width: 62ch; margin: 0; }
 .passos { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 32px; margin: 32px 0 0; padding: 0; list-style: none; counter-reset: passo; }
-.passos li { counter-increment: passo; border-top: 3px solid var(--marinho); padding-top: 16px; }
+.passos li { counter-increment: passo; border-top: 3px solid var(--linha-forte); padding-top: 16px; }
 .passos li::before { content: counter(passo); display: block; font: 500 15px var(--mono); color: var(--verde); margin-bottom: 6px; }
-.passos h3, .quatro h3 { color: var(--marinho); }
+.passos h3, .quatro h3 { color: var(--titulo); }
 .passos h3 { font-size: 19px; margin-bottom: 5px; }
 .passos p, .quatro p { color: var(--tinta-2); font-size: 15px; margin: 0; }
 .planos { grid-template-columns: minmax(0, 1fr); max-width: 520px; margin: 30px 0 0; gap: 22px; }
-.plano-card { background: var(--cartao); border: 1px solid var(--regra); border-radius: 18px; padding: 26px; display: flex; flex-direction: column; gap: 8px; }
-.plano-card:last-child { border: 2px solid var(--marinho); }
-.plano-card h3 { color: var(--marinho); font-size: 21px; }
-.plano-card .preco { font-size: 34px; font-weight: 800; color: var(--marinho); margin: 0; font-variant-numeric: tabular-nums; }
+.plano-card { background: var(--cartao); border: 1px solid var(--borda); border-radius: 18px; padding: 26px; display: flex; flex-direction: column; gap: 8px; transition: transform .2s, border-color .2s, box-shadow .2s; }
+.plano-card:hover { transform: translateY(-4px); border-color: var(--verde); box-shadow: var(--brilho); }
+.plano-card:last-child { border: 2px solid var(--linha-forte); }
+.plano-card:last-child:hover { border-color: var(--verde); }
+.plano-card h3 { color: var(--titulo); font-size: 21px; }
+.plano-card .preco { font-size: 34px; font-weight: 800; color: var(--titulo); margin: 0; font-variant-numeric: tabular-nums; }
 .plano-card .preco small { font-size: 15px; font-weight: 400; color: var(--tinta-2); }
 .plano-card ul { margin: 0; padding-left: 18px; color: var(--tinta-2); font-size: 15px; }
 .planos-estado, .nota-planos { color: var(--tinta-2); font-size: 14px; }
@@ -63,10 +69,10 @@ html { scroll-behavior: smooth; scroll-padding-top: 76px; }
 .limites { margin: 24px 0 0; padding-left: 20px; color: var(--tinta-2); columns: 2; column-gap: 40px; font-size: 15px; }
 .limites li { break-inside: avoid; margin-bottom: 8px; }
 .limites strong { color: var(--tinta); }
-.chamada { background: var(--marinho); color: #fff; padding-block: 56px; }
-.chamada h2 { color: #fff; font-size: clamp(26px, 3.2vw, 36px); font-weight: 800; margin: 0 0 8px; }
-.chamada p { margin: 0 0 20px; color: #d7e0ec; }
-footer { background: var(--marinho); color: #fff; border-top: 1px solid #16365f; padding-block: 28px; font-size: 14px; }
+.chamada { background: var(--marinho); color: #f4fbff; padding-block: 56px; border-top: 1px solid var(--zap-linha); }
+.chamada h2 { color: #f4fbff; font-size: clamp(26px, 3.2vw, 36px); font-weight: 800; margin: 0 0 8px; }
+.chamada p { margin: 0 0 20px; color: #d3e0ea; }
+footer { background: var(--marinho); color: #f4fbff; border-top: 1px solid var(--zap-linha); padding-block: 28px; font-size: 14px; }
 footer .faixa-centro { display: flex; justify-content: space-between; gap: 18px; flex-wrap: wrap; }
 footer p { margin: 0; max-width: 66ch; }
 @media (max-width: 900px) {
@@ -78,21 +84,20 @@ footer p { margin: 0; max-width: 66ch; }
 }
 .assistente { position: fixed; z-index: 50; right: max(16px, env(safe-area-inset-right, 0px)); bottom: max(16px, env(safe-area-inset-bottom, 0px)); }
 .assistente-botao { display: inline-flex; align-items: center; gap: 10px; min-height: 56px; padding: 0 22px 0 18px; border: 0; border-radius: 999px; cursor: pointer;
-  background: var(--botao); color: var(--botao-texto); font: 600 16px var(--texto); box-shadow: 0 10px 28px -8px var(--sombra), 0 2px 6px -2px var(--sombra); transition: background .15s; }
-.assistente-botao:hover { background: var(--botao-hover); }
-.assistente-botao:focus-visible { outline-color: var(--tinta); }
+  background: var(--cartao-solido); color: var(--tinta); border: 1.5px solid var(--verde); font: 700 16px var(--texto); box-shadow: 0 10px 28px -8px var(--sombra), 0 2px 6px -2px var(--sombra); transition: transform .2s, box-shadow .2s, background .2s; }
+.assistente-botao:hover { background: var(--verde-fraco); transform: translateY(-2px); box-shadow: var(--brilho); }
 .assistente-botao svg { flex: none; }
 .assistente-botao .i-seta, .assistente-botao.aberto .i-balao { display: none; }
 .assistente-botao.aberto .i-seta { display: block; }
 .assistente-painel { position: absolute; right: 0; bottom: calc(100% + 12px); width: min(420px, calc(100vw - 32px)); height: min(680px, calc(100vh - 110px)); height: min(680px, calc(100dvh - 110px));
-  display: flex; flex-direction: column; overflow: hidden; background: var(--cartao); border: 1px solid var(--regra); border-radius: 16px; box-shadow: 0 24px 60px -16px var(--sombra);
+  display: flex; flex-direction: column; overflow: hidden; background: var(--cartao-solido); border: 1px solid var(--borda); border-radius: 16px; box-shadow: 0 24px 60px -16px var(--sombra);
   transform-origin: bottom right; transition: opacity .18s ease, transform .18s ease, visibility 0s; }
 .assistente-painel[inert] { opacity: 0; visibility: hidden; transform: translateY(10px) scale(.98); transition: opacity .18s ease, transform .18s ease, visibility 0s .18s; pointer-events: none; }
 .assistente-topo { flex: none; display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 6px 8px 6px 18px; border-bottom: 1px solid var(--regra); }
 .assistente-topo strong { font: 600 19px var(--serifa); }
 .assistente-fechar { display: grid; place-items: center; width: 40px; height: 40px; border: 0; border-radius: 50%; background: transparent; color: var(--tinta-2); cursor: pointer; }
 .assistente-fechar:hover { background: var(--papel); color: var(--tinta); }
-.assistente-quadro { flex: 1; min-height: 0; width: 100%; border: 0; background: var(--cartao); }
+.assistente-quadro { flex: 1; min-height: 0; width: 100%; border: 0; background: var(--cartao-solido); }
 @media (max-width: 480px) { .assistente-botao span { display: none; } .assistente-botao { padding: 0 18px; } }
 </style>
 </head>
@@ -105,6 +110,7 @@ footer p { margin: 0; max-width: 66ch; }
       <a class="opcional" href="#como">Como funciona</a>
       <a class="opcional" href="#planos">Plano</a>
       <a class="opcional" href="#sobre">Sobre nós</a>
+      <button type="button" class="tema-botao" data-tema-botao></button>
       <a class="botao acao pequeno" href="chat.html">Entrar</a>
     </nav>
   </div>
@@ -272,7 +278,7 @@ footer p { margin: 0; max-width: 66ch; }
       if (p.preco_excedente > 0) ul.appendChild(el('li', '', 'Excedente: ' + brl(p.preco_excedente, 2) + ' por pergunta'));
       ul.appendChild(el('li', '', 'Consulta: ' + juntar(p.tenants.map(function (t) { return ENTES[t] || t; }))));
       ul.appendChild(el('li', '', 'Site e WhatsApp, com a prova de cada fato'));
-      ul.appendChild(el('li', '', 'Até 3 números de WhatsApp por conta, liberados após aprovação'));
+      ul.appendChild(el('li', '', 'Até 3 números de WhatsApp por conta, liberados no cadastro'));
       c.appendChild(ul);
       lista.appendChild(c);
     });

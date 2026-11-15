@@ -3,12 +3,15 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="color-scheme" content="light">
+<meta name="color-scheme" content="dark light">
+<meta name="theme-color" content="#03162d" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#f2f7fb" media="(prefers-color-scheme: light)">
 <title>Administração | FornexIA</title>
 <meta name="robots" content="noindex">
 <link rel="icon" href="icone.svg" type="image/svg+xml">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Noto+Sans:wght@400;500;600;700;800&display=swap">
-<link rel="stylesheet" href="assets/site.css?v=20261108c">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="assets/site.css?v=20261115a">
+<script src="assets/tema.js?v=20261115a"></script>
 </head>
 <body>
 
@@ -22,18 +25,17 @@
   <div id="pagina" class="pagina" hidden>
     <header>
       <h1>Telefones do WhatsApp</h1>
-      <p>Aprove ou bloqueie os números que podem falar com o assistente. A decisão vale em até 15 segundos.</p>
+      <p>Novos números são liberados automaticamente. Você pode bloquear ou liberar novamente um número; a decisão vale em até 15 segundos.</p>
     </header>
 
     <section class="cartao secao" aria-labelledby="t-fila">
       <div class="topo-da-lista">
-        <h2 id="t-fila" style="margin:0">Fila de aprovação</h2>
+        <h2 id="t-fila" style="margin:0">Números cadastrados</h2>
         <span class="atualizado" id="atualizado" aria-live="off"></span>
       </div>
 
       <div class="abas filtros" role="tablist" aria-label="Filtrar por estado" style="margin-top:14px">
-        <button type="button" role="tab" data-status="pendente" aria-selected="true">Pendentes</button>
-        <button type="button" role="tab" data-status="aprovado" aria-selected="false">Aprovados</button>
+        <button type="button" role="tab" data-status="aprovado" aria-selected="true">Liberados</button>
         <button type="button" role="tab" data-status="revogado" aria-selected="false">Bloqueados</button>
         <button type="button" role="tab" data-status="todos" aria-selected="false">Todos</button>
       </div>
@@ -46,9 +48,9 @@
   </div>
 </main>
 
-<script src="assets/util.js?v=20261114a"></script>
-<script src="assets/api.js?v=20261108c"></script>
-<script src="assets/topo.js?v=20261108c"></script>
-<script src="assets/admin.js?v=20261108c"></script>
+<script src="assets/util.js?v=20261115a"></script>
+<script src="assets/api.js?v=20261115a"></script>
+<script src="assets/topo.js?v=20261115a"></script>
+<script src="assets/admin.js?v=20261115a"></script>
 </body>
 </html>

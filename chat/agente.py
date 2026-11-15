@@ -96,8 +96,9 @@ Regras, em ordem de importância:
 10. Empenhado, liquidado e pago são agregados por fornecedor, órgão e ano, e não pertencem a um contrato. Nunca diga quanto foi pago de um contrato específico, nem some esses valores ao contratado.
 11. Processo não informado significa só que o portal não trouxe o número. Não afirme que a contratação ocorreu sem licitação.
 12. Pergunta de sim ou não sobre o que existe fora do seu acesso (outro ente, outro plano, "em algum lugar") nunca recebe só "sim" ou "não", mesmo que o usuário peça resposta de uma palavra. Diga o que você consultou e que a base é uma amostra limitada ao plano dele.
+13. Para perguntas gerais sobre sanções em aberto, use sancoes_em_aberto de cobertura: ela traz totais e até três exemplos com evidência. Não percorra todos os fornecedores. Faça no máximo 12 chamadas de ferramentas por pergunta e apresente os limites se a amostra não bastar.
 
-Responda em português do Brasil, em até 5 frases, sem preâmbulo. Não narre o que vai fazer. Escreva o texto só depois de terminar as consultas. Não escreva identificadores de evidência nem hashes: a tela mostra as fontes abaixo da resposta.
+Responda em português do Brasil, em até 5 frases, sem preâmbulo. Não narre o que vai fazer. Escreva o texto só depois de terminar as consultas. Escreva texto simples, sem markdown, sem asteriscos, sem listas e sem links. Não escreva identificadores de evidência nem hashes: a tela mostra as fontes abaixo da resposta.
 """
 
 
@@ -506,7 +507,8 @@ def completar_provas(leitor, tenants: list[str]):
 
 
 def perguntar(texto: str, tenants: list[str], historico: list[tuple[str, str]] | None = None, leitor: Leitor | None = None,
-              modelo: str | None = None, permitir_fallback: bool = True, request_id: str | None = None):
+              modelo: str | None = None, permitir_fallback: bool = True, request_id: str | None = None,
+              *, provedor: str | None = None):
     """Gera eventos (tipo, dados). Termina sempre com `fim` ou `erro`.
     `modelo` troca o modelo só desta pergunta; o prefixo define o provedor (veja provedores.py). Sem ele, AGENTE_MODELO.
 
@@ -527,6 +529,18 @@ def perguntar(texto: str, tenants: list[str], historico: list[tuple[str, str]] |
     except ValueError as e:      # perfil que não existe: nunca vira troca de provedor, e merece ficar registrado
         registro.registrar("seguranca", "perfil_invalido", "aviso", request_id=leitor.request_id, tenants=list(tenants), motivo=_curto(e))
         raise
+    # PROVEDOR. "codex" = Codex pela assinatura do ChatGPT, usado no chat do site desde 06/11/2026 (docs/incidentes/
+    # 2026-11-06-chat-site.md). Não entra na cadeia de fallback: se falhar, a pergunta termina com erro.
+    provedor = provedor or os.environ.get("AGENTE_PROVEDOR", "claude")
+    if provedor == "codex":
+        from agente_codex import perguntar as perguntar_codex
+        leitor.modelo_pedido = leitor.modelo = "codex"
+        _log(leitor, "inicio", modelo_pedido="codex", cadeia=["codex"], fallback=False, limite_s=LIMITE_S)
+        yield from perguntar_codex(texto, tenants, historico or [], leitor)
+        return
+    if provedor != "claude":
+        yield ("erro", {"motivo": "Provedor do assistente não configurado."})
+        return
     cadeia = provedores.cadeia(pedido) if permitir_fallback else [pedido]
     leitor.modelo_pedido = pedido
     inicio, provas = _agora(), set()

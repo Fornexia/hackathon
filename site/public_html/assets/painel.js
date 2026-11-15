@@ -58,7 +58,7 @@
     // Comparação entre modelos: só aparece quando há mais de um.
     if (modelos.length > 1) {
       $('#bloco-modelos').hidden = false
-      const corpoM = tabela($('#tabela-modelos'), ['Modelo', 'FornexIA', 'Sem acesso aos dados', 'Fatos com evidência', 'Isolamento e ataques',
+      const corpoM = tabela($('#tabela-modelos'), ['Modelo', 'FornexIA', 'Sem acesso aos dados', 'Fatos com evidência', 'Isolamento, ataques e limites',
         'Tempo total', 'Tempo médio', 'Tokens (entrada / saída)', 'Custo estimado'])
       for (const m of modelos) {
         const r = resumir(doModelo(m)), i = info(m)
@@ -155,8 +155,13 @@
   }
 
   // ---------- grafo ----------
-  const CORES = { Contrato: '#3f7fc2', Fornecedor: '#23845f', Sancao: '#c2603f', ProcessoLicitatorio: '#8a2ca8',
-    UnidadeJurisdicionada: '#b5801f', Ente: '#0b2545', Evidencia: '#9a978b', ExecucaoFinanceira: '#2a8c8c' }
+  // Cores de dado (uma por tipo de nó), iguais nos dois temas. O Ente era azul-marinho: some no tema escuro, então usa a cor do texto.
+  // O roxo do Processo ficou um tom mais claro (#9e4ff5, o roxo de apoio da identidade): o antigo não passava de 3:1 sobre o cartão escuro.
+  const CORES = { Contrato: '#3f7fc2', Fornecedor: '#23845f', Sancao: '#c2603f', ProcessoLicitatorio: '#9e4ff5',
+    UnidadeJurisdicionada: '#b5801f', Ente: 'var(--tinta)', Evidencia: '#9a978b', ExecucaoFinanceira: '#2a8c8c' }
+  // O canvas não entende var(): lê o valor do tema na hora de desenhar (e de novo quando o sistema troca de claro para escuro).
+  const tema = nome => getComputedStyle(document.documentElement).getPropertyValue(nome).trim()
+  const corDe = t => CORES[t].startsWith('var(') ? tema(CORES[t].slice(4, -1)) : CORES[t]
   const NOMES = { Contrato: 'Contrato', Fornecedor: 'Fornecedor', Sancao: 'Sanção', ProcessoLicitatorio: 'Processo',
     UnidadeJurisdicionada: 'Unidade', Ente: 'Ente público', Evidencia: 'Evidência', ExecucaoFinanceira: 'Execução financeira' }
   const RAIOS = { Ente: 15, Fornecedor: 8, Contrato: 6, ProcessoLicitatorio: 5, UnidadeJurisdicionada: 7, Sancao: 4, Evidencia: 3, ExecucaoFinanceira: 4 }
@@ -234,6 +239,7 @@
     function desenhar() {
       const viz = new Set()
       if (selecionado) for (const e of arestas) { if (e.a === selecionado) viz.add(e.b); if (e.b === selecionado) viz.add(e.a) }
+      const tinta = tema('--tinta'), apoio = tema('--tinta-3'), halo = tema('--grafo-halo')
       ctx.setTransform(escala, 0, 0, escala, 0, 0)
       ctx.clearRect(0, 0, L, A)
       for (const e of arestas) {
@@ -241,24 +247,24 @@
         const perto = selecionado && (e.a === selecionado || e.b === selecionado)
         if (AO_ENTE.has(e.rel) && !perto) continue
         ctx.globalAlpha = selecionado ? (perto ? 0.9 : 0.1) : 0.34
-        ctx.strokeStyle = perto ? '#0b2545' : '#5d6c80'
+        ctx.strokeStyle = perto ? tinta : apoio
         ctx.lineWidth = perto ? 1.5 : 1
         ctx.beginPath(); ctx.moveTo(e.a.x, e.a.y); ctx.lineTo(e.b.x, e.b.y); ctx.stroke()
       }
       for (const n of nos.filter(ativo)) {
         ctx.globalAlpha = !selecionado || n === selecionado || viz.has(n) ? 1 : 0.2
-        ctx.beginPath(); ctx.arc(n.x, n.y, RAIOS[n.t], 0, 6.2832); ctx.fillStyle = CORES[n.t]; ctx.fill()
-        if (n === selecionado) { ctx.lineWidth = 2.5; ctx.strokeStyle = '#0b2545'; ctx.stroke() }
+        ctx.beginPath(); ctx.arc(n.x, n.y, RAIOS[n.t], 0, 6.2832); ctx.fillStyle = corDe(n.t); ctx.fill()
+        if (n === selecionado) { ctx.lineWidth = 2.5; ctx.strokeStyle = tinta; ctx.stroke() }
       }
-      ctx.font = "12px 'IBM Plex Mono', Consolas, monospace"
+      ctx.font = "13px 'IBM Plex Mono', Consolas, monospace"
       ctx.textAlign = 'center'
       ctx.lineJoin = 'round'
       for (const n of nos.filter(ativo)) {
         if (selecionado ? !(n === selecionado || viz.has(n)) : n.t !== 'Ente') continue
         const t = n.r.length > 26 ? n.r.slice(0, 25) + '…' : n.r
         const y = n.y + RAIOS[n.t] + 14
-        ctx.globalAlpha = 1; ctx.lineWidth = 3.5; ctx.strokeStyle = '#ffffff'
-        ctx.strokeText(t, n.x, y); ctx.fillStyle = '#14263f'; ctx.fillText(t, n.x, y)
+        ctx.globalAlpha = 1; ctx.lineWidth = 3.5; ctx.strokeStyle = halo
+        ctx.strokeText(t, n.x, y); ctx.fillStyle = tinta; ctx.fillText(t, n.x, y)
       }
       ctx.globalAlpha = 1
     }
@@ -348,11 +354,13 @@
       if (!contagem[t]) continue
       const r = el('label'), c = el('input'), p = el('span', 'pino')
       c.type = 'checkbox'; c.id = 't-' + t; c.checked = visiveis[t]
-      p.style.background = CORES[t]
+      p.style.background = CORES[t]   // aceita var(): é CSS, não canvas
       c.addEventListener('change', () => { if (selecionado && selecionado.t === t && !c.checked) detalhar(null); ligar(t, c.checked) })
       r.append(c, p, `${NOMES[t]} ${contagem[t]}`)
       legenda.append(r)
     }
+    window.matchMedia('(prefers-color-scheme: light)').addEventListener('change', () => desenhar())
+    window.addEventListener('tema', () => desenhar())
     return {
       abrir() {
         medir()

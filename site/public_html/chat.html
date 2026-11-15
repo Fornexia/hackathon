@@ -3,12 +3,15 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="color-scheme" content="light">
+<meta name="color-scheme" content="dark light">
+<meta name="theme-color" content="#03162d" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#f2f7fb" media="(prefers-color-scheme: light)">
 <title>Assistente | FornexIA</title>
 <meta name="robots" content="noindex">
 <link rel="icon" href="icone.svg" type="image/svg+xml">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Noto+Sans:wght@400;500;600;700;800&display=swap">
-<link rel="stylesheet" href="assets/site.css?v=20261108e">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="assets/site.css?v=20261115a">
+<script src="assets/tema.js?v=20261115a"></script>
 </head>
 <body>
 
@@ -21,6 +24,7 @@
       <a href="conta.html" target="_top">Minha conta</a>
       <a href="admin.html" id="link-admin" target="_top" hidden>Administração</a>
     </nav>
+    <button type="button" class="tema-botao" data-tema-botao></button>
     <div class="topo-acoes" id="topo-acoes" hidden>
       <span class="quem" id="quem"></span>
       <button type="button" class="link-botao" id="sair">Sair</button>
@@ -90,7 +94,7 @@
 
 </main>
 
-<script src="assets/api.js?v=20261108c"></script>
-<script src="assets/chat.js?v=20261114a"></script>
+<script src="assets/api.js?v=20261115a"></script>
+<script src="assets/chat.js?v=20261115a"></script>
 </body>
 </html>

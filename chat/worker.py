@@ -28,6 +28,7 @@ import agente  # noqa: E402
 import deteccao  # noqa: E402
 import registro  # noqa: E402  (log por subsistema: logs/worker.jsonl, seguranca.jsonl e saude.jsonl)
 import voz  # noqa: E402  (conferência do CNPJ falado e eco do que foi ouvido)
+from http_api import criar_cliente  # noqa: E402  (HTTPS só por IPv4: a rota IPv6 da hospedagem falhava no handshake)
 
 RAIZ = agente.RAIZ
 _ENV = RAIZ / ".env"
@@ -37,7 +38,7 @@ for linha in (_ENV.read_text(encoding="utf-8-sig").splitlines() if _ENV.exists()
         if v.strip():      # valor vazio (ex.: chave de API não preenchida) não vira variável
             os.environ.setdefault(k.strip(), v.strip())
 
-API = os.environ.get("API_BASE", f"https://{os.environ.get('SITE', 'hackathon.figueiredo.dev')}") + "/api"
+API = os.environ.get("API_BASE", f"https://{os.environ.get('SITE', 'fornexia.figueiredo.dev')}") + "/api"
 CHAVE = os.environ["WORKER_KEY"]
 ESTADO = Path(os.environ.get("WHATSAPP_STATE_DIR", Path.home() / ".claude/channels/whatsapp-hackathon"))
 LOG = RAIZ / "logs" / "chat.jsonl"
@@ -47,6 +48,8 @@ TRANSCRITOR = RAIZ / "inferencia" / "transcrever.py"
 PERFIL_MANUAL = ["pe-estado", "pe-garanhuns", "br-uniao"]   # números liberados pelo dono no terminal (Estado, Garanhuns e as sanções da União)
 ERRO_PADRAO = "Não consegui concluir agora. Tente de novo em instantes."
 AGENTES_SITE = int(os.environ.get("AGENTES_SITE", "3"))   # o WhatsApp tem o próprio agente, um por vez
+PROVEDOR_SITE = os.environ.get("AGENTE_SITE_PROVEDOR", "codex")
+HTTP = criar_cliente()
 
 parar = threading.Event()
 historicos: dict[str, collections.deque] = collections.defaultdict(lambda: collections.deque(maxlen=agente.HISTORICO_TURNOS))
@@ -166,7 +169,7 @@ def api(metodo: str, rota: str, corpo=None):
         headers={"X-Worker-Key": CHAVE, "Content-Type": "application/json", "User-Agent": "fornexia-worker/1"},
     )
     try:
-        with urllib.request.urlopen(req, timeout=20) as r:
+        with HTTP.open(req, timeout=20) as r:
             texto = r.read().decode("utf-8", errors="replace")
             try:
                 return r.status, json.loads(texto) if texto else None
@@ -222,17 +225,22 @@ class Lote:
         self.ultimo = time.monotonic()
 
 
+def chave_entes(tenants: list[str]) -> str:
+    """O histórico é separado por entes: resposta de um plano não pode virar contexto de outro."""
+    return ",".join(sorted(tenants))
+
+
 def atender_site(p: dict):
     inicio = time.monotonic()
     lote, leitor, primeiro = Lote(p["id"]), agente.Leitor(), None
     rid = leitor.request_id = f"site:{p['id']}"
-    chave = f"site:{p['usuario_id']}"
+    chave = f"site:{p['usuario_id']}:{chave_entes(p['tenants'])}"
     desfecho = "erro"
     espera = p.get("espera_ms")      # só vem do site novo; sem ele fica null (não inventamos)
     r("inicio", request_id=rid, canal="site", tamanho_texto=len(p["texto"]), entes=len(p["tenants"]), espera_ms=espera)
     olhar_entrada(rid, "site", p["texto"], usuario=p["usuario_id"])
     try:
-        for tipo, dados in agente.perguntar(p["texto"], p["tenants"], list(historicos[chave]), leitor):
+        for tipo, dados in agente.perguntar(p["texto"], p["tenants"], list(historicos[chave]), leitor, provedor=PROVEDOR_SITE):
             if tipo == "fallback":
                 # Só vai para o terminal e para o log. A API do site só aceita consulta/texto/fonte/fim/erro (um tipo novo
                 # derrubaria o lote inteiro com 400), e a resposta ao usuário não muda de tom por causa da troca.
@@ -266,7 +274,7 @@ def atender_site(p: dict):
     desfecho_da_pergunta(rid, "site", desfecho == "concluida", inicio, leitor, motivo,
                          leitor.falha.get("motivo") or (type(leitor.excecao).__name__ if leitor.excecao else ""),
                          primeiro_sinal_ms=primeiro, espera_ms=espera)
-    gravar_log(canal="site", id=p["id"], usuario=p["usuario_id"], tenants=p["tenants"], pergunta=p["texto"],
+    gravar_log(canal="site", provedor=PROVEDOR_SITE, id=p["id"], usuario=p["usuario_id"], tenants=p["tenants"], pergunta=p["texto"],
                consultas=leitor.consultas, evidencias=leitor.evidencias, desfecho=desfecho,
                **campos_do_modelo(leitor), **campos_de_uso(leitor), request_id=rid, motivo_falha=motivo,
                primeiro_sinal_ms=primeiro, duracao_ms=int((time.monotonic() - inicio) * 1000))
@@ -274,11 +282,11 @@ def atender_site(p: dict):
 
 def laco_site(atraso: float = 0):
     parar.wait(atraso)      # espalha as buscas: os agentes não consultam a fila no mesmo instante
-    espera = 1.5
+    espera = 3.0
     while not parar.is_set():
         try:
             status, p = api("POST", "/worker/proxima")
-            espera = 1.5
+            espera = 3.0
             if status == 200 and p:
                 registrar("site: pergunta", p["id"], p["tenants"])
                 atender_site(p)
@@ -342,6 +350,7 @@ def transcrever(arquivo: str) -> str | None:
 def responder_whatsapp(texto: str, tenants: list[str], chave: str, request_id: str | None = None) -> tuple[str, agente.Leitor, str]:
     leitor, fontes, desfecho = agente.Leitor(), [], "erro"
     leitor.request_id = request_id
+    chave = f"{chave}:{chave_entes(tenants)}"
     try:
         for tipo, dados in agente.perguntar(texto, tenants, list(historicos[chave]), leitor):
             if tipo == "fonte":
@@ -527,7 +536,7 @@ def main() -> int:
     laços.append(threading.Thread(target=laco_batimento, args=(iniciado_em,), daemon=True))
     for t in laços:
         t.start()
-    registrar("worker no ar:", API, f"com {AGENTES_SITE} agentes no site")
+    registrar("worker no ar:", API, f"com {AGENTES_SITE} agentes no site; provedor: {PROVEDOR_SITE}")
     parar.wait()
     batimento(iniciado_em, parando=True)
     registro.registrar("saude", "componente_parou", "info", componente="worker", pid=os.getpid(), parada_limpa=True)

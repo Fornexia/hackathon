@@ -185,7 +185,7 @@
       const yy = estreito ? y + 8 : y
       const g = S('g')
       g.append(S('line', { x1: esc(m.ic[0] * 100), x2: esc(m.ic[1] * 100), y1: yy, y2: yy, stroke: cor, 'stroke-width': 2.5, 'stroke-linecap': 'round' }))
-      g.append(S('circle', { cx: esc(p), cy: yy, r: 6, fill: cor, stroke: '#fff', 'stroke-width': 2 }))
+      g.append(S('circle', { cx: esc(p), cy: yy, r: 6, fill: cor, stroke: 'var(--viz-surface)', 'stroke-width': 2 }))
       svg.append(comDica(g, [quem[m.id].nome, { texto: `${fp(p)} · ${m.k} de ${m.n} perguntas`, cor },
         { texto: `Intervalo de 95%: ${fp(m.ic[0] * 100)} a ${fp(m.ic[1] * 100)}` }], `${quem[m.id].nome}: ${fp(p)}, ${m.k} de ${m.n}`))
       if (estreito) svg.append(T(W - 14, yNome, `${fp(p)} · ${m.k}/${m.n}`, 'valor', { 'text-anchor': 'end' }))
@@ -417,7 +417,7 @@
   }
   function legendaProva() {
     const d = el('div', 'viz-legenda')
-    ;[['#4b5b70', 'Cor cheia: certa e com prova conferida'], ['#b7bcc6', 'Cor clara: certa, mas sem prova'], ['#cfcec6', 'Cinza: errada']].forEach(([cor, texto]) => {
+    ;[['var(--viz-ink-2)', 'Cor cheia: certa e com prova conferida'], ['var(--viz-clara)', 'Cor clara: certa, mas sem prova'], ['var(--viz-falha)', 'Cinza: errada']].forEach(([cor, texto]) => {
       const s = el('span'), i = el('i'); i.style.background = cor; s.append(i, document.createTextNode(texto)); d.append(s)
     })
     return d
