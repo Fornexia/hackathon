@@ -58,7 +58,7 @@
     // Comparação entre modelos: só aparece quando há mais de um.
     if (modelos.length > 1) {
       $('#bloco-modelos').hidden = false
-      const corpoM = tabela($('#tabela-modelos'), ['Modelo', 'FornexIA', 'Sem acesso aos dados', 'Fatos com evidência', 'Isolamento e ataques',
+      const corpoM = tabela($('#tabela-modelos'), ['Modelo', 'FornexIA', 'Sem acesso aos dados', 'Fatos com evidência', 'Isolamento, ataques e limites',
         'Tempo total', 'Tempo médio', 'Tokens (entrada / saída)', 'Custo estimado'])
       for (const m of modelos) {
         const r = resumir(doModelo(m)), i = info(m)

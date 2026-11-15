@@ -233,6 +233,22 @@ def cobertura() -> dict:
         RETURN t.nome AS ente, id, sancoes, de AS coletado_de, ate AS coletado_ate ORDER BY sancoes DESC""")
     tem_sancoes_de_pe = any(r["id"] == "pe-estado" for r in sancoes_por_ente)
     sancoes_por_ente = [{k: v for k, v in r.items() if k != "id"} for r in sancoes_por_ente]
+    sancoes_abertas = consultar("""
+        MATCH (f:Fornecedor)-[:RECEBEU]->(s:Sancao)
+        WHERE s.tenant IN $tenants AND s.sensibilidade IN $sensibilidades
+          AND (f.tipo = 'PJ' OR size($sensibilidades) > 1)
+          AND toUpper(s.situacao) = 'EM ABERTO'
+        RETURN count(DISTINCT s) AS ocorrencias, count(DISTINCT f) AS fornecedores""")[0]
+    exemplos_abertos = consultar("""
+        MATCH (f:Fornecedor)-[:RECEBEU]->(s:Sancao)-[:PROVADO_POR]->(e:Evidencia)
+        WHERE s.tenant IN $tenants AND s.sensibilidade IN $sensibilidades
+          AND e.tenant = s.tenant
+          AND (f.tipo = 'PJ' OR size($sensibilidades) > 1)
+          AND toUpper(s.situacao) = 'EM ABERTO'
+        RETURN DISTINCT f.id AS fornecedor_id, f.nome AS fornecedor, f.cnpj AS cnpj,
+               s.tipo AS tipo, s.situacao AS situacao, s.publicada_em AS publicada_em,
+               s.orgao AS orgao, s.tenant AS ente, e.id AS evidencia
+        ORDER BY s.publicada_em DESC, fornecedor_id, evidencia LIMIT 3""")
     return {
         **totais,
         "cadastros_da_receita": cadastros,
@@ -245,6 +261,10 @@ def cobertura() -> dict:
         "capturado_entre": [datas["de"], datas["ate"]],
         # A data fixa vale só para o cadastro de sanções de Pernambuco: sem sanção desse ente no perfil, ela não se aplica (visto na demonstração de 14/11/2026).
         **({"cadastro_de_sancoes_de": CADASTRO_DE_SANCOES_DE} if tem_sancoes_de_pe else {}),
+        # "EM ABERTO" é campo do cadastro de Pernambuco. CEIS/CNEP (União) não têm situação: a vigência sai das datas.
+        "sancoes_em_aberto": {**sancoes_abertas, "exemplos": exemplos_abertos,
+                              "escopo": "Conta só sanções com situação EM ABERTO, campo do cadastro de Pernambuco. "
+                                        "Sanções da União (CEIS/CNEP) não têm esse campo: a vigência sai das datas de início e fim."},
         "limites": (
             f"Base limitada: {totais['contratos']} contratos e {totais['sancoes']} sanções visíveis para este perfil. "
             "A execução financeira é agregada por fornecedor, órgão e ano, só do Estado, e não se liga a um contrato. "

@@ -48,6 +48,8 @@ da fonte, e cada perfil vê só o que está autorizado a ver.
 
 ## Site e chat (Dev A)
 
+**Correção de 06/11/2026:** o chat do site usa Codex com a assinatura ChatGPT, sem fallback para Claude. A pergunta geral sobre sanções usa um resumo com evidências, sem varrer todos os fornecedores. O WhatsApp mantém o provedor anterior. Diagnóstico e validação: [incidente do chat](docs/incidentes/2026-11-06-chat-site.md).
+
 Parte do Dev A: tudo que o usuário vê no navegador e a API PHP que o worker do Dev B consome.
 
 ### Páginas
@@ -115,9 +117,11 @@ Todas as rotas ficam em `/api/...`. O contrato completo (formatos, códigos de e
 | Administração | `GET /admin/telefones`, aprovar e revogar |
 | Worker (chave própria) | `GET /worker/proxima`, `POST /worker/perguntas/{id}/eventos`, `GET /worker/telefones` |
 
-Plano de demonstração (valor ainda não validado): **Único**, R$ 149 por mês, sem franquia nem excedente, vê `pe-estado` e
-`pe-garanhuns`. Antes havia dois planos (Município, R$ 990, e Estado, R$ 1.990); `site/setup.php` move as contas dos planos antigos
-para o plano único e os remove, então rodá-lo de novo em um banco antigo basta para atualizar.
+Plano único de demonstração: **R$ 149 por mês** (valor ainda não validado), conforme o pitch de 06/11/2026. Acesso à
+amostra de `pe-estado`, `pe-garanhuns` e, desde 14/11/2026, `br-uniao` (sanções CEIS/CNEP e cadastro da Receita), sem
+cobrança real. Não há franquia ou excedente definidos. Planos antigos ficam no histórico; assinaturas ativas de Município
+e Estado são migradas pelo `setup.php`. Novos telefones são liberados no cadastro; o administrador pode bloquear ou
+liberar novamente.
 
 ### Segurança do site
 

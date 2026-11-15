@@ -38,18 +38,18 @@ class TestCaminhosDoAudio(unittest.TestCase):
 
 class TestApi(unittest.TestCase):
     def test_200_que_nao_e_json_vira_502_e_nao_levanta(self):
-        with mock.patch("urllib.request.urlopen", return_value=Resposta(b"<html>erro da hospedagem</html>")):
+        with mock.patch.object(worker.HTTP, "open", return_value=Resposta(b"<html>erro da hospedagem</html>")):
             self.assertEqual(worker.api("POST", "/worker/proxima"), (502, None))
 
     def test_json_e_204_continuam_funcionando(self):
-        with mock.patch("urllib.request.urlopen", return_value=Resposta(b'{"id": 7}')):
+        with mock.patch.object(worker.HTTP, "open", return_value=Resposta(b'{"id": 7}')):
             self.assertEqual(worker.api("POST", "/worker/proxima"), (200, {"id": 7}))
-        with mock.patch("urllib.request.urlopen", return_value=Resposta(b"", 204)):
+        with mock.patch.object(worker.HTTP, "open", return_value=Resposta(b"", 204)):
             self.assertEqual(worker.api("POST", "/worker/proxima"), (204, None))
 
     def test_erro_http_devolve_o_codigo(self):
         erro = urllib.error.HTTPError("u", 401, "x", {}, io.BytesIO(b""))
-        with mock.patch("urllib.request.urlopen", side_effect=erro):
+        with mock.patch.object(worker.HTTP, "open", side_effect=erro):
             self.assertEqual(worker.api("GET", "/x"), (401, None))
 
 
