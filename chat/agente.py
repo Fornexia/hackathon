@@ -50,8 +50,9 @@ Regras, em ordem de importância:
 9. Se a pergunta não for sobre fornecedores, diga em uma frase que só ajuda com esse assunto.
 10. Empenhado, liquidado e pago são agregados por fornecedor, órgão e ano, e não pertencem a um contrato. Nunca diga quanto foi pago de um contrato específico, nem some esses valores ao contratado.
 11. Processo não informado significa só que o portal não trouxe o número. Não afirme que a contratação ocorreu sem licitação.
+12. Para perguntas gerais sobre sanções em aberto, use sancoes_em_aberto de cobertura: ela traz totais e até três exemplos com evidência. Não percorra todos os fornecedores. Faça no máximo 12 chamadas de ferramentas por pergunta e apresente os limites se a amostra não bastar.
 
-Responda em português do Brasil, em até 5 frases, sem preâmbulo. Não narre o que vai fazer. Escreva o texto só depois de terminar as consultas. Não escreva identificadores de evidência nem hashes: a tela mostra as fontes abaixo da resposta.
+Responda em português do Brasil, em até 5 frases, sem preâmbulo. Não narre o que vai fazer. Escreva o texto só depois de terminar as consultas. Escreva texto simples, sem markdown, sem asteriscos, sem listas e sem links. Não escreva identificadores de evidência nem hashes: a tela mostra as fontes abaixo da resposta.
 """
 
 
@@ -161,9 +162,17 @@ class Leitor:
         return saida
 
 
-def perguntar(texto: str, tenants: list[str], historico: list[tuple[str, str]] | None = None, leitor: Leitor | None = None):
+def perguntar(texto: str, tenants: list[str], historico: list[tuple[str, str]] | None = None, leitor: Leitor | None = None, *, provedor: str | None = None):
     """Gera eventos (tipo, dados). Termina sempre com `fim` ou `erro`."""
     leitor = leitor or Leitor()
+    provedor = provedor or os.environ.get("AGENTE_PROVEDOR", "claude")
+    if provedor == "codex":
+        from agente_codex import perguntar as perguntar_codex
+        yield from perguntar_codex(texto, tenants, historico or [], leitor)
+        return
+    if provedor != "claude":
+        yield ("erro", {"motivo": "Provedor do assistente não configurado."})
+        return
     perfil = perfil_dos_entes(tenants)
     NEUTRO.mkdir(parents=True, exist_ok=True)
     with tempfile.NamedTemporaryFile("w", dir=NEUTRO, suffix=".json", encoding="utf-8") as cfg:

@@ -9,7 +9,7 @@ Critérios (0–5 cada): pertinência, inovação (desempate), impacto, viabilid
 |---|---|---|
 | `canal-whatsapp/` | Gateway Baileys (`gateway.ts`, serviço `wa-gateway`) + canal MCP (`canal.ts`) + CLI de acesso (`acesso.ts`) | notebook |
 | `inferencia/` | YOLO na CPU (OpenVINO): `mcp_visao.py` (MCP `visao`, principal), `detectar.py` (CLI), `servidor.py` (FastAPI, só se o site precisar), `whatsapp.py` (envio pela fila) | notebook |
-| `site/` | PHP + MySQL: login, registros com foto, API com `X-Api-Key`. Deploy: `./site/deploy.sh` | hackathon.figueiredo.dev |
+| `site/` | PHP + MySQL: login, registros com foto, API com `X-Api-Key`. Deploy: `./site/deploy.sh` | fornexia.figueiredo.dev |
 | `.env` | Todos os segredos (modo 600). Nunca versionar, nunca colar em chat. | notebook |
 
 Estado do WhatsApp: `~/.claude/channels/whatsapp-hackathon/` (auth, inbound.jsonl, outbox/, midia/).
@@ -29,7 +29,7 @@ Estado do WhatsApp: `~/.claude/channels/whatsapp-hackathon/` (auth, inbound.json
   Normalizar a descrição ("FLETOP LOCAO 200ML" → "Fletop loção 200ml") e usar o nome fantasia + cidade
   como loja. Nunca gravar CPF/nome do consumidor (LGPD) — o `nfce.py` já não devolve.
 - Código de barras de produto (dar baixa por foto) → `ler_codigos`.
-- Só se o desafio usar o site: `POST https://hackathon.figueiredo.dev/api/registros` com header
+- Só se o desafio usar o site: `POST https://fornexia.figueiredo.dev/api/registros` com header
   `X-Api-Key: $API_KEY` (do `.env`), `origem=whatsapp`.
 - Nota de voz chega já transcrita ("🎤 (áudio transcrito) …", faster-whisper `small` na CPU, ~5 s para 5 s
   de áudio; `WHISPER_MODELO=base` corta pela metade). Tratar como texto digitado; confirmar quantidades duvidosas.

@@ -11,7 +11,7 @@
 //   GET  /api/perguntas/aberta
 //   GET  /api/perguntas/{id}/eventos?desde=N
 //   GET  /api/telefones                   os telefones do usuário
-//   POST /api/telefones                   {numero}: nasce "pendente"
+//   POST /api/telefones                   {numero}: liberado automaticamente
 //   DELETE /api/telefones/{id}
 //
 // Administrador (papel "admin"):

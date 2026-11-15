@@ -3,10 +3,9 @@
   'use strict'
   const { el, formatarTelefone, dataHora, nomesDosEntes } = window.U
   const $ = s => document.querySelector(s)
-  const ATUALIZAR_MS = 10000     // o aprovado pelo administrador aparece sem recarregar a página
+  const ATUALIZAR_MS = 10000     // atualiza bloqueios e liberações sem recarregar a página
   const STATUS = {
-    pendente: ['Aguardando aprovação', 'Um administrador ainda precisa aprovar este número.'],
-    aprovado: ['Liberado', 'Este número já pode falar com o assistente no WhatsApp.'],
+    aprovado: ['Liberado', 'Número liberado. O acesso ao assistente no WhatsApp é atualizado em até 15 segundos.'],
     revogado: ['Bloqueado', 'O administrador bloqueou este número.'],
   }
 
@@ -63,7 +62,7 @@
   async function removerTelefone(t, botao) {
     limparMensagens()
     if (confirmando !== t.id) {
-      // Remover um número aprovado tira o acesso e exige nova aprovação: pede um segundo clique.
+      // Remover um número tira o acesso: pede um segundo clique.
       confirmando = t.id
       botao.textContent = 'Confirmar remoção'
       setTimeout(() => { if (confirmando === t.id) { confirmando = null; botao.textContent = 'Remover' } }, 5000)
@@ -90,7 +89,7 @@
     try {
       const novo = await Api.cadastrarTelefone(campo.value)
       campo.value = ''
-      mensagem('#ok-tel', `Telefone ${formatarTelefone(novo.numero)} cadastrado. Agora ele aguarda a aprovação de um administrador.`)
+      mensagem('#ok-tel', `Telefone ${formatarTelefone(novo.numero)} cadastrado e liberado. O acesso ao WhatsApp será atualizado em até 15 segundos.`)
     } catch (e2) {
       mensagem('#erro-tel', e2.message)
     } finally {

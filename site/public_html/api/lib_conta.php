@@ -105,7 +105,7 @@ function rota_me(): never {
 }
 
 function rota_planos(): never {
-    $linhas = db()->query('SELECT * FROM planos ORDER BY preco_mensal')->fetchAll();
+    $linhas = db()->query('SELECT * FROM planos WHERE nome = "Único" ORDER BY id')->fetchAll();
     responder(200, array_map('plano_para_json', $linhas));
 }
 
@@ -180,7 +180,7 @@ function rota_assinatura(): never {
     $planoId = $c['plano_id'] ?? null;
     if (!is_int($planoId) || $planoId <= 0) erro(400, 'Escolha um plano.');
 
-    $st = db()->prepare('SELECT id FROM planos WHERE id = ?');
+    $st = db()->prepare('SELECT id FROM planos WHERE id = ? AND nome = "Único"');
     $st->execute([$planoId]);
     if (!$st->fetch()) erro(404, 'Plano não encontrado.');
 

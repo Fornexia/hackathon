@@ -44,7 +44,7 @@
     numero(q, `${soma(a)}/${a.length}`, 'FornexIA, nota total')
     numero(q, `${soma(s)}/${s.length}`, 'Modelo sem acesso aos dados')
     numero(q, `${fatos.filter(l => l.provada).length}/${fatos.length}`, 'Fatos com evidência conferida')
-    numero(q, `${soma(defesa)}/${defesa.length}`, 'Isolamento e ataques')
+    numero(q, `${soma(defesa)}/${defesa.length}`, 'Isolamento, ataques e limites')
     numero(q, `${media.toFixed(1).replace('.', ',')} s`, 'Tempo médio por resposta')
 
     const corpo = tabela($('#tabela-bench'), ['Pergunta', 'Tipo', 'Perfil', 'Nota', 'Sem dados', 'Evidências', 'Tempo', ''])
@@ -112,7 +112,9 @@
     UnidadeJurisdicionada: '#b5801f', Ente: '#0b2545', Evidencia: '#9a978b', ExecucaoFinanceira: '#2a8c8c' }
   const NOMES = { Contrato: 'Contrato', Fornecedor: 'Fornecedor', Sancao: 'Sanção', ProcessoLicitatorio: 'Processo',
     UnidadeJurisdicionada: 'Unidade', Ente: 'Ente público', Evidencia: 'Evidência', ExecucaoFinanceira: 'Execução financeira' }
-  const RAIOS = { Ente: 15, Fornecedor: 11, Contrato: 9, ProcessoLicitatorio: 8, UnidadeJurisdicionada: 8, Sancao: 6, Evidencia: 4, ExecucaoFinanceira: 5 }
+  const RAIOS = { Ente: 15, Fornecedor: 8, Contrato: 6, ProcessoLicitatorio: 5, UnidadeJurisdicionada: 7, Sancao: 4, Evidencia: 3, ExecucaoFinanceira: 4 }
+  // Quase tudo liga ao ente: estas relações não puxam o desenho e só aparecem ao selecionar.
+  const AO_ENTE = new Set(['APARECE_EM', 'DO_ENTE'])
   const PLURAIS = { Contrato: 'Contratos', Fornecedor: 'Fornecedores', Sancao: 'Sanções', ProcessoLicitatorio: 'Processos',
     UnidadeJurisdicionada: 'Unidades', Ente: 'Entes públicos', Evidencia: 'Evidências', ExecucaoFinanceira: 'Execuções' }
   const dataBR = iso => { const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso || ''); return m ? `${m[3]}/${m[2]}/${m[1]}` : '' }
@@ -152,26 +154,32 @@
     }
     function passo() {
       const vivos = nos.filter(ativo)
+      const grau = new Map(vivos.map(n => [n, 1]))
+      for (const e of arestas) {
+        if (!ativo(e.a) || !ativo(e.b) || AO_ENTE.has(e.rel)) continue
+        grau.set(e.a, grau.get(e.a) + 1); grau.set(e.b, grau.get(e.b) + 1)
+      }
       for (let i = 0; i < vivos.length; i++) for (let j = i + 1; j < vivos.length; j++) {
         const a = vivos[i], b = vivos[j]
         let dx = a.x - b.x, dy = a.y - b.y
         const d2 = dx * dx + dy * dy + 0.01
         if (d2 > 90000) continue
-        const f = 2600 / d2, d = Math.sqrt(d2)
+        const f = Math.min(700 / d2, 5), d = Math.sqrt(d2)   // sem teto, nós colados são lançados aos cantos
         dx *= f / d; dy *= f / d
         a.vx += dx; a.vy += dy; b.vx -= dx; b.vy -= dy
       }
       for (const e of arestas) {
-        if (!ativo(e.a) || !ativo(e.b)) continue
+        if (!ativo(e.a) || !ativo(e.b) || AO_ENTE.has(e.rel)) continue
         let dx = e.b.x - e.a.x, dy = e.b.y - e.a.y
         const d = Math.sqrt(dx * dx + dy * dy) || 1
-        const f = (d - (e.rel === 'PROVADO_POR' ? 34 : e.rel === 'RECEBEU' ? 46 : 92)) * 0.02
+        const f = (d - (e.rel === 'PROVADO_POR' ? 30 : e.rel === 'RECEBEU' ? 36 : 64)) * 0.08
         dx *= f / d; dy *= f / d
-        e.a.vx += dx; e.a.vy += dy; e.b.vx -= dx; e.b.vy -= dy
+        // Dividir pelo grau: sem isso, um órgão com muitas ligações oscila e é lançado para o canto.
+        e.a.vx += dx / grau.get(e.a); e.a.vy += dy / grau.get(e.a); e.b.vx -= dx / grau.get(e.b); e.b.vy -= dy / grau.get(e.b)
       }
       for (const n of vivos) {
-        n.vx = (n.vx + (L / 2 - n.x) * 0.004) * 0.82
-        n.vy = (n.vy + (A / 2 - n.y) * 0.006) * 0.82
+        n.vx = (n.vx + (L / 2 - n.x) * 0.012) * 0.82
+        n.vy = (n.vy + (A / 2 - n.y) * 0.014) * 0.82
         if (n !== preso) { n.x += n.vx; n.y += n.vy }
         n.x = Math.max(26, Math.min(L - 26, n.x)); n.y = Math.max(22, Math.min(A - 22, n.y))
       }
@@ -184,6 +192,7 @@
       for (const e of arestas) {
         if (!ativo(e.a) || !ativo(e.b)) continue
         const perto = selecionado && (e.a === selecionado || e.b === selecionado)
+        if (AO_ENTE.has(e.rel) && !perto) continue
         ctx.globalAlpha = selecionado ? (perto ? 0.9 : 0.1) : 0.34
         ctx.strokeStyle = perto ? '#0b2545' : '#5d6c80'
         ctx.lineWidth = perto ? 1.5 : 1
@@ -198,7 +207,7 @@
       ctx.textAlign = 'center'
       ctx.lineJoin = 'round'
       for (const n of nos.filter(ativo)) {
-        if (selecionado ? !(n === selecionado || viz.has(n)) : !(n.t === 'Ente' || n.t === 'Fornecedor')) continue
+        if (selecionado ? !(n === selecionado || viz.has(n)) : n.t !== 'Ente') continue
         const t = n.r.length > 26 ? n.r.slice(0, 25) + '…' : n.r
         const y = n.y + RAIOS[n.t] + 14
         ctx.globalAlpha = 1; ctx.lineWidth = 3.5; ctx.strokeStyle = '#ffffff'
@@ -301,7 +310,7 @@
       abrir() {
         medir()
         if (nos.every(n => n.x === 0)) {
-          nos.forEach((n, i) => { const a = i * 2.399963, r = 40 + 39 * Math.sqrt(i); n.x = L / 2 + Math.cos(a) * r; n.y = A / 2 + Math.sin(a) * r * 0.8 })
+          nos.forEach((n, i) => { const a = i * 2.399963, r = 0.46 * Math.min(L, A) * Math.sqrt((i + 1) / nos.length); n.x = L / 2 + Math.cos(a) * r; n.y = A / 2 + Math.sin(a) * r })
           for (let i = 0; i < 420; i++) passo()
         }
         desenhar()

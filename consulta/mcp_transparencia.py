@@ -191,6 +191,22 @@ def cobertura() -> dict:
     datas = consultar("""
         MATCH (e:Evidencia) WHERE e.tenant IN $tenants
         RETURN min(e.capturado_em) AS de, max(e.capturado_em) AS ate""")[0]
+    sancoes_abertas = consultar("""
+        MATCH (f:Fornecedor)-[:RECEBEU]->(s:Sancao)
+        WHERE s.tenant IN $tenants AND s.sensibilidade IN $sensibilidades
+          AND (f.tipo = 'PJ' OR size($sensibilidades) > 1)
+          AND toUpper(s.situacao) = 'EM ABERTO'
+        RETURN count(DISTINCT s) AS ocorrencias, count(DISTINCT f) AS fornecedores""")[0]
+    exemplos_abertos = consultar("""
+        MATCH (f:Fornecedor)-[:RECEBEU]->(s:Sancao)-[:PROVADO_POR]->(e:Evidencia)
+        WHERE s.tenant IN $tenants AND s.sensibilidade IN $sensibilidades
+          AND e.tenant = s.tenant
+          AND (f.tipo = 'PJ' OR size($sensibilidades) > 1)
+          AND toUpper(s.situacao) = 'EM ABERTO'
+        RETURN DISTINCT f.id AS fornecedor_id, f.nome AS fornecedor, f.cnpj AS cnpj,
+               s.tipo AS tipo, s.situacao AS situacao, s.publicada_em AS publicada_em,
+               s.orgao AS orgao, s.tenant AS ente, e.id AS evidencia
+        ORDER BY s.publicada_em DESC, fornecedor_id, evidencia LIMIT 3""")
     return {
         **totais,
         "contratos_por_ente": por_ente,
@@ -200,6 +216,7 @@ def cobertura() -> dict:
         "tenants_do_perfil": TENANTS,
         "capturado_entre": [datas["de"], datas["ate"]],
         "cadastro_de_sancoes_de": CADASTRO_DE_SANCOES_DE,
+        "sancoes_em_aberto": {**sancoes_abertas, "exemplos": exemplos_abertos},
         "limites": (
             f"Base limitada: {totais['contratos']} contratos e {totais['sancoes']} sanções visíveis para este perfil. "
             "A execução financeira é agregada por fornecedor, órgão e ano, só do Estado, e não se liga a um contrato. "

@@ -1,6 +1,6 @@
 <?php
-// Telefones do WhatsApp: o usuário cadastra e remove (A08); só o administrador aprova ou revoga (A09).
-// O número começa "pendente". O worker só enxerga os "aprovados" cujo dono tem plano ativo (GET /api/worker/telefones).
+// Novos telefones são liberados no cadastro. O administrador pode bloquear e reconsiderar bloqueios.
+// O worker só enxerga os "aprovados" cujo dono tem plano ativo (GET /api/worker/telefones).
 
 declare(strict_types=1);
 if (!defined('API')) { http_response_code(404); exit; }
@@ -70,7 +70,7 @@ function rota_telefones_criar(): never {
             $pdo->rollBack();
             erro(400, 'Cada conta pode ter até ' . TELEFONES_POR_CONTA . ' telefones. Remova um para cadastrar outro.');
         }
-        $pdo->prepare('INSERT INTO telefones (usuario_id, numero) VALUES (?, ?)')->execute([$u['id'], $numero]);
+        $pdo->prepare('INSERT INTO telefones (usuario_id, numero, status) VALUES (?, ?, "aprovado")')->execute([$u['id'], $numero]);
         $id = (int)$pdo->lastInsertId();
         $pdo->commit();
     } catch (PDOException $e) {
@@ -82,7 +82,7 @@ function rota_telefones_criar(): never {
         if ($pdo->inTransaction()) $pdo->rollBack();
         throw $e;
     }
-    responder(201, ['id' => $id, 'numero' => $numero, 'status' => 'pendente']);
+    responder(201, ['id' => $id, 'numero' => $numero, 'status' => 'aprovado']);
 }
 
 function rota_telefones_remover(int $id): never {
@@ -113,7 +113,7 @@ function telefone_admin_json(array $t): array {
         'criado_em' => $t['criado_em'],
         'atualizado_em' => $t['atualizado_em'],
         'usuario' => ['id' => (int)$t['usuario_id'], 'nome' => $t['usuario_nome'], 'email' => $t['usuario_email'], 'plano' => $t['plano']],
-        // Quem tomou a última decisão (aprovar ou revogar). Nulo enquanto está pendente.
+        // Quem tomou a última decisão administrativa. Nulo na liberação automática e enquanto pendente.
         'decidido_por' => $t['decidido_por_id'] === null ? null : ['id' => (int)$t['decidido_por_id'], 'nome' => $t['decidido_por_nome'], 'email' => $t['decidido_por_email']],
     ];
 }

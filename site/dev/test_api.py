@@ -30,6 +30,7 @@ CONTAINER = os.environ.get("DB_CONTAINER", "hackathon-site-db")
 CONFIG = (RAIZ / "site" / "hackathon-config.php").read_text(encoding="utf-8")
 WORKER_KEY = re.search(r"const WORKER_KEY = '([^']+)'", CONFIG).group(1)
 SERVIDORES: list[tuple[subprocess.Popen, str]] = []
+PLANO_ID = None
 
 
 def porta_livre() -> int:
@@ -47,6 +48,8 @@ def sql(consulta: str) -> str:
 
 
 def setUpModule():
+    global PLANO_ID
+    PLANO_ID = int(sql("SELECT id FROM planos WHERE nome='Único'"))
     assert PHP, "php não encontrado: defina PHP_BIN"
     for _ in range(3):
         porta = porta_livre()
@@ -129,7 +132,8 @@ class Cliente:
         self.email, self.senha = email, senha
         return r
 
-    def assinar(self, plano_id=1):
+    def assinar(self, plano_id=None):
+        plano_id = PLANO_ID if plano_id is None else plano_id
         r = self.req("POST", "/api/assinatura", {"plano_id": plano_id})
         assert r.status == 201, (r.status, r.corpo)
         return r
@@ -150,7 +154,7 @@ class Base(unittest.TestCase):
     def setUp(self):
         sql("DELETE FROM perguntas; DELETE FROM tentativas_login; DELETE FROM telefones")
 
-    def cliente_com_plano(self, plano_id=1):
+    def cliente_com_plano(self, plano_id=None):
         c = Cliente(self.base)
         c.cadastrar()
         c.assinar(plano_id)
@@ -167,12 +171,23 @@ class TestA01Banco(Base):
     def test_tabelas_e_planos_existem(self):
         tabelas = set(sql("SHOW TABLES").split())
         self.assertTrue({"usuarios", "planos", "assinaturas", "telefones", "perguntas", "eventos", "tentativas_login"} <= tabelas)
-        self.assertEqual(sql("SELECT COUNT(*) FROM planos"), "2")
+        self.assertEqual(sql("SELECT COUNT(*) FROM planos WHERE nome='Único'"), "1")
 
     def test_setup_repetido_nao_duplica(self):
         antes = sql("SELECT COUNT(*) FROM planos")
         subprocess.run([PHP, str(RAIZ / "site/setup.php")], check=True, capture_output=True)
         self.assertEqual(sql("SELECT COUNT(*) FROM planos"), antes)
+
+    def test_setup_libera_pendentes_preserva_bloqueios_e_muda_padrao(self):
+        c = self.cliente_com_plano()
+        uid = c.me()["usuario"]["id"]
+        a, b, d = numero_unico(), numero_unico(), numero_unico()
+        sql(f"INSERT INTO telefones (usuario_id, numero, status) VALUES ({uid}, '{a}', 'pendente'), ({uid}, '{b}', 'revogado')")
+        subprocess.run([PHP, str(RAIZ / "site/setup.php")], check=True, capture_output=True)
+        self.assertEqual(sql(f"SELECT status FROM telefones WHERE numero='{a}'"), "aprovado")
+        self.assertEqual(sql(f"SELECT status FROM telefones WHERE numero='{b}'"), "revogado")
+        sql(f"INSERT INTO telefones (usuario_id, numero) VALUES ({uid}, '{d}')")
+        self.assertEqual(sql(f"SELECT status FROM telefones WHERE numero='{d}'"), "aprovado")
 
     def test_setup_recusa_rodar_pela_web(self):
         r = chamar(self.base, "GET", "/setup.php")
@@ -242,7 +257,7 @@ class TestA03Login(Base):
         c = Cliente(self.base); c.cadastrar()
         for metodo, caminho, corpo in [("POST", "/api/login", {"email": "a@teste.local", "senha": "x"}),
                                        ("POST", "/api/cadastro", {"nome": "x", "email": "b@teste.local", "senha": "senha-segura-123"}),
-                                       ("POST", "/api/logout", None), ("POST", "/api/assinatura", {"plano_id": 1}),
+                                       ("POST", "/api/logout", None), ("POST", "/api/assinatura", {"plano_id": PLANO_ID}),
                                        ("POST", "/api/perguntas", {"texto": "oi"})]:
             self.assertEqual(c.req(metodo, caminho, corpo, csrf=False).status, 403, f"sem token: {caminho}")
             self.assertEqual(c.req(metodo, caminho, corpo, token="token-falso").status, 403, f"token falso: {caminho}")
@@ -250,7 +265,7 @@ class TestA03Login(Base):
     def test_csrf_de_outra_sessao_nao_vale(self):
         a = Cliente(self.base); a.cadastrar()
         b = Cliente(self.base); b.cadastrar()
-        self.assertEqual(b.req("POST", "/api/assinatura", {"plano_id": 1}, token=a.csrf).status, 403)
+        self.assertEqual(b.req("POST", "/api/assinatura", {"plano_id": PLANO_ID}, token=a.csrf).status, 403)
 
     def test_tentativas_seguidas_sao_limitadas(self):
         c = Cliente(self.base); c.cadastrar()
@@ -292,29 +307,46 @@ class TestA03Login(Base):
 
 
 class TestA04Planos(Base):
+    def test_migracao_preserva_historico_e_retira_ofertas_antigas(self):
+        sql("INSERT INTO planos (nome, preco_mensal, franquia, preco_excedente, tenants) "
+            "VALUES ('Município', 990, 300, 1.50, '[\"pe-garanhuns\"]') "
+            "ON DUPLICATE KEY UPDATE nome=VALUES(nome)")
+        antigo = int(sql("SELECT id FROM planos WHERE nome='Município'"))
+        c = Cliente(self.base); c.cadastrar()
+        sql(f"INSERT INTO assinaturas (usuario_id, plano_id) SELECT id, {antigo} FROM usuarios WHERE email='{c.email}'")
+        pid = c.perguntar()["id"]
+        subprocess.run([PHP, str(RAIZ / "site/setup.php")], check=True, capture_output=True)
+        self.assertEqual(c.me()["plano"]["nome"], "Único")
+        self.assertEqual(c.me()["plano"]["preco_mensal"], 149.0)
+        self.assertEqual(int(sql(f"SELECT plano_id FROM perguntas WHERE id={pid}")), antigo)
+        self.assertEqual(json.loads(sql(f"SELECT tenants FROM perguntas WHERE id={pid}")), ["pe-garanhuns"])
+        self.assertEqual(c.req("POST", "/api/assinatura", {"plano_id": antigo}).status, 404)
+        self.assertEqual(len(chamar(self.base, "GET", "/api/planos").corpo), 1)
+
     def test_lista_publica_com_entes(self):
         r = chamar(self.base, "GET", "/api/planos")
         self.assertEqual(r.status, 200)
-        por_nome = {p["nome"]: p for p in r.corpo}
-        self.assertEqual(por_nome["Município"]["tenants"], ["pe-garanhuns"])
-        self.assertEqual(por_nome["Estado"]["tenants"], ["pe-estado", "pe-garanhuns"])
-        self.assertEqual((por_nome["Município"]["preco_mensal"], por_nome["Município"]["franquia"]), (990.0, 300))
+        self.assertEqual(len(r.corpo), 1)
+        plano = r.corpo[0]
+        self.assertEqual((plano["nome"], plano["preco_mensal"]), ("Único", 149.0))
+        self.assertEqual(plano["tenants"], ["pe-estado", "pe-garanhuns"])
+        self.assertEqual((plano["franquia"], plano["preco_excedente"]), (0, 0.0))
 
     def test_ativa_sem_pagamento_e_me_mostra_o_plano(self):
         c = Cliente(self.base); c.cadastrar()
-        r = c.req("POST", "/api/assinatura", {"plano_id": 2})
+        r = c.req("POST", "/api/assinatura", {"plano_id": PLANO_ID})
         self.assertEqual(r.status, 201)
-        self.assertEqual(c.me()["plano"]["nome"], "Estado")
+        self.assertEqual(c.me()["plano"]["nome"], "Único")
 
-    def test_trocar_de_plano_deixa_uma_so_ativa(self):
-        c = self.cliente_com_plano(1)
-        c.assinar(2)
-        self.assertEqual(c.me()["plano"]["nome"], "Estado")
+    def test_reativar_plano_deixa_uma_so_assinatura_ativa(self):
+        c = self.cliente_com_plano()
+        c.assinar()
+        self.assertEqual(c.me()["plano"]["nome"], "Único")
         self.assertEqual(sql(f"SELECT COUNT(*) FROM assinaturas a JOIN usuarios u ON u.id=a.usuario_id WHERE u.email='{c.email}' AND a.status='ativa'"), "1")
 
     def test_assinatura_exige_login_e_plano_valido(self):
         anon = Cliente(self.base); anon.me()
-        self.assertEqual(anon.req("POST", "/api/assinatura", {"plano_id": 1}).status, 401)
+        self.assertEqual(anon.req("POST", "/api/assinatura", {"plano_id": PLANO_ID}).status, 401)
         c = Cliente(self.base); c.cadastrar()
         self.assertEqual(c.req("POST", "/api/assinatura", {"plano_id": 9999}).status, 404)
         for ruim in ["1", None, 0, -1, 1.5, [1]]:
@@ -331,7 +363,7 @@ class TestA05Perguntas(Base):
         self.assertIn("plano", r["erro"])
 
     def test_copia_os_entes_do_plano(self):
-        for plano_id, esperado in [(1, ["pe-garanhuns"]), (2, ["pe-estado", "pe-garanhuns"])]:
+        for plano_id, esperado in [(PLANO_ID, ["pe-estado", "pe-garanhuns"])]:
             sql("DELETE FROM perguntas")
             c = self.cliente_com_plano(plano_id)
             pid = c.perguntar()["id"]
@@ -384,11 +416,14 @@ class TestA05Perguntas(Base):
             self.assertEqual(sorted(status), [201, 409, 409, 409, 409, 409], f"rodada {rodada}")
             self.assertEqual(sql(f"SELECT COUNT(*) FROM perguntas p JOIN usuarios u ON u.id=p.usuario_id WHERE u.email='{c.email}'"), "1", f"rodada {rodada}")
 
-    def test_mudar_de_plano_nao_altera_a_pergunta_em_andamento(self):
-        c = self.cliente_com_plano(2)
+    def test_mudar_cobertura_nao_altera_a_pergunta_em_andamento(self):
+        c = self.cliente_com_plano()
         pid = c.perguntar()["id"]
-        c.assinar(1)
-        self.assertEqual(json.loads(sql(f"SELECT tenants FROM perguntas WHERE id={pid}")), ["pe-estado", "pe-garanhuns"])
+        try:
+            sql(f"UPDATE planos SET tenants='[\"pe-garanhuns\"]' WHERE id={PLANO_ID}")
+            self.assertEqual(json.loads(sql(f"SELECT tenants FROM perguntas WHERE id={pid}")), ["pe-estado", "pe-garanhuns"])
+        finally:
+            sql(f"UPDATE planos SET tenants='[\"pe-estado\",\"pe-garanhuns\"]' WHERE id={PLANO_ID}")
 
     def test_texto_e_guardado_sem_executar_nada(self):
         c = self.cliente_com_plano()
@@ -464,8 +499,9 @@ class TestA07Worker(Base):
         self.assertEqual(worker(self.base, "POST", "/api/worker/proxima").status, 204)
 
     def test_entrega_a_mais_antiga_primeiro_com_os_entes_do_plano(self):
-        a, b = self.cliente_com_plano(1), self.cliente_com_plano(2)
+        a, b = self.cliente_com_plano(), self.cliente_com_plano()
         ida, idb = a.perguntar("primeira")["id"], b.perguntar("segunda")["id"]
+        sql(f"UPDATE perguntas SET tenants='[\"pe-garanhuns\"]' WHERE id={ida}")
         p1 = worker(self.base, "POST", "/api/worker/proxima")
         self.assertEqual((p1["id"], p1["texto"], p1["tenants"], p1["ver_pessoal"]), (ida, "primeira", ["pe-garanhuns"], False))
         p2 = worker(self.base, "POST", "/api/worker/proxima")
@@ -478,7 +514,7 @@ class TestA07Worker(Base):
         # precisa sair exatamente uma vez. Sem o UPDATE condicional, aparecem entregas repetidas.
         a = self.cliente_com_plano()
         sql("INSERT INTO perguntas (usuario_id, plano_id, texto, tenants) "
-            "SELECT u.id, 1, CONCAT('p', n.i), '[\"pe-garanhuns\"]' FROM usuarios u JOIN "
+            f"SELECT u.id, {PLANO_ID}, CONCAT('p', n.i), '[\"pe-garanhuns\"]' FROM usuarios u JOIN "
             "(" + " UNION ALL ".join(f"SELECT {i} AS i" for i in range(80)) + f") n WHERE u.email='{a.email}'")
         self.assertEqual(sql("SELECT COUNT(*) FROM perguntas WHERE status='fila'"), "80")
         entregues, lock = [], threading.Lock()
@@ -549,14 +585,14 @@ class TestA07Worker(Base):
         self.assertEqual(self.enviar(pid, [{"seq": 3, "tipo": "texto", "dados": {}}]).status, 409)
 
     def test_telefones_aprovados_so_de_quem_tem_plano(self):
-        a, b, c = self.cliente_com_plano(1), self.cliente_com_plano(2), Cliente(self.base)
+        a, b, c = self.cliente_com_plano(), self.cliente_com_plano(), Cliente(self.base)
         c.cadastrar()   # sem plano
         for cli, numero, status in [(a, "5587999990001", "aprovado"), (b, "5587999990002", "aprovado"),
                                     (a, "5587999990003", "pendente"), (b, "5587999990004", "revogado"), (c, "5587999990005", "aprovado")]:
             sql(f"INSERT INTO telefones (usuario_id, numero, status) SELECT id, '{numero}', '{status}' FROM usuarios WHERE email='{cli.email}'")
         r = worker(self.base, "GET", "/api/worker/telefones")
         self.assertEqual({t["numero"]: t["tenants"] for t in r.corpo},
-                         {"5587999990001": ["pe-garanhuns"], "5587999990002": ["pe-estado", "pe-garanhuns"]})
+                         {"5587999990001": ["pe-estado", "pe-garanhuns"], "5587999990002": ["pe-estado", "pe-garanhuns"]})
 
 
 def numero_unico() -> str:
@@ -578,13 +614,16 @@ class TestA08Telefones(Base):
         self.assertEqual(c.req("POST", "/api/telefones", {"numero": numero_unico()}, csrf=False).status, 403)
         self.assertEqual(c.req("DELETE", "/api/telefones/1", csrf=False).status, 403)
 
-    def test_normaliza_o_numero_e_comeca_pendente(self):
+    def test_normaliza_o_numero_e_libera_sem_aprovacao(self):
         c = self.cliente_com_plano()
         formas = ["(87) 98888-7777", "+55 87 98888-7777", "87988887777", "558788887777", "087 98888-7777", "0055 87 98888-7777"]
         r = c.req("POST", "/api/telefones", {"numero": formas[0]})
-        self.assertEqual((r.status, r["numero"], r["status"]), (201, "5587988887777", "pendente"))
+        self.assertEqual((r.status, r["numero"], r["status"]), (201, "5587988887777", "aprovado"))
         lista = c.req("GET", "/api/telefones", csrf=False)
-        self.assertEqual([(t["numero"], t["status"]) for t in lista.corpo], [("5587988887777", "pendente")])
+        self.assertEqual([(t["numero"], t["status"]) for t in lista.corpo], [("5587988887777", "aprovado")])
+        no_worker = {t["numero"]: t["tenants"] for t in worker(self.base, "GET", "/api/worker/telefones").corpo}
+        self.assertEqual(no_worker[r["numero"]], ["pe-estado", "pe-garanhuns"])
+        self.assertEqual(sql(f"SELECT aprovado_por FROM telefones WHERE id={r['id']}"), "NULL")
         for forma in formas[1:]:   # qualquer outra forma de escrever o mesmo número é duplicado
             self.assertEqual(c.req("POST", "/api/telefones", {"numero": forma}).status, 409, forma)
 
@@ -678,7 +717,7 @@ class TestA08Telefones(Base):
         self.assertEqual(b.req("POST", "/api/telefones", {"numero": n}).status, 201)
 
     def test_remover_aprovado_tira_o_numero_da_lista_do_worker(self):
-        c = self.cliente_com_plano(2)
+        c = self.cliente_com_plano()
         n = numero_unico()
         tid = c.req("POST", "/api/telefones", {"numero": n})["id"]
         sql(f"UPDATE telefones SET status='aprovado' WHERE id={tid}")
@@ -701,10 +740,11 @@ class TestA09Admin(Base):
         sql(f"UPDATE usuarios SET papel='admin' WHERE email='{c.email}'")
         return c
 
-    def telefone_pendente(self, plano_id=1):
+    def telefone_pendente(self, plano_id=None):
         dono = self.cliente_com_plano(plano_id)
         n = numero_unico()
         tid = dono.req("POST", "/api/telefones", {"numero": n})["id"]
+        sql(f"UPDATE telefones SET status='pendente' WHERE id={tid}")   # legado: novos cadastros já nascem liberados
         return dono, tid, n
 
     def test_usuario_comum_recebe_403_em_todas_as_rotas(self):
@@ -729,12 +769,12 @@ class TestA09Admin(Base):
 
     def test_fila_de_aprovacao_mostra_dono_plano_e_numero(self):
         adm = self.admin()
-        dono, tid, n = self.telefone_pendente(2)
+        dono, tid, n = self.telefone_pendente()
         fila = adm.req("GET", "/api/admin/telefones", csrf=False)
         self.assertEqual(fila.status, 200)
         item = next(t for t in fila.corpo if t["id"] == tid)
         self.assertEqual((item["numero"], item["status"]), (n, "pendente"))
-        self.assertEqual((item["usuario"]["email"], item["usuario"]["plano"]), (dono.email, "Estado"))
+        self.assertEqual((item["usuario"]["email"], item["usuario"]["plano"]), (dono.email, "Único"))
         self.assertIsNone(item["decidido_por"])
 
     def test_filtro_por_status(self):
@@ -751,7 +791,7 @@ class TestA09Admin(Base):
 
     def test_aprovar_registra_quem_decidiu_e_libera_o_worker(self):
         adm = self.admin()
-        dono, tid, n = self.telefone_pendente(2)
+        dono, tid, n = self.telefone_pendente()
         self.assertNotIn(n, [t["numero"] for t in worker(self.base, "GET", "/api/worker/telefones").corpo])   # pendente não entra
         r = adm.req("POST", f"/api/admin/telefones/{tid}/aprovar", {})
         self.assertEqual((r.status, r["status"]), (200, "aprovado"))
@@ -769,6 +809,18 @@ class TestA09Admin(Base):
         r = adm.req("POST", f"/api/admin/telefones/{tid}/revogar", {})
         self.assertEqual((r.status, r["status"]), (200, "revogado"))
         self.assertNotIn(n, [t["numero"] for t in worker(self.base, "GET", "/api/worker/telefones").corpo])
+
+    def test_admin_bloqueia_e_relibera_numero_automatico(self):
+        adm = self.admin()
+        dono = self.cliente_com_plano()
+        n = numero_unico()
+        novo = dono.req("POST", "/api/telefones", {"numero": n})
+        self.assertEqual(novo["status"], "aprovado")
+        tid = novo["id"]
+        self.assertEqual(adm.req("POST", f"/api/admin/telefones/{tid}/revogar", {})["status"], "revogado")
+        self.assertNotIn(n, [t["numero"] for t in worker(self.base, "GET", "/api/worker/telefones").corpo])
+        self.assertEqual(adm.req("POST", f"/api/admin/telefones/{tid}/aprovar", {})["status"], "aprovado")
+        self.assertIn(n, [t["numero"] for t in worker(self.base, "GET", "/api/worker/telefones").corpo])
 
     def test_recusar_um_pendente_e_reconsiderar_um_revogado(self):
         adm = self.admin()

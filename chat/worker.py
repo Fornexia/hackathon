@@ -24,6 +24,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
 import agente  # noqa: E402
+from http_api import criar_cliente
 
 RAIZ = agente.RAIZ
 for linha in (RAIZ / ".env").read_text(encoding="utf-8").splitlines():
@@ -31,7 +32,7 @@ for linha in (RAIZ / ".env").read_text(encoding="utf-8").splitlines():
         k, v = linha.split("=", 1)
         os.environ.setdefault(k.strip(), v.strip())
 
-API = os.environ.get("API_BASE", f"https://{os.environ.get('SITE', 'hackathon.figueiredo.dev')}") + "/api"
+API = os.environ.get("API_BASE", f"https://{os.environ.get('SITE', 'fornexia.figueiredo.dev')}") + "/api"
 CHAVE = os.environ["WORKER_KEY"]
 ESTADO = Path(os.environ.get("WHATSAPP_STATE_DIR", Path.home() / ".claude/channels/whatsapp-hackathon"))
 LOG = RAIZ / "logs" / "chat.jsonl"
@@ -40,6 +41,8 @@ TRANSCRITOR = RAIZ.parent / "inferencia" / "transcrever.py"
 PERFIL_MANUAL = ["pe-estado", "pe-garanhuns"]   # números liberados pelo dono no terminal
 ERRO_PADRAO = "Não consegui concluir agora. Tente de novo em instantes."
 AGENTES_SITE = int(os.environ.get("AGENTES_SITE", "3"))   # o WhatsApp tem o próprio agente, um por vez
+PROVEDOR_SITE = os.environ.get("AGENTE_SITE_PROVEDOR", "codex")
+HTTP = criar_cliente()
 
 parar = threading.Event()
 historicos: dict[str, collections.deque] = collections.defaultdict(lambda: collections.deque(maxlen=3))
@@ -63,7 +66,7 @@ def api(metodo: str, rota: str, corpo=None):
         headers={"X-Worker-Key": CHAVE, "Content-Type": "application/json", "User-Agent": "fornexia-worker/1"},
     )
     try:
-        with urllib.request.urlopen(req, timeout=20) as r:
+        with HTTP.open(req, timeout=20) as r:
             texto = r.read().decode("utf-8")
             return r.status, json.loads(texto) if texto else None
     except urllib.error.HTTPError as e:
@@ -104,13 +107,18 @@ class Lote:
         self.fila, self.ultimo = [], time.monotonic()
 
 
+def chave_entes(tenants: list[str]) -> str:
+    """O histórico é separado por entes: resposta de um plano não pode virar contexto de outro."""
+    return ",".join(sorted(tenants))
+
+
 def atender_site(p: dict):
     inicio = time.monotonic()
     lote, leitor, primeiro = Lote(p["id"]), agente.Leitor(), None
-    chave = f"site:{p['usuario_id']}"
+    chave = f"site:{p['usuario_id']}:{chave_entes(p['tenants'])}"
     desfecho = "erro"
     try:
-        for tipo, dados in agente.perguntar(p["texto"], p["tenants"], list(historicos[chave]), leitor):
+        for tipo, dados in agente.perguntar(p["texto"], p["tenants"], list(historicos[chave]), leitor, provedor=PROVEDOR_SITE):
             primeiro = primeiro or int((time.monotonic() - inicio) * 1000)
             if tipo == "erro":
                 registrar("agente falhou:", dados.get("motivo", "")[:200])
@@ -126,18 +134,18 @@ def atender_site(p: dict):
     lote.enviar()
     if desfecho == "concluida" and leitor.resposta:
         historicos[chave].append((p["texto"], leitor.resposta[:600]))
-    gravar_log(canal="site", id=p["id"], usuario=p["usuario_id"], tenants=p["tenants"], pergunta=p["texto"],
+    gravar_log(canal="site", provedor=PROVEDOR_SITE, id=p["id"], usuario=p["usuario_id"], tenants=p["tenants"], pergunta=p["texto"],
                consultas=leitor.consultas, evidencias=leitor.evidencias, desfecho=desfecho,
                primeiro_sinal_ms=primeiro, duracao_ms=int((time.monotonic() - inicio) * 1000))
 
 
 def laco_site(atraso: float = 0):
     parar.wait(atraso)      # espalha as buscas: os agentes não consultam a fila no mesmo instante
-    espera = 1.5
+    espera = 3.0
     while not parar.is_set():
         try:
             status, p = api("POST", "/worker/proxima")
-            espera = 1.5
+            espera = 3.0
             if status == 200 and p:
                 registrar("site: pergunta", p["id"], p["tenants"])
                 atender_site(p)
@@ -189,6 +197,7 @@ def transcrever(arquivo: str) -> str | None:
 
 def responder_whatsapp(texto: str, tenants: list[str], chave: str) -> tuple[str, agente.Leitor, str]:
     leitor, fontes, desfecho = agente.Leitor(), [], "erro"
+    chave = f"{chave}:{chave_entes(tenants)}"
     try:
         for tipo, dados in agente.perguntar(texto, tenants, list(historicos[chave]), leitor):
             if tipo == "fonte":
@@ -305,7 +314,7 @@ def main() -> int:
     laços += [threading.Thread(target=f, daemon=True) for f in (laco_whatsapp, laco_telefones)]
     for t in laços:
         t.start()
-    registrar("worker no ar:", API, f"com {AGENTES_SITE} agentes no site")
+    registrar("worker no ar:", API, f"com {AGENTES_SITE} agentes no site; provedor: {PROVEDOR_SITE}")
     parar.wait()
     return 0
 
