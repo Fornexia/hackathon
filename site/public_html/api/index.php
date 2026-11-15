@@ -13,7 +13,7 @@
 //   GET  /api/perguntas/{id}/prova        pacote de prova (ZIP) de uma consulta; ?formato=json devolve só o JSON
 //   GET  /api/provas?ids=1,2,3            dossiê com várias consultas (sem ids: as concluídas da conta)
 //   GET  /api/telefones                   os telefones do usuário
-//   POST /api/telefones                   {numero}: nasce "pendente"
+//   POST /api/telefones                   {numero}: liberado automaticamente
 //   DELETE /api/telefones/{id}
 //
 // Administrador (papel "admin"):

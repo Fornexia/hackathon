@@ -8,12 +8,12 @@ Dar ao produto uma porta de entrada. O site apresenta a oferta, cria a conta e l
 
 ## Fluxo da demo
 
-1. A visitante conhece o produto e os planos.
-2. Cria a conta e ativa um plano de demonstração.
+1. A visitante conhece o produto e o plano único de R$ 149 por mês.
+2. Cria a conta e recebe o plano único de demonstração, sem cobrança.
 3. Pergunta sobre um fornecedor no chat e vê a resposta aparecer com a fonte.
-4. Cadastra o telefone, e o administrador aprova.
+4. Cadastra o telefone, que é liberado automaticamente.
 5. Faz a pergunta no WhatsApp.
-6. Uma conta com plano menor faz a mesma pergunta e não vê os dados do Estado.
+6. O administrador pode bloquear o número e demonstrar que ele perde o acesso.
 
 ## Histórias e requisitos
 
@@ -22,7 +22,7 @@ Dar ao produto uma porta de entrada. O site apresenta a oferta, cria a conta e l
 | ID | Requisito | Prioridade |
 |---|---|---|
 | RF-01 | A landing mostra proposta de valor, como funciona, chamada para ação e aviso de que a base é uma amostra | Deve |
-| RF-02 | A página de planos mostra preço, entes cobertos e o aviso "valores de demonstração" (franquia e excedente aparecem só se o plano os tiver) | Deve |
+| RF-02 | A página mostra plano único a R$ 149/mês, entes cobertos e aviso de demonstração sem cobrança; franquia e excedente não foram definidos no pitch | Deve |
 | RF-03 | Sobre nós mostra foto, nome, papel e descrição de cada pessoa do time | Deve |
 | RF-04 | O modelo de negócios mostra proposta de valor, quem paga e como o preço funciona, com hipóteses marcadas | Deve |
 
@@ -53,7 +53,7 @@ Dar ao produto uma porta de entrada. O site apresenta a oferta, cria a conta e l
 | ID | Requisito | Prioridade |
 |---|---|---|
 | RF-17 | A pessoa cadastra e remove o telefone na conta | Deve |
-| RF-18 | O telefone começa pendente e só o administrador aprova ou revoga | Deve |
+| RF-18 | Novo telefone começa aprovado; o administrador pode bloquear ou liberar novamente | Deve |
 | RF-19 | Número aprovado passa a falar com o bot; número revogado deixa de falar | Deve |
 | RF-20 | Pedido feito por mensagem no WhatsApp nunca muda acesso | Deve |
 | RF-21 | No WhatsApp, a resposta respeita o plano do número | Deveria |
@@ -88,13 +88,14 @@ Dar ao produto uma porta de entrada. O site apresenta a oferta, cria a conta e l
 | Site na Hostinger | Já está no ar, com PHP 8.2 e MySQL |
 | Fila em vez de WebSocket | Repete o desenho do WhatsApp: o notebook só faz conexões de saída, sem túnel. O pedido original era WebSocket; a troca atende "tempo real" sem complexidade extra |
 | Atualização a cada 0,7 s | Hospedagem compartilhada não aceita WebSocket de entrada, e conexão longa ocuparia processo |
-| Administrador aprova telefone | Mantém uma pessoa no controle do acesso |
+| Cadastro libera novos telefones | Pedido do Lucas em 06/11/2026; administrador mantém bloqueio e liberação posterior |
 | Duas frentes | Time de duas pessoas, com o contrato no [plano técnico](plan.md) |
 
 ## Critérios de aceite da entrega
 
 - [ ] Fluxo da demo completo, em uma conta nova.
-- [ ] Mesma pergunta com dois planos gera respostas diferentes, e o log comprova.
+- [ ] Oferta única de R$ 149/mês; planos antigos não podem ser contratados.
+- [ ] Cadastro libera o novo número para o worker; bloqueio e remoção cortam o acesso.
 - [ ] Três ataques de prompt não mudam entes nem expõem pessoa física.
 - [ ] Notebook reiniciado volta a responder sem intervenção.
 - [ ] Nenhum segredo ou dado pessoal no repositório.

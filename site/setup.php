@@ -1,6 +1,6 @@
 <?php
 // Cria as tabelas, os planos de demonstração e, se pedido, o administrador. Roda no servidor, por SSH:
-//   php ~/domains/hackathon.figueiredo.dev/setup.php admin@email "Nome" senha
+//   php ~/domains/fornexia.figueiredo.dev/setup.php admin@email "Nome" senha
 // (fica ao lado do hackathon-config.php, fora do public_html)
 // Pode rodar de novo: tabelas usam IF NOT EXISTS, os planos são atualizados e o admin é atualizado.
 
@@ -48,7 +48,7 @@ $tabelas = [
         id INT AUTO_INCREMENT PRIMARY KEY,
         usuario_id INT NOT NULL,
         numero VARCHAR(20) NOT NULL UNIQUE,
-        status ENUM("pendente","aprovado","revogado") NOT NULL DEFAULT "pendente",
+        status ENUM("pendente","aprovado","revogado") NOT NULL DEFAULT "aprovado",
         aprovado_por INT NULL,
         criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         atualizado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -102,33 +102,34 @@ foreach ($tabelas as $nome => $sql) {
     $pdo->exec($sql);
 }
 
-// Plano único de demonstração (R$ 149 por mês, sem franquia nem excedente). O valor é hipótese, não preço validado.
-// Franquia e excedente ficam em 0: o banco ainda tem as colunas, mas o plano único não as usa.
+// Elimina a etapa de aprovação também nos cadastros anteriores e no padrão do banco.
+$pdo->exec('ALTER TABLE telefones ALTER COLUMN status SET DEFAULT "aprovado"');
+$pdo->exec('UPDATE telefones SET status = "aprovado", aprovado_por = NULL WHERE status = "pendente"');
+
+// Plano único de demonstração (R$ 149 por mês, conforme o pitch de 06/11/2026, sem franquia nem excedente).
+// O valor é hipótese, não preço validado. Franquia e excedente ficam em 0: o banco ainda tem as colunas.
+// Desde 14/11/2026 o plano inclui a União (sanções CEIS/CNEP e cadastro da Receita).
 $planos = [
     ['Único', 149.00, 0, 0.00, ['pe-estado', 'pe-garanhuns', 'br-uniao']],
 ];
-$st = $pdo->prepare('INSERT INTO planos (nome, preco_mensal, franquia, preco_excedente, tenants) VALUES (?, ?, ?, ?, ?)
-                     ON DUPLICATE KEY UPDATE preco_mensal = VALUES(preco_mensal), franquia = VALUES(franquia),
-                     preco_excedente = VALUES(preco_excedente), tenants = VALUES(tenants)');
-foreach ($planos as [$nome, $preco, $franquia, $excedente, $tenants]) {
-    $st->execute([$nome, $preco, $franquia, $excedente, json_encode($tenants)]);
-}
-
-// Bancos antigos ainda têm os planos Município e Estado. Quem estava neles passa para o plano atual e os antigos saem
-// (o histórico de perguntas guarda os entes de cada uma, então nada se perde). Roda de novo sem efeito.
-$atual = (int)$pdo->query('SELECT id FROM planos WHERE nome = ' . $pdo->quote($planos[0][0]))->fetchColumn();
-$marcas = implode(',', array_fill(0, count($planos), '?'));
-$st = $pdo->prepare("SELECT id FROM planos WHERE nome NOT IN ($marcas)");
-$st->execute(array_column($planos, 0));
-$antigos = array_map('intval', $st->fetchAll(PDO::FETCH_COLUMN));
-if ($antigos) {
-    $lista = implode(',', $antigos);
-    $pdo->beginTransaction();
-    $pdo->exec("UPDATE assinaturas SET plano_id = $atual WHERE plano_id IN ($lista)");
-    $pdo->exec("UPDATE perguntas SET plano_id = $atual WHERE plano_id IN ($lista)");
-    $pdo->exec("DELETE FROM planos WHERE id IN ($lista)");
+$pdo->beginTransaction();
+try {
+    $st = $pdo->prepare('INSERT INTO planos (nome, preco_mensal, franquia, preco_excedente, tenants) VALUES (?, ?, ?, ?, ?)
+                         ON DUPLICATE KEY UPDATE preco_mensal = VALUES(preco_mensal), franquia = VALUES(franquia),
+                         preco_excedente = VALUES(preco_excedente), tenants = VALUES(tenants)');
+    foreach ($planos as [$nome, $preco, $franquia, $excedente, $tenants]) {
+        $st->execute([$nome, $preco, $franquia, $excedente, json_encode($tenants)]);
+    }
+    // Preserva planos antigos referenciados no histórico de perguntas e assinaturas canceladas.
+    // Só a oferta Único fica disponível na API; assinaturas ativas antigas passam para ela.
+    $pdo->exec('UPDATE assinaturas a JOIN planos antigo ON antigo.id = a.plano_id
+        JOIN planos novo ON novo.nome = "Único"
+        SET a.plano_id = novo.id
+        WHERE a.status = "ativa" AND antigo.nome IN ("Município", "Estado")');
     $pdo->commit();
-    echo 'planos antigos removidos: ' . count($antigos) . "\n";
+} catch (Throwable $e) {
+    if ($pdo->inTransaction()) $pdo->rollBack();
+    throw $e;
 }
 
 [$_, $email, $nome, $senha] = $argv + [null, null, null, null];

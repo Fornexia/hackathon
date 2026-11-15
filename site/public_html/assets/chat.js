@@ -22,7 +22,7 @@
     'Algum fornecedor tem sanção em aberto?',
     'A base de dados é completa?',
   ]
-  // Demonstração livre: a conta nova não escolhe plano e recebe o plano único (Estado de Pernambuco e Garanhuns).
+  // Demonstração livre: a conta nova recebe o plano único sem etapa de escolha.
   // A regra de plano continua valendo no servidor. Ligue isto para voltar a pedir a escolha na tela.
   const ESCOLHER_PLANO = false
   const INTERVALO_MS = 700          // o plano pede leitura a cada 0,7 s

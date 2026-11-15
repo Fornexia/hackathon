@@ -651,7 +651,7 @@ HH:MM:SS worker no ar: http://127.0.0.1:8080/api com 3 agentes no site
 
 | Esperado | Se vier diferente |
 |---|---|
-| A linha acima, com `127.0.0.1:8080` | Aponta para outro endereço (por exemplo `hackathon.figueiredo.dev`): faltou `API_BASE` no `.env` e o worker está atendendo o site **publicado**. Pare (`Ctrl+C`), corrija e suba de novo |
+| A linha acima, com `127.0.0.1:8080` | Aponta para outro endereço (por exemplo `fornexia.figueiredo.dev`): faltou `API_BASE` no `.env` e o worker está atendendo o site **publicado**. Pare (`Ctrl+C`), corrija e suba de novo |
 | | `KeyError: 'WORKER_KEY'`: falta a chave no `.env` (etapa 5) |
 | | O log repete `site: API respondeu 401`: a `WORKER_KEY` do `.env` difere da do site. Deixe as duas iguais, reinicie o site e o worker |
 

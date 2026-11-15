@@ -242,6 +242,7 @@ class TestWorker(unittest.TestCase):
         with mock.patch.object(provedores, "escolher", side_effect=lambda m: {"a": a, "b": b}[m]), \
                 mock.patch.object(provedores, "cadeia", return_value=["a", "b"]), \
                 mock.patch.object(agente, "MODELO", "a"), \
+                mock.patch.object(worker, "PROVEDOR_SITE", "claude"), \
                 mock.patch.object(worker, "api", side_effect=lambda met, rota, corpo=None: (enviados.extend((corpo or {}).get("eventos", [])), (200, None))[1]), \
                 mock.patch.object(worker, "gravar_log", side_effect=lambda **c: logs.append(c)):
             worker.atender_site(pergunta)

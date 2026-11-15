@@ -8,16 +8,16 @@
 <meta name="theme-color" content="#f2f7fb" media="(prefers-color-scheme: light)">
 <title>FornexIA | Dados públicos. Decisões seguras.</title>
 <meta name="description" content="Pergunte em português sobre um fornecedor e receba o histórico com a fonte de cada número.">
-<link rel="canonical" href="https://hackathon.figueiredo.dev/">
+<link rel="canonical" href="https://fornexia.figueiredo.dev/">
 <meta property="og:type" content="website">
 <meta property="og:locale" content="pt_BR">
 <meta property="og:title" content="FornexIA">
 <meta property="og:description" content="Nós entregamos a resposta e a prova juntas.">
-<meta property="og:url" content="https://hackathon.figueiredo.dev/">
+<meta property="og:url" content="https://fornexia.figueiredo.dev/">
 <link rel="icon" href="icone.svg" type="image/svg+xml">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap">
-<link rel="stylesheet" href="assets/site.css?v=20261114d">
-<script src="assets/tema.js?v=20261114d"></script>
+<link rel="stylesheet" href="assets/site.css?v=20261115a">
+<script src="assets/tema.js?v=20261115a"></script>
 <style>
 /* Landing: mesma identidade das páginas internas. A moldura deslocada guarda a prova, o centro do produto. */
 main#topo { display: block; padding: 0; }
@@ -278,7 +278,7 @@ footer p { margin: 0; max-width: 66ch; }
       if (p.preco_excedente > 0) ul.appendChild(el('li', '', 'Excedente: ' + brl(p.preco_excedente, 2) + ' por pergunta'));
       ul.appendChild(el('li', '', 'Consulta: ' + juntar(p.tenants.map(function (t) { return ENTES[t] || t; }))));
       ul.appendChild(el('li', '', 'Site e WhatsApp, com a prova de cada fato'));
-      ul.appendChild(el('li', '', 'Até 3 números de WhatsApp por conta, liberados após aprovação'));
+      ul.appendChild(el('li', '', 'Até 3 números de WhatsApp por conta, liberados no cadastro'));
       c.appendChild(ul);
       lista.appendChild(c);
     });

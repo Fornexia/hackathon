@@ -156,7 +156,7 @@ chave = os.environ.get("WORKER_KEY", "")
 mostrar("OK" if len(chave) >= 24 else "FALTA", "WORKER_KEY definida (24+ caracteres)" if len(chave) >= 24 else "WORKER_KEY ausente ou curta no .env", "veja a etapa 5 do guia")
 if not api_base:
     mostrar("AVISO", "API_BASE não definida: o worker atenderia o site PUBLICADO", "para testar local, API_BASE=http://127.0.0.1:8080 no .env")
-    api_base = "https://hackathon.figueiredo.dev"
+    api_base = "https://fornexia.figueiredo.dev"
 elif "127.0.0.1" not in api_base and "localhost" not in api_base:
     mostrar("AVISO", f"o worker está apontado para um site remoto: {api_base}", "confirme que é isso mesmo que você quer testar")
 codigo, _ = http(f"{api_base}/api/saude")

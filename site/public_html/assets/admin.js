@@ -1,4 +1,4 @@
-// Administração: fila de telefones do WhatsApp. Aprovar e bloquear são um clique cada.
+// Administração: números liberados no cadastro, com bloqueio e desbloqueio.
 // Quem não é administrador só vê um aviso. O servidor recusa as rotas de qualquer jeito (403).
 (() => {
   'use strict'
@@ -6,14 +6,13 @@
   const $ = s => document.querySelector(s)
   const ATUALIZAR_MS = 15000
   const VAZIO = {
-    pendente: 'Nenhum telefone aguardando aprovação.',
-    aprovado: 'Nenhum telefone aprovado ainda.',
+    aprovado: 'Nenhum telefone liberado ainda.',
     revogado: 'Nenhum telefone bloqueado.',
     todos: 'Nenhum telefone cadastrado ainda.',
   }
-  const ROTULO = { pendente: 'Aguardando', aprovado: 'Aprovado', revogado: 'Bloqueado' }
+  const ROTULO = { aprovado: 'Liberado', revogado: 'Bloqueado' }
 
-  let filtro = 'pendente'
+  let filtro = 'aprovado'
   let ocupado = false              // há uma decisão em andamento: não redesenha por cima dela
   const mostrar = (id, sim) => { $(id).hidden = !sim }
   function mensagem(id, texto) { $(id).textContent = texto || ''; mostrar(id, !!texto) }
@@ -36,13 +35,10 @@
     if (t.decidido_por) principal.append(el('div', 'detalhe', `Última decisão: ${t.decidido_por.nome} em ${dataHora(t.atualizado_em)}`))
 
     const acoes = el('div', 'acoes-item')
-    if (t.status === 'pendente') {
-      acoes.append(botao('Aprovar', '', () => decidir(t, 'aprovar'), 'Aprovar o telefone ' + numero))
-      acoes.append(botao('Recusar', 'perigo', () => decidir(t, 'revogar'), 'Recusar o telefone ' + numero))
-    } else if (t.status === 'aprovado') {
+    if (t.status === 'aprovado') {
       acoes.append(botao('Bloquear', 'perigo', () => decidir(t, 'revogar'), 'Bloquear o telefone ' + numero))
     } else {
-      acoes.append(botao('Aprovar de novo', '', () => decidir(t, 'aprovar'), 'Aprovar de novo o telefone ' + numero))
+      acoes.append(botao('Desbloquear', '', () => decidir(t, 'aprovar'), 'Desbloquear o telefone ' + numero))
     }
     li.append(principal, acoes)
     return li
@@ -74,7 +70,7 @@
     try {
       if (acao === 'aprovar') await Api.aprovarTelefone(t.id)
       else await Api.revogarTelefone(t.id)
-      mensagem('#ok-adm', acao === 'aprovar' ? `Telefone ${numero} aprovado.` : `Telefone ${numero} bloqueado.`)
+      mensagem('#ok-adm', acao === 'aprovar' ? `Telefone ${numero} desbloqueado.` : `Telefone ${numero} bloqueado.`)
     } catch (e) {
       mensagem('#erro-adm', e.message)
     } finally {
