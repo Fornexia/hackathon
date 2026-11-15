@@ -4,8 +4,11 @@
 
 O workflow **Testes** executa as suítes de consulta, chat, API e pacote de prova a cada push e pull request,
 com Python 3.13, PHP 8.2, MariaDB e Neo4j descartáveis. Não inicia worker, WhatsApp ou chamadas pagas de modelos.
-O selo mostra o resultado publicado pelo GitHub Actions; antes do primeiro push com o workflow, não há execução remota validada.
+O selo mostra o resultado publicado pelo GitHub Actions.
 Os logs de cada suíte e uma tabela de resultados ficam na página da execução.
+
+**CI remoto verificado em 15/11/2026:** [primeira execução aprovada no Ubuntu 24.04](https://github.com/Luks108/hackathon/actions/runs/43714093909),
+em 4min22s: consulta 313/313, chat 261 aprovados e 1 pulado (canal opcional sem Bun), API 82/82 e pacote de prova 33/33.
 
 Para ensaiar os mesmos comandos localmente, com a `.venv`, os bancos e as tabelas preparados e o worker parado:
 
@@ -20,8 +23,7 @@ que não são instalados neste workflow. O ensaio da API usa o banco local de de
 
 **Ensaio local verificado em 14/11/2026 (Windows, Python 3.13.3, PHP 8.2):**
 consulta 313/313, chat 250 aprovados e 12 pulados, API 82/82, pacote de prova 33/33.
-O comando acima terminou com código zero. Isso valida o ensaio local; a execução no runner Ubuntu e o selo verde remoto
-continuam pendentes do primeiro push autorizado.
+O comando acima terminou com código zero. O ensaio Windows é separado da validação remota Ubuntu registrada acima.
 
 Projeto do **Desafio 1 — Portal Inteligente de Transparência com IA** do Hack Garanhuns Tech 2026.
 
