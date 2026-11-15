@@ -66,7 +66,7 @@ export const defaultTrial = (): TrialOption[] => [
   {
     title: "Usar o sistema pelo site",
     description: "Acesse a plataforma no navegador e faça sua primeira consulta de fornecedor.",
-    url: "",
+    url: "https://fornexia.figueiredo.dev/",
   },
 ];
 
@@ -183,7 +183,7 @@ export function sanitize(raw: unknown): SiteContent {
       return {
         title: text(t.title, LIMITS.name) || def.title,
         description: text(t.description, LIMITS.desc) || def.description,
-        url: typeof t.url === "string" ? safeUrl(t.url) : "",
+        url: (typeof t.url === "string" ? safeUrl(t.url) : "") || def.url,
       };
     });
   }
