@@ -12,7 +12,6 @@ Camadas de proteção deste arquivo (ver docs/seguranca/ataques-de-prompt.md):
 """
 
 import functools
-import hashlib
 import inspect
 import json
 import os
@@ -25,21 +24,29 @@ from pathlib import Path
 from mcp.server.mcpserver import MCPServer
 from neo4j import GraphDatabase
 
+import busca
+import deteccao
+import prova
+import registro
+
 RAIZ = Path(__file__).resolve().parents[1]
 _env = RAIZ / ".env"
 for linha in _env.read_text(encoding="utf-8").splitlines() if _env.exists() else []:
     if "=" in linha and not linha.lstrip().startswith("#"):
         k, v = linha.split("=", 1)
-        os.environ.setdefault(k.strip(), v.strip())
+        if v.strip():      # valor vazio não vira variável
+            os.environ.setdefault(k.strip(), v.strip())
 
 PERFIL = os.environ.get("TRANSPARENCIA_PERFIL", "sem-perfil")
 TENANTS = [t for t in os.environ.get("TRANSPARENCIA_TENANTS", "").split(",") if t]
 VER_PESSOAL = os.environ.get("TRANSPARENCIA_VER_PESSOAL") == "sim"
-BRUTO = Path(os.environ.get("BRUTO") or RAIZ / "fixtures" / "exemplo" / "bruto")
+# O agente roda o servidor em outra pasta: um BRUTO relativo vale a partir da raiz do projeto, não do diretório atual.
+BRUTO = prova.pasta_bruto(os.environ.get("BRUTO"))
 SENSIBILIDADES = ["publico", "pessoal"] if VER_PESSOAL else ["publico"]
 LOG = Path(os.environ.get("TRANSPARENCIA_LOG") or RAIZ / "logs" / "consultas.jsonl")
 SESSAO = os.environ.get("TRANSPARENCIA_SESSAO")
 LIMITE_LINHAS = 50
+LIMITE_DO_INDICE = 200      # quantos acertos o índice de texto devolve ANTES do filtro de ente: depois dele sobram só os do perfil
 CADASTRO_DE_SANCOES_DE = os.environ.get("CADASTRO_DE_SANCOES_DE", "2025-06-05")
 
 if not TENANTS:
@@ -97,6 +104,26 @@ def _gravar(registro: dict) -> None:
         print(f"transparencia: não gravei o log ({erro})", file=sys.stderr)
 
 
+def _registrar_chamada(tool: str, argumentos: dict, n: int, erro, excecao, duracao_ms: int) -> None:
+    """Log por subsistema (logs/ferramentas.jsonl e logs/seguranca.jsonl, ao lado do consultas.jsonl). O request_id vem da sessão.
+    Não substitui o consultas.jsonl, que segue igual. Nunca levanta."""
+    try:
+        pasta = LOG.parent
+        bloqueada = isinstance(excecao, ValueError)         # nossa validação de entrada recusou o argumento
+        registro.registrar("ferramentas", "chamada", "erro" if erro and not bloqueada else "aviso" if bloqueada else "info",
+                           request_id=SESSAO, pasta_destino=pasta, tool=tool, perfil=PERFIL, args=argumentos, resultados=n,
+                           vazio=(n == 0 and not erro), duracao_ms=duracao_ms, erro=erro)
+        if bloqueada:
+            registro.registrar("seguranca", "entrada_bloqueada", "aviso", request_id=SESSAO, pasta_destino=pasta, tool=tool,
+                               perfil=PERFIL, motivo=str(excecao)[:120])
+        for nome, valor in argumentos.items():
+            for sinal in deteccao.verificar(valor if isinstance(valor, str) else ""):
+                registro.registrar("seguranca", "injecao_em_argumento", "aviso", request_id=SESSAO, pasta_destino=pasta,
+                                   tool=tool, argumento=nome, perfil=PERFIL, **sinal)
+    except Exception:  # noqa: BLE001  o log nunca derruba a consulta
+        pass
+
+
 def registrado(fn):
     """Grava uma linha por chamada: perfil, tool, argumentos, quantos resultados e quais evidências."""
     assinatura = inspect.signature(fn)
@@ -104,12 +131,13 @@ def registrado(fn):
     @functools.wraps(fn)
     def interno(*args, **kwargs):
         inicio = time.perf_counter()
-        resultado, erro = None, None
+        resultado, erro, excecao = None, None, None
         try:
             resultado = fn(*args, **kwargs)
             return resultado
         except Exception as e:
             erro = f"{type(e).__name__}: {str(e)[:160]}"
+            excecao = e
             raise
         finally:
             try:
@@ -122,6 +150,7 @@ def registrado(fn):
                 n = 0 if "erro" in resultado else 1
             else:
                 n = 0
+            _registrar_chamada(fn.__name__, argumentos, n, erro, excecao, round((time.perf_counter() - inicio) * 1000))
             _gravar({
                 "ts": datetime.now(timezone.utc).isoformat(timespec="milliseconds"),
                 "sessao": SESSAO,
@@ -142,7 +171,6 @@ def registrado(fn):
 # ---------- validação de entrada ----------
 
 ID_FORNECEDOR = re.compile(r"^[a-z]{2,8}(-[a-z]{2,8})?:[0-9a-f]{8,64}$")
-ID_EVIDENCIA = re.compile(r"^[A-Za-z0-9:_\-]{1,80}$")
 
 
 def _fornecedor_id(valor: str) -> str:
@@ -152,11 +180,14 @@ def _fornecedor_id(valor: str) -> str:
     return valor
 
 
-def _evidencia_id(valor: str) -> str:
-    valor = (valor or "").strip()
-    if not ID_EVIDENCIA.match(valor):
-        raise ValueError("evidencia_id inválido: use o id devolvido pelas outras tools")
-    return valor
+def _sem_vazios(linhas: list[dict], chaves: tuple[str, ...]) -> list[dict]:
+    """Tira da resposta os campos NOVOS que vieram vazios. Uma sanção estadual não tem `valor_multa` nem `abrangencia`: se o campo aparecesse como nulo,
+    o modelo comentaria "a fonte não informa multa" sobre algo que aquela fonte nem tem (visto na bateria de ataques de 14/11/2026)."""
+    for linha in linhas:
+        for chave in chaves:
+            if linha.get(chave) is None:
+                linha.pop(chave, None)
+    return linhas
 
 
 # ---------- acesso ao grafo ----------
@@ -191,15 +222,49 @@ def cobertura() -> dict:
     datas = consultar("""
         MATCH (e:Evidencia) WHERE e.tenant IN $tenants
         RETURN min(e.capturado_em) AS de, max(e.capturado_em) AS ate""")[0]
+    cadastros = consultar("""
+        MATCH (c:CadastroReceita) WHERE c.tenant IN $tenants AND c.sensibilidade IN $sensibilidades
+        RETURN count(c) AS n""")[0]["n"]
+    sancoes_por_ente = consultar("""
+        MATCH (s:Sancao) WHERE s.tenant IN $tenants AND s.sensibilidade IN $sensibilidades
+        OPTIONAL MATCH (s)-[:PROVADO_POR]->(e:Evidencia)
+        WITH s.tenant AS id, count(DISTINCT s) AS sancoes, min(e.capturado_em) AS de, max(e.capturado_em) AS ate
+        MATCH (t:Ente {id: id})
+        RETURN t.nome AS ente, id, sancoes, de AS coletado_de, ate AS coletado_ate ORDER BY sancoes DESC""")
+    tem_sancoes_de_pe = any(r["id"] == "pe-estado" for r in sancoes_por_ente)
+    sancoes_por_ente = [{k: v for k, v in r.items() if k != "id"} for r in sancoes_por_ente]
+    sancoes_abertas = consultar("""
+        MATCH (f:Fornecedor)-[:RECEBEU]->(s:Sancao)
+        WHERE s.tenant IN $tenants AND s.sensibilidade IN $sensibilidades
+          AND (f.tipo = 'PJ' OR size($sensibilidades) > 1)
+          AND toUpper(s.situacao) = 'EM ABERTO'
+        RETURN count(DISTINCT s) AS ocorrencias, count(DISTINCT f) AS fornecedores""")[0]
+    exemplos_abertos = consultar("""
+        MATCH (f:Fornecedor)-[:RECEBEU]->(s:Sancao)-[:PROVADO_POR]->(e:Evidencia)
+        WHERE s.tenant IN $tenants AND s.sensibilidade IN $sensibilidades
+          AND e.tenant = s.tenant
+          AND (f.tipo = 'PJ' OR size($sensibilidades) > 1)
+          AND toUpper(s.situacao) = 'EM ABERTO'
+        RETURN DISTINCT f.id AS fornecedor_id, f.nome AS fornecedor, f.cnpj AS cnpj,
+               s.tipo AS tipo, s.situacao AS situacao, s.publicada_em AS publicada_em,
+               s.orgao AS orgao, s.tenant AS ente, e.id AS evidencia
+        ORDER BY s.publicada_em DESC, fornecedor_id, evidencia LIMIT 3""")
     return {
         **totais,
+        "cadastros_da_receita": cadastros,
+        "sancoes_por_ente": sancoes_por_ente,
         "contratos_por_ente": por_ente,
         "orgaos": orgaos,
         "execucao_financeira": anos,
         "perfil": PERFIL,
         "tenants_do_perfil": TENANTS,
         "capturado_entre": [datas["de"], datas["ate"]],
-        "cadastro_de_sancoes_de": CADASTRO_DE_SANCOES_DE,
+        # A data fixa vale só para o cadastro de sanções de Pernambuco: sem sanção desse ente no perfil, ela não se aplica (visto na demonstração de 14/11/2026).
+        **({"cadastro_de_sancoes_de": CADASTRO_DE_SANCOES_DE} if tem_sancoes_de_pe else {}),
+        # "EM ABERTO" é campo do cadastro de Pernambuco. CEIS/CNEP (União) não têm situação: a vigência sai das datas.
+        "sancoes_em_aberto": {**sancoes_abertas, "exemplos": exemplos_abertos,
+                              "escopo": "Conta só sanções com situação EM ABERTO, campo do cadastro de Pernambuco. "
+                                        "Sanções da União (CEIS/CNEP) não têm esse campo: a vigência sai das datas de início e fim."},
         "limites": (
             f"Base limitada: {totais['contratos']} contratos e {totais['sancoes']} sanções visíveis para este perfil. "
             "A execução financeira é agregada por fornecedor, órgão e ano, só do Estado, e não se liga a um contrato. "
@@ -211,19 +276,32 @@ def cobertura() -> dict:
 @mcp.tool()
 @registrado
 def buscar_fornecedor(termo: str) -> list[dict]:
-    """Busca fornecedor por parte do nome ou pelo CNPJ. Devolve o id usado nas outras tools."""
+    """Busca fornecedor por parte do nome (razão social ou nome fantasia) ou pelo CNPJ. Devolve o id usado nas outras tools."""
     termo = (termo or "").strip()
     if not termo:
         raise ValueError("termo vazio")
     if len(termo) > 100:
         raise ValueError("termo muito longo (máximo 100 caracteres)")
     digitos = "".join(c for c in termo if c.isdigit())
-    return consultar("""
-        MATCH (f:Fornecedor)-[:APARECE_EM]->(e:Ente)
-        WHERE e.id IN $tenants AND (f.tipo = 'PJ' OR size($sensibilidades) > 1)
-          AND (toUpper(f.nome) CONTAINS toUpper($termo) OR ($digitos <> '' AND f.cnpj = $digitos))
-        RETURN DISTINCT f.id AS id, f.nome AS nome, f.tipo AS tipo, f.cnpj AS cnpj, f.resolvido AS identidade_confirmada
-        LIMIT 10""", termo=termo, digitos=digitos)
+    achados: dict[str, dict] = {}
+    if digitos:      # o CNPJ digitado inteiro vem primeiro
+        for r in consultar("""
+            MATCH (f:Fornecedor)-[:APARECE_EM]->(e:Ente)
+            WHERE e.id IN $tenants AND (f.tipo = 'PJ' OR size($sensibilidades) > 1) AND f.cnpj = $digitos
+            RETURN DISTINCT f.id AS id, f.nome AS nome, f.nome_fantasia AS nome_fantasia, f.tipo AS tipo, f.cnpj AS cnpj, f.resolvido AS identidade_confirmada
+            LIMIT 10""", digitos=digitos):
+            achados.setdefault(r["id"], r)
+    texto = busca.para_lucene(termo)
+    if texto:        # o nome: sem acento, por começo de palavra e com um erro de digitação (consulta/busca.py)
+        for r in consultar("""
+            CALL db.index.fulltext.queryNodes('fornecedor_nome', $texto, {limit: $teto}) YIELD node AS f, score
+            MATCH (f)-[:APARECE_EM]->(e:Ente)
+            WHERE e.id IN $tenants AND (f.tipo = 'PJ' OR size($sensibilidades) > 1)
+            RETURN f.id AS id, f.nome AS nome, f.nome_fantasia AS nome_fantasia, f.tipo AS tipo, f.cnpj AS cnpj, f.resolvido AS identidade_confirmada, max(score) AS pontos
+            ORDER BY pontos DESC, id LIMIT 10""", texto=texto, teto=LIMITE_DO_INDICE):
+            r.pop("pontos", None)
+            achados.setdefault(r["id"], r)
+    return _sem_vazios(list(achados.values())[:10], ("nome_fantasia",))
 
 
 @mcp.tool()
@@ -237,7 +315,7 @@ def listar_contratos() -> list[dict]:
         RETURN c.numero AS numero, f.id AS fornecedor_id, f.nome AS fornecedor,
                c.valor_contratado AS valor_contratado, c.inicio AS inicio, c.fim AS fim,
                e.id AS evidencia
-        ORDER BY c.valor_contratado DESC
+        ORDER BY coalesce(c.valor_contratado, -1) DESC
         LIMIT $limite""", limite=LIMITE_LINHAS)
 
 
@@ -250,49 +328,88 @@ def buscar_contratos(termo: str) -> list[dict]:
         raise ValueError("termo vazio")
     if len(termo) > 100:
         raise ValueError("termo muito longo (máximo 100 caracteres)")
+    texto = busca.para_lucene(termo)
+    if not texto:
+        return []
     return consultar("""
-        MATCH (c:Contrato)-[:CONTRATA]->(f:Fornecedor)
+        CALL {
+            CALL db.index.fulltext.queryNodes('contrato_objeto', $texto, {limit: $teto}) YIELD node AS c, score
+            RETURN c
+            UNION
+            CALL db.index.fulltext.queryNodes('unidade_nome', $texto, {limit: $teto}) YIELD node AS orgao, score
+            MATCH (c:Contrato)-[:CELEBRADO_POR]->(orgao)
+            RETURN c
+        }
+        WITH DISTINCT c
+        MATCH (c)-[:CONTRATA]->(f:Fornecedor)
         MATCH (c)-[:CELEBRADO_POR]->(u:UnidadeJurisdicionada)
         WHERE c.tenant IN $tenants AND c.sensibilidade IN $sensibilidades
-          AND (toUpper(c.objeto) CONTAINS toUpper($termo) OR toUpper(u.nome) CONTAINS toUpper($termo))
         OPTIONAL MATCH (c)-[:PROVADO_POR]->(e:Evidencia)
         RETURN c.numero AS numero, c.objeto AS objeto, u.nome AS unidade, f.id AS fornecedor_id, f.nome AS fornecedor,
                c.valor_contratado AS valor_contratado, c.inicio AS inicio, c.fim AS fim, c.tenant AS ente,
                e.id AS evidencia
-        ORDER BY c.valor_contratado DESC
-        LIMIT $limite""", termo=termo, limite=LIMITE_LINHAS)
+        ORDER BY coalesce(c.valor_contratado, -1) DESC
+        LIMIT $limite""", texto=texto, teto=LIMITE_DO_INDICE, limite=LIMITE_LINHAS)
 
 
 @mcp.tool()
 @registrado
 def contratos_do_fornecedor(fornecedor_id: str) -> list[dict]:
-    """Contratos do fornecedor, com o processo, quando informado, e a evidência de cada um."""
-    return consultar("""
+    """Contratos do fornecedor, com o processo, quando informado, e a evidência de cada um.
+
+    Os federais (ente `br-uniao`) trazem `valor_contratado` (inicial) e `valor_final` (com aditivos e reajustes): são dois valores, não se somam.
+    `fonte` diz de onde veio (PNCP, Portal da Transparência federal ou o portal do ente); `situacao` e `orgao_superior` só existem nos federais."""
+    return _sem_vazios(consultar("""
         MATCH (c:Contrato)-[:CONTRATA]->(f:Fornecedor {id: $id})
         WHERE c.tenant IN $tenants AND c.sensibilidade IN $sensibilidades
         OPTIONAL MATCH (c)-[:PROVADO_POR]->(e:Evidencia)
         OPTIONAL MATCH (c)-[:DECORRE_DE]->(p:ProcessoLicitatorio)
         OPTIONAL MATCH (c)-[:CELEBRADO_POR]->(u:UnidadeJurisdicionada)
         RETURN c.numero AS numero, c.objeto AS objeto, c.inicio AS inicio, c.fim AS fim,
-               c.valor_contratado AS valor_contratado, c.tem_aditivo AS tem_aditivo,
-               c.processo_informado AS processo_informado, p.numero AS processo, p.modalidade AS modalidade,
+               c.valor_contratado AS valor_contratado, c.valor_final AS valor_final, c.tem_aditivo AS tem_aditivo,
+               c.processo_informado AS processo_informado, p.numero AS processo, coalesce(p.modalidade, c.modalidade) AS modalidade,
+               c.situacao AS situacao, c.orgao_superior AS orgao_superior, c.fonte AS fonte,
                u.nome AS unidade, c.tenant AS ente, e.id AS evidencia
         ORDER BY c.inicio DESC
-        LIMIT $limite""", id=_fornecedor_id(fornecedor_id), limite=LIMITE_LINHAS)
+        LIMIT $limite""", id=_fornecedor_id(fornecedor_id), limite=LIMITE_LINHAS), ("valor_final", "situacao", "orgao_superior", "fonte"))
 
 
 @mcp.tool()
 @registrado
 def sancoes_do_fornecedor(fornecedor_id: str) -> list[dict]:
-    """Ocorrências do fornecedor nos cadastros de sanções dos entes do perfil."""
-    return consultar("""
+    """Ocorrências do fornecedor nos cadastros de sanções dos entes do perfil.
+
+    As federais (cadastro CEIS ou CNEP, ente `br-uniao`) trazem as datas de início e fim, sem a situação: compare com a data de hoje.
+    `abrangencia` diz onde a sanção vale ("Sem Informação" não é "vale em todo lugar"). `valor_multa` só existe no CNEP."""
+    return _sem_vazios(consultar("""
         MATCH (f:Fornecedor {id: $id})-[:RECEBEU]->(s:Sancao)
         WHERE s.tenant IN $tenants AND s.sensibilidade IN $sensibilidades
         OPTIONAL MATCH (s)-[:PROVADO_POR]->(e:Evidencia)
-        RETURN s.tipo AS tipo, s.situacao AS situacao, s.publicada_em AS publicada_em,
-               s.fim_suspensao AS fim_suspensao, s.orgao AS orgao, s.descricao AS descricao,
+        RETURN s.cadastro AS cadastro, s.tipo AS tipo, s.situacao AS situacao, s.publicada_em AS publicada_em,
+               s.inicio_suspensao AS inicio_suspensao, s.fim_suspensao AS fim_suspensao, s.orgao AS orgao,
+               s.abrangencia AS abrangencia, s.valor_multa AS valor_multa, s.descricao AS descricao,
                s.tenant AS ente, e.id AS evidencia
         ORDER BY s.publicada_em DESC
+        LIMIT $limite""", id=_fornecedor_id(fornecedor_id), limite=LIMITE_LINHAS), ("cadastro", "inicio_suspensao", "abrangencia", "valor_multa"))
+
+
+@mcp.tool()
+@registrado
+def cadastro_do_fornecedor(fornecedor_id: str) -> list[dict]:
+    """Cadastro de CNPJ da Receita Federal do fornecedor (razão social, situação, atividade, porte, município), se foi coletado.
+
+    Vem repassado pela BrasilAPI e vale para a data da coleta (`coletado_em`), não para hoje. Lista vazia quer dizer que o cadastro
+    NÃO foi coletado, não que o CNPJ não existe. Sócios, telefone, e-mail e endereço não são guardados."""
+    return consultar("""
+        MATCH (f:Fornecedor {id: $id})-[:TEM_CADASTRO]->(c:CadastroReceita)
+        WHERE c.tenant IN $tenants AND c.sensibilidade IN $sensibilidades
+        OPTIONAL MATCH (c)-[:PROVADO_POR]->(e:Evidencia)
+        RETURN c.razao_social AS razao_social, c.nome_fantasia AS nome_fantasia, c.situacao AS situacao,
+               c.situacao_desde AS situacao_desde, c.motivo_situacao AS motivo_situacao, c.inicio_atividade AS inicio_atividade,
+               c.cnae AS cnae, c.cnae_descricao AS cnae_descricao, c.natureza_juridica AS natureza_juridica, c.porte AS porte,
+               c.matriz_filial AS matriz_filial, c.municipio AS municipio, c.uf AS uf, c.capital_social AS capital_social,
+               c.optante_simples AS optante_simples, c.mei AS mei, c.fonte AS fonte, e.capturado_em AS coletado_em,
+               c.tenant AS ente, e.id AS evidencia
         LIMIT $limite""", id=_fornecedor_id(fornecedor_id), limite=LIMITE_LINHAS)
 
 
@@ -319,20 +436,7 @@ def execucao_do_fornecedor(fornecedor_id: str, ano: str = "") -> list[dict]:
 @registrado
 def conferir_evidencia(evidencia_id: str) -> dict:
     """Abre a evidência: trecho, endereço da fonte e se o arquivo guardado ainda bate com o hash."""
-    achado = consultar("""
-        MATCH (e:Evidencia {id: $id}) WHERE e.tenant IN $tenants
-        MATCH (fato)-[:PROVADO_POR]->(e)
-        WHERE NOT fato:Fornecedor AND fato.sensibilidade IN $sensibilidades
-        RETURN e.trecho AS trecho, e.url AS url, e.arquivo AS arquivo, e.documento_hash AS documento_hash,
-               e.tabela AS tabela, e.linha AS linha, e.capturado_em AS capturado_em,
-               e.trecho_mascarado AS trecho_mascarado
-        LIMIT 1""", id=_evidencia_id(evidencia_id))
-    if not achado:
-        return {"erro": "evidência não encontrada para este perfil"}
-    e = achado[0]
-    arquivo = BRUTO / Path(e["arquivo"]).name
-    e["hash_confere"] = arquivo.is_file() and hashlib.sha256(arquivo.read_bytes()).hexdigest() == e["documento_hash"]
-    return e
+    return prova.abrir(consultar, evidencia_id, BRUTO)     # a mesma consulta que o agente usa para abrir a prova que faltou
 
 
 if __name__ == "__main__":

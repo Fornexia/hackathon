@@ -5,7 +5,7 @@
   // Dentro do painel da página inicial, a página se ajusta ao espaço pequeno.
   if (/[?&]embutido\b/.test(location.search) || window.self !== window.top) document.documentElement.classList.add('embutido')
   const $ = s => document.querySelector(s)
-  const ENTES = { 'pe-garanhuns': 'Município de Garanhuns', 'pe-estado': 'Estado de Pernambuco' }
+  const ENTES = { 'pe-garanhuns': 'Município de Garanhuns', 'pe-estado': 'Estado de Pernambuco', 'br-uniao': 'União (governo federal)' }
   const ROTULOS = {
     cobertura: 'Verificando o que a base cobre',
     buscar_fornecedor: 'Procurando o fornecedor',
@@ -14,6 +14,7 @@
     execucao_do_fornecedor: 'Consultando valores pagos',
     contratos_do_fornecedor: 'Consultando os contratos do fornecedor',
     sancoes_do_fornecedor: 'Consultando sanções',
+    cadastro_do_fornecedor: 'Consultando o cadastro da empresa',
     conferir_evidencia: 'Conferindo a fonte',
   }
   const SUGESTOES = [
@@ -21,7 +22,7 @@
     'Algum fornecedor tem sanção em aberto?',
     'A base de dados é completa?',
   ]
-  // Demonstração livre: a conta nova não escolhe plano e recebe o que cobre mais entes (Estado e Município).
+  // Demonstração livre: a conta nova recebe o plano único sem etapa de escolha.
   // A regra de plano continua valendo no servidor. Ligue isto para voltar a pedir a escolha na tela.
   const ESCOLHER_PLANO = false
   const INTERVALO_MS = 700          // o plano pede leitura a cada 0,7 s
@@ -39,6 +40,7 @@
   }
   const mostrar = (id, sim) => { $(id).hidden = !sim }
   const nomeDoEnte = id => ENTES[id] || id
+  const juntar = nomes => nomes.length > 1 ? nomes.slice(0, -1).join(', ') + ' e ' + nomes[nomes.length - 1] : nomes.join('')     // A, B e C
   const dinheiro = n => n.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 0 })
 
   // ---------- telas ----------
@@ -72,7 +74,7 @@
     await abrirChat()
   }
 
-  // Sem pedir nada, a conta recebe o plano que cobre mais entes. Se algo falhar, cai na escolha manual.
+  // Sem pedir nada, a conta recebe o plano único. Se algo falhar, cai na escolha manual.
   async function ativarPlanoPadrao() {
     const plano = await Api.garantirPlano()
     if (!plano) return false
@@ -82,30 +84,7 @@
 
   // ---------- plano no chat ----------
   function mostrarPlanoAtual() {
-    $('#plano-info').textContent = 'Consulta: ' + estado.plano.tenants.map(nomeDoEnte).join(' e ')
-  }
-
-  // Demonstração: troca o plano pela mesma rota da assinatura, e o servidor continua decidindo o que cada plano vê.
-  async function montarSeletor() {
-    const caixa = $('#seletor-plano')
-    let planos
-    try { planos = await Api.planos() } catch { return }
-    const desenhar = () => caixa.replaceChildren(...planos.map(p => {
-      const b = el('button', '', p.nome)
-      b.type = 'button'
-      b.setAttribute('aria-pressed', String(p.nome === estado.plano.nome))
-      b.addEventListener('click', async () => {
-        if (estado.acompanhando || p.nome === estado.plano.nome) return
-        b.disabled = true
-        try {
-          estado.plano = (await Api.ativarPlano(p.id)).plano
-          mostrarPlanoAtual()
-          desenhar()
-        } catch { b.disabled = false }
-      })
-      return b
-    }))
-    desenhar()
+    $('#plano-info').textContent = 'Consulta: ' + juntar(estado.plano.tenants.map(nomeDoEnte))
   }
 
   // ---------- entrar e criar conta ----------
@@ -148,9 +127,9 @@
         preco.append(el('small', '', '/ mês'))
         cartao.append(preco)
         const ul = el('ul')
-        ul.append(el('li', '', p.franquia.toLocaleString('pt-BR') + ' perguntas por mês'))
-        ul.append(el('li', '', 'Excedente: ' + p.preco_excedente.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) + ' por pergunta'))
-        ul.append(el('li', '', 'Consulta: ' + p.tenants.map(nomeDoEnte).join(' e ')))
+        if (p.franquia > 0) ul.append(el('li', '', p.franquia.toLocaleString('pt-BR') + ' perguntas por mês'))
+        if (p.preco_excedente > 0) ul.append(el('li', '', 'Excedente: ' + p.preco_excedente.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) + ' por pergunta'))
+        ul.append(el('li', '', 'Consulta: ' + juntar(p.tenants.map(nomeDoEnte))))
         cartao.append(ul)
         const b = el('button', 'botao cheio', 'Ativar plano de demonstração')
         b.type = 'button'
@@ -197,7 +176,6 @@
   async function abrirChat() {
     tela('chat')
     mostrarPlanoAtual()
-    montarSeletor()
     travarEntrada(false)
     boasVindas()
     atualizarContador()
@@ -259,6 +237,16 @@
     resp.fontes.append(det)
   }
 
+  // Pacote de prova: um ZIP que um terceiro reconfere sem acesso ao sistema. É um link comum; o navegador já manda a sessão.
+  function adicionarExportar(resp) {
+    if (!resp.id || resp.raiz.querySelector('.exportar')) return
+    const a = el('a', 'exportar', 'Exportar prova')
+    a.href = '/api/perguntas/' + encodeURIComponent(resp.id) + '/prova'
+    a.setAttribute('download', '')
+    a.title = 'Baixa a pergunta, a resposta e os trechos da fonte, com os hashes para conferir por fora'
+    resp.raiz.append(a)
+  }
+
   function aplicarEvento(ev, resp) {
     const d = ev.dados || {}
     switch (ev.tipo) {
@@ -275,6 +263,7 @@
         break
       case 'fim':
         resp.progresso.hidden = true
+        adicionarExportar(resp)
         break
       case 'erro':
         resp.progresso.hidden = true
@@ -292,6 +281,7 @@
   async function acompanhar(id) {
     const sessao = estado.sessao
     const resp = criarResposta()
+    resp.id = id
     estado.acompanhando = true
     travarEntrada(true)
     const conversa = $('#conversa')

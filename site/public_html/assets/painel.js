@@ -33,43 +33,90 @@
   }
 
   // ---------- benchmark ----------
-  function desenharBenchmark(b) {
-    const a = b.linhas.filter(l => l.braco === 'fornexia')
-    const s = b.linhas.filter(l => l.braco === 'sem_base')
+  // O resultado pode ter vários modelos (cada linha traz `modelo`; arquivos antigos, sem o campo, valem para b.modelo).
+  function resumir(linhas) {
+    const a = linhas.filter(l => l.braco === 'fornexia')
+    const s = linhas.filter(l => l.braco === 'sem_base')
     const soma = ls => ls.reduce((n, l) => n + l.nota, 0)
     const fatos = a.filter(l => l.tipo === 'fato')
     const defesa = a.filter(l => l.tipo !== 'fato')
-    const media = a.reduce((n, l) => n + l.total_s, 0) / a.length
-    const q = $('#numeros-bench')
-    numero(q, `${soma(a)}/${a.length}`, 'FornexIA, nota total')
-    numero(q, `${soma(s)}/${s.length}`, 'Modelo sem acesso aos dados')
-    numero(q, `${fatos.filter(l => l.provada).length}/${fatos.length}`, 'Fatos com evidência conferida')
-    numero(q, `${soma(defesa)}/${defesa.length}`, 'Isolamento e ataques')
-    numero(q, `${media.toFixed(1).replace('.', ',')} s`, 'Tempo médio por resposta')
+    return { a, s, fatos, defesa, nota: soma(a), notaSem: soma(s), provadas: fatos.filter(l => l.provada).length, notaDefesa: soma(defesa),
+      media: a.length ? a.reduce((n, l) => n + l.total_s, 0) / a.length : 0 }
+  }
+  const segundos = n => `${n.toFixed(1).replace('.', ',')} s`
+  const dataDe = iso => (iso ? `${iso.slice(8, 10)}/${iso.slice(5, 7)}/${iso.slice(0, 4)}` : '—')
 
-    const corpo = tabela($('#tabela-bench'), ['Pergunta', 'Tipo', 'Perfil', 'Nota', 'Sem dados', 'Evidências', 'Tempo', ''])
-    for (const l of a) {
-      const semDados = s.find(x => x.id === l.id)
-      const ver = el('button', '', 'Ver resposta')
-      ver.type = 'button'
-      const tr = linha([
-        l.pergunta, TIPOS[l.tipo] || l.tipo, l.perfil === 'estado' ? 'Estado' : 'Município',
-        { texto: l.nota ? 'Passou' : 'Não passou', classe: l.nota ? 'nota-ok' : 'nota-nao' },
-        semDados ? (semDados.nota ? 'Passou' : 'Não passou') : '—',
-        { texto: String(l.fontes), classe: 'num' }, { texto: `${l.total_s} s`.replace('.', ','), classe: 'num' }, { no: ver },
-      ])
-      const detalhe = el('tr')
-      const td = el('td', 'resposta-bench', l.resposta)
-      td.colSpan = 8
-      detalhe.append(td)
-      detalhe.hidden = true
-      ver.addEventListener('click', () => {
-        detalhe.hidden = !detalhe.hidden
-        ver.textContent = detalhe.hidden ? 'Ver resposta' : 'Ocultar'
-      })
-      corpo.append(tr, detalhe)
+  function desenharBenchmark(b) {
+    const doModelo = m => b.linhas.filter(l => (l.modelo || b.modelo) === m)
+    const modelos = [...new Set(b.linhas.map(l => l.modelo || b.modelo))]
+    const info = m => (b.modelos && b.modelos[m]) || {}
+    // "DeepSeek · deepseek-flash": o provedor vem junto do nome. Arquivos antigos, sem provedor, valem como Claude.
+    const rotulo = m => `${info(m).provedor_nome || (String(m).includes(':') ? String(m).split(':')[0] : 'Claude')} · ${String(m).replace(/^[a-z]+:/, '')}`
+    const inteiro = n => (n == null ? '—' : Number(n).toLocaleString('pt-BR'))
+    const dolar = n => (n == null ? '—' : `US$ ${Number(n).toFixed(n < 1 ? 3 : 2).replace('.', ',')}`)
+
+    // Comparação entre modelos: só aparece quando há mais de um.
+    if (modelos.length > 1) {
+      $('#bloco-modelos').hidden = false
+      const corpoM = tabela($('#tabela-modelos'), ['Modelo', 'FornexIA', 'Sem acesso aos dados', 'Fatos com evidência', 'Isolamento, ataques e limites',
+        'Tempo total', 'Tempo médio', 'Tokens (entrada / saída)', 'Custo estimado'])
+      for (const m of modelos) {
+        const r = resumir(doModelo(m)), i = info(m)
+        const custo = el('span', '', dolar(i.custo_usd))
+        if (i.custo_origem) custo.title = i.custo_origem
+        corpoM.append(linha([rotulo(m), { texto: `${r.nota}/${r.a.length}`, classe: 'num' }, { texto: `${r.notaSem}/${r.s.length}`, classe: 'num' },
+          { texto: `${r.provadas}/${r.fatos.length}`, classe: 'num' }, { texto: `${r.notaDefesa}/${r.defesa.length}`, classe: 'num' },
+          { texto: i.tempo_total_s == null ? '—' : `${Math.round(i.tempo_total_s)} s`, classe: 'num' }, { texto: segundos(r.media), classe: 'num' },
+          { texto: `${inteiro(i.tokens_entrada)} / ${inteiro(i.tokens_saida)}`, classe: 'num' }, { no: custo, classe: 'num' }]))
+      }
     }
-    $('#rodape-bench').textContent = `Modelo ${b.modelo}. Gabarito ${b.gabarito}. Rodada de ${b.em.slice(8, 10)}/${b.em.slice(5, 7)}/${b.em.slice(0, 4)}.`
+
+    // Detalhe de um modelo: números, tabela pergunta a pergunta e rodapé. O seletor troca o modelo.
+    const seletor = $('#modelo-bench')
+    function mostrar(modelo) {
+      const linhas = doModelo(modelo)
+      const { a, s, fatos, defesa, nota, notaSem, provadas, notaDefesa, media } = resumir(linhas)
+      const q = $('#numeros-bench')
+      q.replaceChildren()
+      numero(q, `${nota}/${a.length}`, 'FornexIA, nota total')
+      numero(q, `${notaSem}/${s.length}`, 'Modelo sem acesso aos dados')
+      numero(q, `${provadas}/${fatos.length}`, 'Fatos com evidência conferida')
+      numero(q, `${notaDefesa}/${defesa.length}`, 'Isolamento, ataques e limites')
+      numero(q, segundos(media), 'Tempo médio por resposta')
+
+      const corpo = tabela($('#tabela-bench'), ['Pergunta', 'Tipo', 'Perfil', 'Nota', 'Sem dados', 'Evidências', 'Tempo', ''])
+      for (const l of a) {
+        const semDados = s.find(x => x.id === l.id)
+        const ver = el('button', '', 'Ver resposta')
+        ver.type = 'button'
+        const tr = linha([
+          l.pergunta, TIPOS[l.tipo] || l.tipo, l.perfil === 'estado' ? 'Estado' : 'Município',
+          { texto: l.nota ? 'Passou' : 'Não passou', classe: l.nota ? 'nota-ok' : 'nota-nao' },
+          semDados ? (semDados.nota ? 'Passou' : 'Não passou') : '—',
+          { texto: String(l.fontes), classe: 'num' }, { texto: `${l.total_s} s`.replace('.', ','), classe: 'num' }, { no: ver },
+        ])
+        const detalhe = el('tr')
+        const td = el('td', 'resposta-bench', l.resposta)
+        td.colSpan = 8
+        detalhe.append(td)
+        detalhe.hidden = true
+        ver.addEventListener('click', () => {
+          detalhe.hidden = !detalhe.hidden
+          ver.textContent = detalhe.hidden ? 'Ver resposta' : 'Ocultar'
+        })
+        corpo.append(tr, detalhe)
+      }
+      const quando = (b.modelos && b.modelos[modelo] && b.modelos[modelo].em) || b.em
+      $('#rodape-bench').textContent = `Modelo ${rotulo(modelo)}. Gabarito ${b.gabarito}. Rodada de ${dataDe(quando)}.`
+    }
+
+    if (modelos.length > 1) {
+      seletor.hidden = false
+      seletor.replaceChildren(...modelos.map(m => { const o = el('option', '', rotulo(m)); o.value = m; return o }))
+      seletor.value = modelos.includes(b.modelo) ? b.modelo : modelos[0]
+      seletor.addEventListener('change', () => mostrar(seletor.value))
+    }
+    mostrar(modelos.includes(b.modelo) ? b.modelo : modelos[0])
   }
 
   // ---------- dados ----------
@@ -98,7 +145,7 @@
     numero(q, `${f(c.duracao_s)} s`, 'Para atender as 8')
     numero(q, `${f(c.latencia_media_s)} s`, 'Tempo médio de cada requisição')
     numero(q, `${c.erros_500} em ${c.requisicoes}`, 'Erro 500, sem efeito para o usuário')
-    numero(q, `${c.memoria_extra_mb} MB`, 'Memória extra no notebook')
+    numero(q, c.memoria_extra_mb == null ? '—' : `${c.memoria_extra_mb} MB`, 'Memória extra no notebook')
     const corpo = tabela($('#tabela-carga'), ['Pessoa', 'Saiu da fila', 'Primeiro sinal', 'Resposta completa', 'Evidências'])
     for (const l of c.linhas) {
       corpo.append(linha([l.pessoa, { texto: `${f(l.inicio)} s`, classe: 'num' }, { texto: `${f(l.primeiro)} s`, classe: 'num' },
@@ -108,11 +155,18 @@
   }
 
   // ---------- grafo ----------
-  const CORES = { Contrato: '#3f7fc2', Fornecedor: '#23845f', Sancao: '#c2603f', ProcessoLicitatorio: '#8a2ca8',
-    UnidadeJurisdicionada: '#b5801f', Ente: '#0b2545', Evidencia: '#9a978b', ExecucaoFinanceira: '#2a8c8c' }
+  // Cores de dado (uma por tipo de nó), iguais nos dois temas. O Ente era azul-marinho: some no tema escuro, então usa a cor do texto.
+  // O roxo do Processo ficou um tom mais claro (#9e4ff5, o roxo de apoio da identidade): o antigo não passava de 3:1 sobre o cartão escuro.
+  const CORES = { Contrato: '#3f7fc2', Fornecedor: '#23845f', Sancao: '#c2603f', ProcessoLicitatorio: '#9e4ff5',
+    UnidadeJurisdicionada: '#b5801f', Ente: 'var(--tinta)', Evidencia: '#9a978b', ExecucaoFinanceira: '#2a8c8c' }
+  // O canvas não entende var(): lê o valor do tema na hora de desenhar (e de novo quando o sistema troca de claro para escuro).
+  const tema = nome => getComputedStyle(document.documentElement).getPropertyValue(nome).trim()
+  const corDe = t => CORES[t].startsWith('var(') ? tema(CORES[t].slice(4, -1)) : CORES[t]
   const NOMES = { Contrato: 'Contrato', Fornecedor: 'Fornecedor', Sancao: 'Sanção', ProcessoLicitatorio: 'Processo',
     UnidadeJurisdicionada: 'Unidade', Ente: 'Ente público', Evidencia: 'Evidência', ExecucaoFinanceira: 'Execução financeira' }
-  const RAIOS = { Ente: 15, Fornecedor: 11, Contrato: 9, ProcessoLicitatorio: 8, UnidadeJurisdicionada: 8, Sancao: 6, Evidencia: 4, ExecucaoFinanceira: 5 }
+  const RAIOS = { Ente: 15, Fornecedor: 8, Contrato: 6, ProcessoLicitatorio: 5, UnidadeJurisdicionada: 7, Sancao: 4, Evidencia: 3, ExecucaoFinanceira: 4 }
+  // Quase tudo liga ao ente: estas relações não puxam o desenho e só aparecem ao selecionar.
+  const AO_ENTE = new Set(['APARECE_EM', 'DO_ENTE'])
   const PLURAIS = { Contrato: 'Contratos', Fornecedor: 'Fornecedores', Sancao: 'Sanções', ProcessoLicitatorio: 'Processos',
     UnidadeJurisdicionada: 'Unidades', Ente: 'Entes públicos', Evidencia: 'Evidências', ExecucaoFinanceira: 'Execuções' }
   const dataBR = iso => { const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso || ''); return m ? `${m[3]}/${m[2]}/${m[1]}` : '' }
@@ -152,26 +206,32 @@
     }
     function passo() {
       const vivos = nos.filter(ativo)
+      const grau = new Map(vivos.map(n => [n, 1]))
+      for (const e of arestas) {
+        if (!ativo(e.a) || !ativo(e.b) || AO_ENTE.has(e.rel)) continue
+        grau.set(e.a, grau.get(e.a) + 1); grau.set(e.b, grau.get(e.b) + 1)
+      }
       for (let i = 0; i < vivos.length; i++) for (let j = i + 1; j < vivos.length; j++) {
         const a = vivos[i], b = vivos[j]
         let dx = a.x - b.x, dy = a.y - b.y
         const d2 = dx * dx + dy * dy + 0.01
         if (d2 > 90000) continue
-        const f = 2600 / d2, d = Math.sqrt(d2)
+        const f = Math.min(700 / d2, 5), d = Math.sqrt(d2)   // sem teto, nós colados são lançados aos cantos
         dx *= f / d; dy *= f / d
         a.vx += dx; a.vy += dy; b.vx -= dx; b.vy -= dy
       }
       for (const e of arestas) {
-        if (!ativo(e.a) || !ativo(e.b)) continue
+        if (!ativo(e.a) || !ativo(e.b) || AO_ENTE.has(e.rel)) continue
         let dx = e.b.x - e.a.x, dy = e.b.y - e.a.y
         const d = Math.sqrt(dx * dx + dy * dy) || 1
-        const f = (d - (e.rel === 'PROVADO_POR' ? 34 : e.rel === 'RECEBEU' ? 46 : 92)) * 0.02
+        const f = (d - (e.rel === 'PROVADO_POR' ? 30 : e.rel === 'RECEBEU' ? 36 : 64)) * 0.08
         dx *= f / d; dy *= f / d
-        e.a.vx += dx; e.a.vy += dy; e.b.vx -= dx; e.b.vy -= dy
+        // Dividir pelo grau: sem isso, um órgão com muitas ligações oscila e é lançado para o canto.
+        e.a.vx += dx / grau.get(e.a); e.a.vy += dy / grau.get(e.a); e.b.vx -= dx / grau.get(e.b); e.b.vy -= dy / grau.get(e.b)
       }
       for (const n of vivos) {
-        n.vx = (n.vx + (L / 2 - n.x) * 0.004) * 0.82
-        n.vy = (n.vy + (A / 2 - n.y) * 0.006) * 0.82
+        n.vx = (n.vx + (L / 2 - n.x) * 0.012) * 0.82
+        n.vy = (n.vy + (A / 2 - n.y) * 0.014) * 0.82
         if (n !== preso) { n.x += n.vx; n.y += n.vy }
         n.x = Math.max(26, Math.min(L - 26, n.x)); n.y = Math.max(22, Math.min(A - 22, n.y))
       }
@@ -179,30 +239,32 @@
     function desenhar() {
       const viz = new Set()
       if (selecionado) for (const e of arestas) { if (e.a === selecionado) viz.add(e.b); if (e.b === selecionado) viz.add(e.a) }
+      const tinta = tema('--tinta'), apoio = tema('--tinta-3'), halo = tema('--grafo-halo')
       ctx.setTransform(escala, 0, 0, escala, 0, 0)
       ctx.clearRect(0, 0, L, A)
       for (const e of arestas) {
         if (!ativo(e.a) || !ativo(e.b)) continue
         const perto = selecionado && (e.a === selecionado || e.b === selecionado)
+        if (AO_ENTE.has(e.rel) && !perto) continue
         ctx.globalAlpha = selecionado ? (perto ? 0.9 : 0.1) : 0.34
-        ctx.strokeStyle = perto ? '#0b2545' : '#5d6c80'
+        ctx.strokeStyle = perto ? tinta : apoio
         ctx.lineWidth = perto ? 1.5 : 1
         ctx.beginPath(); ctx.moveTo(e.a.x, e.a.y); ctx.lineTo(e.b.x, e.b.y); ctx.stroke()
       }
       for (const n of nos.filter(ativo)) {
         ctx.globalAlpha = !selecionado || n === selecionado || viz.has(n) ? 1 : 0.2
-        ctx.beginPath(); ctx.arc(n.x, n.y, RAIOS[n.t], 0, 6.2832); ctx.fillStyle = CORES[n.t]; ctx.fill()
-        if (n === selecionado) { ctx.lineWidth = 2.5; ctx.strokeStyle = '#0b2545'; ctx.stroke() }
+        ctx.beginPath(); ctx.arc(n.x, n.y, RAIOS[n.t], 0, 6.2832); ctx.fillStyle = corDe(n.t); ctx.fill()
+        if (n === selecionado) { ctx.lineWidth = 2.5; ctx.strokeStyle = tinta; ctx.stroke() }
       }
-      ctx.font = "12px 'IBM Plex Mono', Consolas, monospace"
+      ctx.font = "13px 'IBM Plex Mono', Consolas, monospace"
       ctx.textAlign = 'center'
       ctx.lineJoin = 'round'
       for (const n of nos.filter(ativo)) {
-        if (selecionado ? !(n === selecionado || viz.has(n)) : !(n.t === 'Ente' || n.t === 'Fornecedor')) continue
+        if (selecionado ? !(n === selecionado || viz.has(n)) : n.t !== 'Ente') continue
         const t = n.r.length > 26 ? n.r.slice(0, 25) + '…' : n.r
         const y = n.y + RAIOS[n.t] + 14
-        ctx.globalAlpha = 1; ctx.lineWidth = 3.5; ctx.strokeStyle = '#ffffff'
-        ctx.strokeText(t, n.x, y); ctx.fillStyle = '#14263f'; ctx.fillText(t, n.x, y)
+        ctx.globalAlpha = 1; ctx.lineWidth = 3.5; ctx.strokeStyle = halo
+        ctx.strokeText(t, n.x, y); ctx.fillStyle = tinta; ctx.fillText(t, n.x, y)
       }
       ctx.globalAlpha = 1
     }
@@ -292,16 +354,18 @@
       if (!contagem[t]) continue
       const r = el('label'), c = el('input'), p = el('span', 'pino')
       c.type = 'checkbox'; c.id = 't-' + t; c.checked = visiveis[t]
-      p.style.background = CORES[t]
+      p.style.background = CORES[t]   // aceita var(): é CSS, não canvas
       c.addEventListener('change', () => { if (selecionado && selecionado.t === t && !c.checked) detalhar(null); ligar(t, c.checked) })
       r.append(c, p, `${NOMES[t]} ${contagem[t]}`)
       legenda.append(r)
     }
+    window.matchMedia('(prefers-color-scheme: light)').addEventListener('change', () => desenhar())
+    window.addEventListener('tema', () => desenhar())
     return {
       abrir() {
         medir()
         if (nos.every(n => n.x === 0)) {
-          nos.forEach((n, i) => { const a = i * 2.399963, r = 40 + 39 * Math.sqrt(i); n.x = L / 2 + Math.cos(a) * r; n.y = A / 2 + Math.sin(a) * r * 0.8 })
+          nos.forEach((n, i) => { const a = i * 2.399963, r = 0.46 * Math.min(L, A) * Math.sqrt((i + 1) / nos.length); n.x = L / 2 + Math.cos(a) * r; n.y = A / 2 + Math.sin(a) * r })
           for (let i = 0; i < 420; i++) passo()
         }
         desenhar()

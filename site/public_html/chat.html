@@ -3,12 +3,15 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="color-scheme" content="light">
+<meta name="color-scheme" content="dark light">
+<meta name="theme-color" content="#03162d" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#f2f7fb" media="(prefers-color-scheme: light)">
 <title>Assistente | FornexIA</title>
 <meta name="robots" content="noindex">
 <link rel="icon" href="icone.svg" type="image/svg+xml">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Noto+Sans:wght@400;500;600;700;800&display=swap">
-<link rel="stylesheet" href="assets/site.css?v=20261106h">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="assets/site.css?v=20261115a">
+<script src="assets/tema.js?v=20261115a"></script>
 </head>
 <body>
 
@@ -21,6 +24,7 @@
       <a href="conta.html" target="_top">Minha conta</a>
       <a href="admin.html" id="link-admin" target="_top" hidden>Administração</a>
     </nav>
+    <button type="button" class="tema-botao" data-tema-botao></button>
     <div class="topo-acoes" id="topo-acoes" hidden>
       <span class="quem" id="quem"></span>
       <button type="button" class="link-botao" id="sair">Sair</button>
@@ -69,7 +73,7 @@
   <!-- Escolher plano -->
   <section id="tela-plano" hidden aria-labelledby="t-plano">
     <h1 id="t-plano">Escolha um plano para começar</h1>
-    <p class="apoio" style="margin-top:8px">O plano define de quais entes o assistente pode consultar. Você pode trocar depois.</p>
+    <p class="apoio" style="margin-top:8px">O plano define de quais entes o assistente pode consultar.</p>
     <p class="aviso-erro" id="erro-plano" role="alert" hidden></p>
     <div class="planos" id="lista-planos"></div>
     <p class="apoio">Valores de demonstração, ainda não validados. Ativar um plano não pede pagamento nem cartão.</p>
@@ -78,7 +82,7 @@
   <!-- Chat -->
   <section id="tela-chat" class="chat" hidden aria-label="Conversa com o assistente">
     <div class="conversa" id="conversa" role="log" aria-live="polite" aria-label="Conversa"></div>
-    <div class="rodape-chat"><span id="plano-info"></span><span class="seletor-plano" id="seletor-plano" role="group" aria-label="Trocar o plano de demonstração"></span><output id="contador" for="pergunta">0/500</output></div>
+    <div class="rodape-chat"><span id="plano-info"></span><output id="contador" for="pergunta">0/500</output></div>
     <form class="entrada" id="form-pergunta" autocomplete="off">
       <label class="vh" for="pergunta">Sua pergunta, até 500 caracteres</label>
       <textarea id="pergunta" rows="1" maxlength="500" placeholder="Escreva sua pergunta" enterkeyhint="send"></textarea>
@@ -90,7 +94,7 @@
 
 </main>
 
-<script src="assets/api.js?v=20261106h"></script>
-<script src="assets/chat.js?v=20261106h"></script>
+<script src="assets/api.js?v=20261115a"></script>
+<script src="assets/chat.js?v=20261115a"></script>
 </body>
 </html>

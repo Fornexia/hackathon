@@ -3,7 +3,7 @@
   "short_name": "FornexIA",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0b2545",
-  "theme_color": "#0b2545",
+  "background_color": "#03162d",
+  "theme_color": "#03162d",
   "icons": [{ "src": "icone.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }]
 }

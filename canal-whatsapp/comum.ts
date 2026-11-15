@@ -47,6 +47,15 @@ export function gravarAcesso(a: Acesso): void {
 }
 
 /** Só os dígitos da parte antes do @ e do : (device). `5587999999999:12@s.whatsapp.net` → `5587999999999`. */
+// Tipos técnicos do WhatsApp: não são mensagens de pessoa (sincronização, apagar/editar, chaves, reações). Não viram "inbound".
+// Foi um protocolMessage, logo após cada resposta do bot, que fazia o worker mandar "Por aqui eu respondo…" sem ninguém ter escrito.
+const TIPOS_TECNICOS = new Set(['protocolMessage', 'senderKeyDistributionMessage', 'reactionMessage'])
+export function ehTipoTecnico(tipoBruto: string): boolean { return TIPOS_TECNICOS.has(tipoBruto) }
+
+/** O texto de quem escreve não pode abrir nem fechar a tag do canal (`<channel ...>`): o `<` ou `</` antes de "channel" vira um caractere neutro.
+ *  Mora aqui, e não no canal.ts, para ser testável (o canal.ts sobe um servidor ao ser importado). Ataque AP-16 do catálogo. */
+export function neutralizarTagDoCanal(texto: string): string { return texto.replace(/<\/?channel/gi, '‹channel') }
+
 export function digitos(jid: string | null | undefined): string {
   if (!jid) return ''
   return jid.split('@')[0]!.split(':')[0]!.replace(/\D/g, '')
@@ -97,9 +106,9 @@ export interface Inbound {
 }
 
 export type Pedido =
-  | { id: string; op: 'enviar'; chat_id: string; texto?: string; arquivos?: string[]; responder_a?: string }
-  | { id: string; op: 'reagir'; chat_id: string; message_id: string; emoji: string }
-  | { id: string; op: 'digitando'; chat_id: string; ligado: boolean }
+  | { id: string; op: 'enviar'; chat_id: string; texto?: string; arquivos?: string[]; responder_a?: string; request_id?: string }
+  | { id: string; op: 'reagir'; chat_id: string; message_id: string; emoji: string; request_id?: string }
+  | { id: string; op: 'digitando'; chat_id: string; ligado: boolean; request_id?: string }
 
 export interface Resultado { id: string; ok: boolean; ids?: string[]; erro?: string }
 

@@ -18,20 +18,32 @@ import json
 import os
 import re
 import sys
+import unicodedata
 from pathlib import Path
 
 RAIZ = Path(__file__).resolve().parents[1]
-for linha in (RAIZ / ".env").read_text(encoding="utf-8").splitlines():
-    if "=" in linha:
+_ENV = RAIZ / ".env"
+for linha in (_ENV.read_text(encoding="utf-8-sig").splitlines() if _ENV.exists() else []):   # mesmo critério dos outros leitores do .env
+    if "=" in linha and not linha.lstrip().startswith("#"):
         k, v = linha.split("=", 1)
-        os.environ.setdefault(k, v)
+        if k.strip() and v.strip():      # valor vazio não vira variável
+            os.environ.setdefault(k.strip(), v.strip())
 
+if "BRUTO" not in os.environ or "CHAVE_PF" not in os.environ:
+    sys.exit("Defina BRUTO e CHAVE_PF no .env (modelo em .env.exemplo).")
 BRUTO = Path(os.environ["BRUTO"])
 SAIDA = RAIZ / "dados"
 CHAVE_PF = os.environ["CHAVE_PF"].encode()
 
 GARANHUNS = "pe-garanhuns"
 ESTADO = "pe-estado"
+UNIAO = "br-uniao"
+# Órgãos que a coleta do PNCP (coleta/pncp.py) pode trazer: CNPJ do órgão -> (ente do projeto, nome do ente). Órgão fora daqui é contado e ignorado.
+ORGAOS_PNCP = {"11303906000100": ("pe-garanhuns", "Município de Garanhuns")}
+PAGINA_FEDERAL = "https://portaldatransparencia.gov.br/download-de-dados/{cadastro}"
+# Colunas que a extração federal exige (nomes sem acento). Se o portal mudar o layout, para em vez de adivinhar.
+COLUNAS_FEDERAIS = ("CODIGO DA SANCAO", "CPF OU CNPJ DO SANCIONADO", "NOME DO SANCIONADO", "CATEGORIA DA SANCAO",
+                    "DATA INICIO SANCAO", "DATA FINAL SANCAO", "DATA PUBLICACAO", "ABRAGENCIA DA SANCAO", "ORGAO SANCIONADOR")
 PORTAL = "https://portaltransparencia.app.br"
 PAINEL_CONTRATOS = "https://transparencia.pe.gov.br/licitacoes-e-contratos/menu-contratos/painel-de-contratos/"
 PAINEL_FORNECEDORES = "https://transparencia.pe.gov.br/licitacoes-e-contratos/fornecedores/consulta-fornecedores/"
@@ -387,20 +399,295 @@ def extrair_sancoes(saida: dict, relatorio: dict) -> None:
         })
 
 
+def _coluna(nome: str) -> str:
+    """Nome de coluna sem acento e em maiúsculas: o portal já mudou a acentuação entre arquivos."""
+    return unicodedata.normalize("NFKD", nome).encode("ascii", "ignore").decode().upper().strip()
+
+
+def extrair_sancoes_federais(saida: dict, relatorio: dict, bruto: Path | None = None, sensiveis: set[str] | None = None) -> None:
+    """CEIS e CNEP (sanções da União), de `federal-ceis.csv` e `federal-cnep.csv` (coleta/federal.py). Os dois são opcionais.
+
+    - Pessoa física: só o hash do CPF, sem nome, sem documento no trecho, sensibilidade "pessoal".
+    - O nome do fornecedor vem da razão social do cadastro da Receita que o próprio arquivo traz, quando houver.
+    - O arquivo diz onde a sanção vale (`abrangencia`); isso entra na ocorrência, porque "sem informação" não é "vale em todo lugar".
+    - A situação (vigente ou encerrada) não é calculada aqui: o arquivo tem as datas e a resposta compara com a data da consulta.
+    """
+    bruto = bruto or BRUTO
+    sensiveis = sensiveis if sensiveis is not None else set()
+    for cadastro in ("ceis", "cnep"):
+        arquivo = bruto / f"federal-{cadastro}.csv"
+        if not arquivo.exists():
+            continue
+        meta_arquivo = bruto / f"federal-{cadastro}.meta.json"
+        meta = json.loads(meta_arquivo.read_text(encoding="utf-8")) if meta_arquivo.exists() else {}
+        url = meta.get("url") or PAGINA_FEDERAL.format(cadastro=cadastro)
+        capturado = meta.get("coletado_em") or "desconhecido"
+        leitor = csv.reader(io.StringIO(arquivo.read_bytes().decode("cp1252", errors="replace")), delimiter=";")
+        cabecalho = [_coluna(c) for c in next(leitor, [])]
+        faltam = [c for c in COLUNAS_FEDERAIS if c not in cabecalho]
+        if faltam:
+            raise ValueError(f"{arquivo.name}: o layout mudou, faltam as colunas {faltam}")
+        posicao = {c: cabecalho.index(c) for c in dict.fromkeys(cabecalho)}
+
+        def campo(r: list[str], nome: str) -> str:
+            i = posicao.get(nome)
+            return r[i].strip() if i is not None and i < len(r) else ""
+
+        vistos: set[str] = set()
+        for n, r in enumerate(leitor, 2):
+            cod = campo(r, "CODIGO DA SANCAO")
+            if not cod:
+                relatorio["federal_sem_codigo"] += 1
+                continue
+            if cod in vistos:
+                relatorio["federal_linha_repetida"] += 1
+                continue
+            vistos.add(cod)
+            d = digitos(campo(r, "CPF OU CNPJ DO SANCIONADO"))
+            tipo, doc = documento(d)
+            if tipo == "invalido":
+                relatorio["federal_documento_invalido"] += 1
+                continue
+            pj = tipo == "PJ"
+            relatorio["federal_pj" if pj else "federal_pf"] += 1
+            if not pj:
+                sensiveis.add(d.lstrip("0"))
+            nome = (campo(r, "RAZAO SOCIAL - CADASTRO RECEITA") or campo(r, "NOME DO SANCIONADO")) or None if pj else None
+            categoria, orgao, abrangencia = campo(r, "CATEGORIA DA SANCAO"), campo(r, "ORGAO SANCIONADOR"), campo(r, "ABRAGENCIA DA SANCAO")
+            inicio, fim, publicada = (campo(r, c) for c in ("DATA INICIO SANCAO", "DATA FINAL SANCAO", "DATA PUBLICACAO"))
+            fundamentacao, processo, multa = campo(r, "FUNDAMENTACAO LEGAL"), campo(r, "NUMERO DO PROCESSO"), campo(r, "VALOR DA MULTA")
+            forn = {
+                "id": f"cnpj:{doc}" if pj else f"pf:{pseudonimo(d.lstrip('0'))}",
+                "tipo": "PJ" if pj else "PF",
+                "cnpj": doc if pj else None,
+                "nome": nome,
+                "resolvido": True,
+            }
+            partes = [f"{cadastro.upper()} (União)", categoria, nome, f"CNPJ {doc}" if pj else None, orgao,
+                      f"início {inicio}" if inicio else None, f"fim {fim}" if fim else None,
+                      f"publicada em {publicada}" if publicada else None, f"abrangência: {abrangencia}" if abrangencia else None,
+                      f"multa R$ {multa}" if multa else None]
+            ev = evidencia(arquivo, cadastro, n, " | ".join(p for p in partes if p) if pj else
+                           " | ".join(p for p in (f"{cadastro.upper()} (União)", categoria, orgao, f"início {inicio}" if inicio else None,
+                                                  f"fim {fim}" if fim else None) if p),
+                           url, UNIAO, not pj, capturado_em=capturado)
+            saida["evidencias"].append(ev)
+            saida["fornecedores"].append({**forn, "evidencia": ev["id"], "tenant": UNIAO})
+            descricao = " | ".join(filter(None, [f"Fundamentação: {fundamentacao}" if fundamentacao else None,
+                                                 f"Processo: {processo}" if processo else None]))
+            saida["sancoes"].append({
+                "id": f"{UNIAO}:{cadastro}:{cod}",
+                "cadastro": cadastro.upper(),
+                "tipo": categoria or None,
+                "situacao": None,
+                "publicada_em": data_br(publicada),
+                "inicio_suspensao": data_br(inicio),
+                "fim_suspensao": data_br(fim),
+                "orgao": orgao or None,
+                "abrangencia": abrangencia or None,
+                "valor_multa": real(multa) if multa else None,
+                "descricao": sem_cpf(descricao) or None if pj else None,
+                "fornecedor": forn["id"],
+                "tenant": UNIAO,
+                "sensibilidade": "publico" if pj else "pessoal",
+                "evidencia": ev["id"],
+            })
+
+
+def extrair_cadastros_receita(saida: dict, relatorio: dict, bruto: Path | None = None) -> None:
+    """Cadastro de CNPJ da Receita (coleta/receita.py), de `receita-<cnpj>.json`. Opcional.
+
+    Cada cadastro vira um `CadastroReceita` (com a evidência do arquivo e o hash dele) e garante o fornecedor `cnpj:...`,
+    para a empresa ser achada mesmo sem contrato na base. A coleta já deixou de fora sócios, telefone, e-mail e endereço."""
+    bruto = bruto or BRUTO
+    iso = lambda v: v if isinstance(v, str) and re.fullmatch(r"\d{4}-\d{2}-\d{2}", v) else None  # noqa: E731
+    br = lambda v: f"{v[8:]}/{v[5:7]}/{v[:4]}" if iso(v) else None  # noqa: E731
+    for arquivo in sorted(bruto.glob("receita-*.json")):
+        try:
+            doc = json.loads(arquivo.read_text(encoding="utf-8"))
+            r = doc["resposta"]
+            cnpj = digitos(str(r["cnpj"]))
+        except (ValueError, KeyError, TypeError):
+            relatorio["receita_arquivo_invalido"] += 1
+            continue
+        if not cnpj_valido(cnpj) or arquivo.name != f"receita-{cnpj}.json" or not r.get("razao_social"):
+            relatorio["receita_arquivo_invalido"] += 1
+            continue
+        relatorio["receita_cadastros"] += 1
+        razao = sem_cpf(str(r["razao_social"]))
+        fantasia = sem_cpf(str(r["nome_fantasia"])) if r.get("nome_fantasia") else None
+        situacao, desde = r.get("descricao_situacao_cadastral"), iso(r.get("data_situacao_cadastral"))
+        cnae, cnae_nome = r.get("cnae_fiscal"), r.get("cnae_fiscal_descricao")
+        local = "/".join(p for p in (r.get("municipio"), r.get("uf")) if p)
+        trecho = " | ".join(p for p in (
+            "Cadastro de CNPJ (Receita Federal, via BrasilAPI)", f"CNPJ {cnpj}", razao, f"nome fantasia: {fantasia}" if fantasia else None,
+            f"situação {situacao}" + (f" desde {br(desde)}" if desde else "") if situacao else None,
+            f"início das atividades {br(iso(r.get('data_inicio_atividade')))}" if iso(r.get("data_inicio_atividade")) else None,
+            f"CNAE {cnae} {cnae_nome}" if cnae else None, r.get("natureza_juridica"), f"porte {r['porte']}" if r.get("porte") else None,
+            r.get("descricao_identificador_matriz_filial"), local or None) if p)
+        ev = evidencia(arquivo, "cadastro", 1, trecho, doc.get("url") or "https://brasilapi.com.br/", UNIAO, capturado_em=doc.get("coletado_em") or "desconhecido")
+        saida["evidencias"].append(ev)
+        saida["fornecedores"].append({"id": f"cnpj:{cnpj}", "tipo": "PJ", "cnpj": cnpj, "nome": razao, "nome_fantasia": fantasia, "resolvido": True, "evidencia": ev["id"], "tenant": UNIAO})
+        try:
+            capital = float(r["capital_social"]) if r.get("capital_social") not in (None, "") else None
+        except (TypeError, ValueError):
+            capital = None
+        saida["cadastros"].append({
+            "id": f"receita:{cnpj}", "cnpj": cnpj, "razao_social": razao, "nome_fantasia": fantasia,
+            "situacao": situacao, "situacao_desde": desde, "motivo_situacao": r.get("descricao_motivo_situacao_cadastral") or None,
+            "inicio_atividade": iso(r.get("data_inicio_atividade")), "cnae": str(cnae) if cnae else None, "cnae_descricao": cnae_nome or None,
+            "natureza_juridica": r.get("natureza_juridica"), "porte": r.get("porte"),
+            "matriz_filial": r.get("descricao_identificador_matriz_filial"), "municipio": r.get("municipio"), "uf": r.get("uf"),
+            "capital_social": capital, "optante_simples": r.get("opcao_pelo_simples"), "mei": r.get("opcao_pelo_mei"),
+            "fonte": doc.get("fonte"), "fornecedor": f"cnpj:{cnpj}", "tenant": UNIAO, "sensibilidade": "publico", "evidencia": ev["id"],
+        })
+
+
+def _iso(v) -> str | None:
+    return v[:10] if isinstance(v, str) and re.fullmatch(r"\d{4}-\d{2}-\d{2}.*", v) else None
+
+
+def _brl(v) -> str | None:
+    return None if v is None else "R$ " + f"{float(v):,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+
+
+def extrair_contratos_federais(saida: dict, relatorio: dict, bruto: Path | None = None) -> None:
+    """Contratos federais por CNPJ (coleta/federal_contratos.py), de `federal-contratos-<cnpj>.json`. Opcional. Ente `br-uniao`.
+
+    O valor inicial vira `valor_contratado` e o final (com aditivos e reajustes) vira `valor_final`: são dois valores, nunca somados.
+    `tem_aditivo` fica nulo: a API não diz, e comparar os dois valores seria inferir."""
+    bruto = bruto or BRUTO
+    for arquivo in sorted(bruto.glob("federal-contratos-*.json")):
+        try:
+            doc = json.loads(arquivo.read_text(encoding="utf-8"))
+            lista = doc["contratos"]
+            cnpj = arquivo.name.removeprefix("federal-contratos-").removesuffix(".json")
+            assert cnpj_valido(cnpj) and isinstance(lista, list)
+        except (ValueError, KeyError, TypeError, AssertionError):
+            relatorio["federal_contratos_arquivo_invalido"] += 1
+            continue
+        for n, c in enumerate(lista, 1):
+            if digitos(str((c.get("fornecedor") or {}).get("cnpj", ""))) != cnpj or c.get("id") is None:
+                relatorio["federal_contratos_item_invalido"] += 1
+                continue
+            relatorio["federal_contratos"] += 1
+            ug = c.get("unidadeGestora") or {}
+            codigo = str(ug.get("codigo") or "-1")
+            unidade = ug.get("nome") if ug.get("nome") and ug.get("nome") != "Inválido" else "Unidade não informada"
+            orgao = (ug.get("orgaoMaximo") or {}).get("sigla")
+            orgao = orgao if orgao and orgao != "-1" else None
+            objeto = sem_cpf(re.sub(r"^\s*Objeto:\s*", "", c.get("objeto") or "")).strip() or None
+            nome = sem_cpf(str((c.get("fornecedor") or {}).get("razaoSocialReceita") or "")) or None
+            inicio_v, final_v = c.get("valorInicialCompra"), c.get("valorFinalCompra")
+            trecho = " | ".join(p for p in (
+                "Contrato federal (Portal da Transparência)", f"CNPJ {cnpj}", nome, f"contrato {c.get('numero')}", objeto[:300] if objeto else None,
+                unidade + (f" ({orgao})" if orgao else ""), f"valor inicial {_brl(inicio_v)}" if inicio_v is not None else None,
+                f"valor final {_brl(final_v)}" if final_v is not None else None,
+                f"vigência {_iso(c.get('dataInicioVigencia'))} a {_iso(c.get('dataFimVigencia'))}" if _iso(c.get("dataInicioVigencia")) else None,
+                f"situação {c['situacaoContrato']}" if c.get("situacaoContrato") else None) if p)
+            ev = evidencia(arquivo, "contratos", n, trecho, doc.get("url") or PAGINA_FEDERAL.format(cadastro="contratos"), UNIAO,
+                           capturado_em=doc.get("coletado_em") or "desconhecido")
+            saida["evidencias"].append(ev)
+            saida["fornecedores"].append({"id": f"cnpj:{cnpj}", "tipo": "PJ", "cnpj": cnpj, "nome": nome, "resolvido": True, "evidencia": ev["id"], "tenant": UNIAO})
+            saida["contratos"].append({
+                "id": f"{UNIAO}:contrato:{c['id']}", "idc": str(c["id"]), "numero": str(c.get("numero") or c["id"]), "objeto": objeto,
+                "valor_contratado": inicio_v, "valor_final": final_v,
+                "inicio": _iso(c.get("dataInicioVigencia")) or _iso(c.get("dataAssinatura")), "fim": _iso(c.get("dataFimVigencia")), "assinatura": _iso(c.get("dataAssinatura")),
+                "situacao": c.get("situacaoContrato"), "modalidade": c.get("modalidadeCompra"), "orgao_superior": orgao, "fonte": "Portal da Transparência (federal)",
+                "tem_aditivo": None, "processo_informado": bool(c.get("numeroProcesso")), "processo": None,
+                "uj": f"{UNIAO}:uj:{codigo}", "uj_nome": unidade, "tenant": UNIAO, "sensibilidade": "publico", "fornecedor": f"cnpj:{cnpj}", "evidencia": ev["id"]})
+
+
+def extrair_contratos_pncp(saida: dict, relatorio: dict, bruto: Path | None = None, sensiveis: set[str] | None = None) -> None:
+    """Contratos de órgãos no PNCP (coleta/pncp.py), de `pncp-<orgao>-<de>-<ate>.json`. Opcional. O ente vem de ORGAOS_PNCP.
+
+    Fornecedor pessoa física: só o hash do CPF, sem nome e sem documento no trecho, sensibilidade "pessoal".
+    O mesmo contrato visto em duas janelas vale uma vez. Um contrato que também esteja em outra fonte do mesmo ente (por exemplo o portal municipal)
+    entra duas vezes, com ids diferentes: o projeto ainda não cruza as duas fontes."""
+    bruto = bruto or BRUTO
+    sensiveis = sensiveis if sensiveis is not None else set()
+    vistos: set[str] = set()
+    for arquivo in sorted(bruto.glob("pncp-*.json")):
+        try:
+            doc = json.loads(arquivo.read_text(encoding="utf-8"))
+            lista = doc["contratos"]
+            assert isinstance(lista, list)
+        except (ValueError, KeyError, TypeError, AssertionError):
+            relatorio["pncp_arquivo_invalido"] += 1
+            continue
+        for n, c in enumerate(lista, 1):
+            orgao = digitos(str((c.get("orgaoEntidade") or {}).get("cnpj", "")))
+            controle = c.get("numeroControlePNCP")
+            if orgao not in ORGAOS_PNCP:
+                relatorio["pncp_orgao_sem_mapa"] += 1
+                continue
+            if not controle:
+                relatorio["pncp_item_invalido"] += 1
+                continue
+            tenant, nome_ente = ORGAOS_PNCP[orgao]
+            if f"{tenant}:{controle}" in vistos:
+                relatorio["pncp_repetido"] += 1
+                continue
+            vistos.add(f"{tenant}:{controle}")
+            d = digitos(str(c.get("niFornecedor") or ""))
+            tipo, doc_forn = documento(d)
+            if tipo == "invalido":
+                relatorio["pncp_fornecedor_invalido"] += 1
+                continue
+            pj = tipo == "PJ"
+            relatorio["pncp_contratos" if pj else "pncp_contratos_pf"] += 1
+            if not pj:
+                sensiveis.add(d.lstrip("0"))
+            nome = (sem_cpf(str(c.get("nomeRazaoSocialFornecedor") or "")) or None) if pj else None
+            numero = str(c.get("numeroContratoEmpenho") or f"{c.get('sequencialContrato')}/{c.get('anoContrato')}")
+            valor = next((v for v in (c.get("valorGlobal"), c.get("valorInicial")) if isinstance(v, (int, float)) and v > 0), None)
+            unidade = c.get("unidadeOrgao") or {}
+            uj_nome = unidade.get("nomeUnidade") or (c.get("orgaoEntidade") or {}).get("razaoSocial") or nome_ente
+            objeto = sem_cpf(re.sub(r"\s+", " ", c.get("objetoContrato") or "")).strip() or None
+            ini, fim = _iso(c.get("dataVigenciaInicio")) or _iso(c.get("dataAssinatura")), _iso(c.get("dataVigenciaFim"))
+            partes = ["Contrato no PNCP", nome_ente, f"contrato {numero}", f"fornecedor {nome} (CNPJ {doc_forn})" if pj else "fornecedor pessoa física",
+                      objeto[:300] if objeto else None, uj_nome, f"valor {_brl(valor)}" if valor else "valor não informado",
+                      f"vigência {ini} a {fim}" if ini else None, f"publicado em {_iso(c.get('dataPublicacaoPncp'))}" if _iso(c.get("dataPublicacaoPncp")) else None]
+            ev = evidencia(arquivo, "contratos", n, " | ".join(p for p in partes if p), doc.get("url") or "https://pncp.gov.br/", tenant, not pj,
+                           capturado_em=doc.get("coletado_em") or "desconhecido")
+            saida["evidencias"].append(ev)
+            forn_id = f"cnpj:{doc_forn}" if pj else f"pf:{pseudonimo(d.lstrip('0'))}"
+            saida["fornecedores"].append({"id": forn_id, "tipo": "PJ" if pj else "PF", "cnpj": doc_forn if pj else None, "nome": nome, "resolvido": True,
+                                          "evidencia": ev["id"], "tenant": tenant})
+            saida["contratos"].append({
+                "id": f"{tenant}:pncp:{controle}", "idc": controle, "numero": numero, "objeto": objeto, "valor_contratado": valor, "inicio": ini, "fim": fim,
+                "assinatura": _iso(c.get("dataAssinatura")), "fonte": "PNCP", "tem_aditivo": None, "processo_informado": bool(c.get("processo")), "processo": None,
+                "uj": f"{tenant}:uj:pncp:{unidade.get('codigoUnidade') or orgao}", "uj_nome": uj_nome, "tenant": tenant,
+                "sensibilidade": "publico" if pj else "pessoal", "fornecedor": forn_id, "evidencia": ev["id"]})
+
+
 def main() -> int:
-    SAIDA.mkdir(exist_ok=True)
-    saida = {k: [] for k in ("contratos", "processos", "fornecedores", "sancoes", "execucoes", "evidencias")}
+    """`--so-externas` roda só as fontes de fora (CEIS/CNEP, cadastro da Receita, contratos federais, PNCP) e grava em `dados/externas/`,
+    sem exigir nem sobrescrever a captura completa do Estado e de Garanhuns. Carregue com `carregar_neo4j.py --externas`."""
+    externas = "--so-externas" in sys.argv
+    destino = SAIDA / "externas" if externas else SAIDA
+    destino.mkdir(parents=True, exist_ok=True)
+    saida = {k: [] for k in ("contratos", "processos", "fornecedores", "sancoes", "cadastros", "execucoes", "evidencias")}
     relatorio: dict = {k: 0 for k in (
         "pj_resolvido", "pf_resolvido", "pj_sem_documento", "pf_sem_documento", "mascara_divergente",
         "contrato_fora_do_padrao", "licitacao_fora_do_padrao", "sancao_linha_repetida", "sancao_pj",
         "sancao_documento_nao_cnpj", "estado_pj", "estado_pf", "estado_invalido", "execucao_outro_credor",
+        "federal_pj", "federal_pf", "federal_documento_invalido", "federal_linha_repetida", "federal_sem_codigo",
+        "receita_cadastros", "receita_arquivo_invalido", "federal_contratos", "federal_contratos_arquivo_invalido", "federal_contratos_item_invalido",
+        "pncp_contratos", "pncp_contratos_pf", "pncp_arquivo_invalido", "pncp_orgao_sem_mapa", "pncp_item_invalido", "pncp_repetido", "pncp_fornecedor_invalido",
     )}
     sensiveis: set[str] = set()
-    extrair_contratos(saida, relatorio)
-    extrair_licitacoes(saida, relatorio)
-    extrair_contratos_estado(saida, relatorio, sensiveis)
-    extrair_sancoes(saida, relatorio)
-    extrair_execucao(saida, relatorio)
+    if not externas:
+        extrair_contratos(saida, relatorio)
+        extrair_licitacoes(saida, relatorio)
+        extrair_contratos_estado(saida, relatorio, sensiveis)
+        extrair_sancoes(saida, relatorio)
+    extrair_sancoes_federais(saida, relatorio, sensiveis=sensiveis)
+    extrair_cadastros_receita(saida, relatorio)
+    extrair_contratos_federais(saida, relatorio)
+    extrair_contratos_pncp(saida, relatorio, sensiveis=sensiveis)
+    if not externas:
+        extrair_execucao(saida, relatorio)
 
     for f in saida["fornecedores"]:
         f["nome"] = sem_cpf(f["nome"]) if f["nome"] else None
@@ -411,7 +698,7 @@ def main() -> int:
         print("ERRO: CPF no resultado; nada foi gravado", file=sys.stderr)
         return 1
     for nome, itens in saida.items():
-        (SAIDA / f"{nome}.jsonl").write_text("".join(json.dumps(i, ensure_ascii=False) + "\n" for i in itens))
+        (destino / f"{nome}.jsonl").write_text("".join(json.dumps(i, ensure_ascii=False) + "\n" for i in itens), encoding="utf-8")
     print(json.dumps({**{k: len(v) for k, v in saida.items()}, "relatorio": relatorio}, ensure_ascii=False, indent=2))
     return 0
 

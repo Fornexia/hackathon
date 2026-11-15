@@ -1,6 +1,6 @@
 """Projeta os fatos extraídos no Neo4j. O grafo é descartável: --zerar reconstrói tudo.
 
-    .venv/bin/python coleta/carregar_neo4j.py [--zerar] [--amostra | --exemplo]
+    .venv/bin/python coleta/carregar_neo4j.py [--zerar] [--amostra | --exemplo | --benchmark | --externas]
 """
 
 import json
@@ -11,24 +11,32 @@ from pathlib import Path
 from neo4j import GraphDatabase
 
 RAIZ = Path(__file__).resolve().parents[1]
-for linha in (RAIZ / ".env").read_text(encoding="utf-8").splitlines():
-    if "=" in linha:
+_ENV = RAIZ / ".env"
+for linha in (_ENV.read_text(encoding="utf-8-sig").splitlines() if _ENV.exists() else []):   # mesmo critério dos outros leitores do .env
+    if "=" in linha and not linha.lstrip().startswith("#"):
         k, v = linha.split("=", 1)
-        os.environ.setdefault(k, v)
+        if k.strip() and v.strip():      # valor vazio não vira variável
+            os.environ.setdefault(k.strip(), v.strip())
 
 DADOS = RAIZ / "dados" / ("amostra" if "--amostra" in sys.argv else "")
+if "--externas" in sys.argv:  # só as fontes de fora (extrair.py --so-externas): CEIS/CNEP, cadastro da Receita, contratos federais e PNCP
+    DADOS = RAIZ / "dados" / "externas"
 if "--exemplo" in sys.argv:  # dados fictícios, versionados, para quem não tem a captura
     DADOS = RAIZ / "fixtures" / "exemplo"
+if "--benchmark" in sys.argv:  # base fictícia maior (120 contratos), gerada por fixtures/gerar_benchmark.py
+    DADOS = RAIZ / "fixtures" / "benchmark"
 LOTE = 500
 
 ENTES = [
     {"id": "pe-garanhuns", "nome": "Município de Garanhuns", "esfera": "municipal", "uf": "PE"},
     {"id": "pe-estado", "nome": "Estado de Pernambuco", "esfera": "estadual", "uf": "PE"},
+    {"id": "br-uniao", "nome": "União (governo federal)", "esfera": "federal", "uf": "BR"},
 ]
 if "--exemplo" in sys.argv:  # segundo estado, fictício, para provar o isolamento entre estados
     ENTES.append({"id": "ex-estado", "nome": "Estado Exemplo (fictício)", "esfera": "estadual", "uf": "EX"})
 
-# Um fornecedor pode ter nome só numa fonte: coalesce não apaga o nome já gravado.
+# Um fornecedor pode ter nome só numa fonte: o nome já gravado fica (vale o da primeira fonte que trouxe um), e um nome novo só preenche o vazio.
+# Assim a razão social do CEIS/CNEP não troca o nome que o fornecedor já tem nos contratos.
 CARGAS = [
     ("evidencias", """
         UNWIND $linhas AS l
@@ -37,7 +45,7 @@ CARGAS = [
     ("fornecedores", """
         UNWIND $linhas AS l
         MERGE (f:Fornecedor {id: l.id})
-        SET f.tipo = l.tipo, f.cnpj = coalesce(l.cnpj, f.cnpj), f.nome = coalesce(l.nome, f.nome),
+        SET f.tipo = l.tipo, f.cnpj = coalesce(l.cnpj, f.cnpj), f.nome = coalesce(f.nome, l.nome), f.nome_fantasia = coalesce(f.nome_fantasia, l.nome_fantasia),
             f.resolvido = l.resolvido
         WITH f, l
         MATCH (e:Evidencia {id: l.evidencia})
@@ -87,6 +95,19 @@ CARGAS = [
         WITH s, l
         MATCH (t:Ente {id: l.tenant})
         MERGE (s)-[:DO_ENTE]->(t)"""),
+    ("cadastros", """
+        UNWIND $linhas AS l
+        MERGE (c:CadastroReceita {id: l.id})
+        SET c += l.props
+        WITH c, l
+        MATCH (f:Fornecedor {id: l.fornecedor})
+        MERGE (f)-[:TEM_CADASTRO]->(c)
+        WITH c, l
+        MATCH (e:Evidencia {id: l.evidencia})
+        MERGE (c)-[:PROVADO_POR]->(e)
+        WITH c, l
+        MATCH (t:Ente {id: l.tenant})
+        MERGE (c)-[:DO_ENTE]->(t)"""),
     ("execucoes", """
         UNWIND $linhas AS l
         MERGE (x:ExecucaoFinanceira {id: l.id})
@@ -136,6 +157,7 @@ def main() -> int:
                 s.run(consulta, linhas=lote).consume()
             print(f"{nome}: {len(itens)}")
 
+        s.run("CALL db.awaitIndexes(120)").consume()     # os índices de texto são populados em segundo plano: a busca só vale depois
         print("\nnós:", {r["rotulo"]: r["n"] for r in s.run(
             "MATCH (n) UNWIND labels(n) AS rotulo RETURN rotulo, count(*) AS n ORDER BY n DESC")})
         print("relações:", {r["tipo"]: r["n"] for r in s.run(

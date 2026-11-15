@@ -38,7 +38,7 @@ php site/setup.php admin@local.test "Admin Local" senha-local-123
 
 Para testar no site publicado, peça a senha ao Lucas. Não a coloque em arquivo do repositório nem em mensagem de commit.
 
-Hoje o admin entra e usa o chat como qualquer conta, mas ainda não há tela nem rota de administrador (A09 e A16).
+O admin entra em `/admin.html` para aprovar e bloquear telefones do WhatsApp (A09 e A16), e usa o chat como qualquer conta.
 
 Sem PHP no Windows: `winget install PHP.PHP.NTS.8.2`. Depois ative `pdo_mysql`, `curl`, `fileinfo`, `openssl` e `mbstring` no `php.ini`.
 
@@ -58,7 +58,7 @@ limite de tempo) e "sem fonte" responde sem citar fonte. O worker real, do Dev B
 ## Testes
 
 ```bash
-python site/dev/test_api.py       # 78 testes contra PHP e MariaDB de verdade; PHP_BIN=/caminho/php.exe se preciso
+python site/dev/test_api.py       # 82 testes contra PHP e MariaDB de verdade; PHP_BIN=/caminho/php.exe se preciso
 ```
 
 Os testes sobem os próprios servidores PHP e limpam o que criam. Cobrem os critérios de aceite de A01 a A09, incluindo a

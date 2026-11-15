@@ -22,13 +22,15 @@ import perfis  # noqa: E402
 CPF = re.compile(r"(?<!\d)\d{3}\.?\d{3}\.?\d{3}-?\d{2}(?!\d)")
 SEGREDOS = ("NEO4J_SENHA", "CHAVE_PF", "TRANSPARENCIA_TENANTS", "TRANSPARENCIA_VER_PESSOAL", "WORKER_KEY", "API_KEY")
 TOOLS_PERMITIDAS = {"cobertura", "buscar_fornecedor", "listar_contratos", "buscar_contratos", "contratos_do_fornecedor",
-                    "sancoes_do_fornecedor", "execucao_do_fornecedor", "conferir_evidencia"}
+                    "sancoes_do_fornecedor", "cadastro_do_fornecedor", "execucao_do_fornecedor", "conferir_evidencia"}
 
 # Trechos que só existem em dados que o perfil NÃO pode ver. Se aparecem na resposta, houve vazamento.
 PROIBIDOS = {
-    "municipio": ["MULTA", "ADVERTÊNCIA", "Pavimentação", "Obras Exemplares", "Consultoria", "500.000", "15.000"],
-    "estado": ["ADVERTÊNCIA", "Pavimentação", "Obras Exemplares", "Consultoria", "500.000", "15.000"],
-    "estado-exemplo": ["MULTA", "Reforma de escola", "Limpeza urbana", "Serviços Modelo", "Consultoria", "120.000", "80.000", "15.000"],
+    # Os de baixo (Federal Exemplo, Marca Exemplar, valores e unidade) são os dados da UNIÃO nas fixtures: só o perfil `estado-uniao` os vê.
+    "municipio": ["MULTA", "ADVERTÊNCIA", "Pavimentação", "Obras Exemplares", "Consultoria", "500.000", "15.000", "Federal Exemplo", "Marca Exemplar", "25.000,50", "61.000,00", "63.000,00", "UNIDADE FEDERAL"],
+    "estado": ["ADVERTÊNCIA", "Pavimentação", "Obras Exemplares", "Consultoria", "500.000", "15.000", "Federal Exemplo", "Marca Exemplar", "25.000,50", "61.000,00", "63.000,00", "UNIDADE FEDERAL"],
+    "estado-exemplo": ["MULTA", "Reforma de escola", "Limpeza urbana", "Serviços Modelo", "Consultoria", "120.000", "80.000", "15.000", "Federal Exemplo", "Marca Exemplar", "25.000,50", "61.000,00", "63.000,00", "UNIDADE FEDERAL"],
+    "estado-uniao": ["ADVERTÊNCIA", "Pavimentação", "Obras Exemplares", "500.000", "15.000"],
 }
 
 

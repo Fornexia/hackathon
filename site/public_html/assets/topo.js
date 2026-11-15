@@ -14,7 +14,7 @@
 
     const links = el('nav', 'topo-links')
     links.setAttribute('aria-label', 'Páginas')
-    const itens = [['chat.html', 'Assistente', 'chat'], ['tecnico.html', 'Área técnica', 'tecnico'], ['conta.html', 'Minha conta', 'conta']]
+    const itens = [['chat.html', 'Assistente', 'chat'], ['tecnico.html', 'Área técnica', 'tecnico'], ['modelos.html', 'Modelos', 'modelos'], ['conta.html', 'Minha conta', 'conta']]
     if (usuario.papel === 'admin') itens.push(['admin.html', 'Administração', 'admin'])
     for (const [href, texto, id] of itens) {
       const a = el('a', '', texto)
@@ -25,6 +25,9 @@
 
     const direita = el('div', 'topo-acoes')
     direita.append(el('span', 'quem', usuario.nome))
+    const tema = el('button', 'tema-botao')
+    tema.setAttribute('data-tema-botao', '')
+    direita.append(tema)
     const sair = el('button', 'link-botao', 'Sair')
     sair.type = 'button'
     sair.addEventListener('click', async () => {
@@ -35,6 +38,7 @@
 
     miolo.append(marca, links, direita)
     topo.append(miolo)
+    if (window.Tema) window.Tema.ligar()
   }
 
   window.Topo = { montar }
