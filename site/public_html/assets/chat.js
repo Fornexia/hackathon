@@ -381,6 +381,7 @@
   // ---------- eventos ----------
   $('#aba-entrar').addEventListener('click', () => trocarAba('entrar'))
   $('#aba-cadastro').addEventListener('click', () => trocarAba('cadastro'))
+  if (location.hash === '#cadastro') trocarAba('cadastro')   // vindo do site institucional ("Criar conta"); quem já tem sessão vai direto ao chat
 
   $('#form-entrar').addEventListener('submit', e => {
     e.preventDefault()

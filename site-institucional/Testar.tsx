@@ -16,6 +16,17 @@ type Opt = {
   soon: string;
 };
 
+/** Entrar e criar conta ficam na mesma página do chat; "#cadastro" abre a aba de cadastro. */
+function enderecos(url: string): { entrar: string; cadastro: string } | null {
+  try {
+    const u = new URL(url);
+    u.hash = "";
+    return { entrar: u.href, cadastro: u.href + "#cadastro" };
+  } catch {
+    return null;
+  }
+}
+
 export default function Testar() {
   const { trial, contact } = useContent();
   const wa = waLink(contact.whatsapp, WA_MSG);
@@ -39,6 +50,8 @@ export default function Testar() {
       soon: "WhatsApp disponível em breve",
     },
   ];
+
+  const site = enderecos(trial[0].url);
 
   return (
     <div className="try-page">
@@ -104,6 +117,14 @@ export default function Testar() {
             );
           })}
         </div>
+
+        {site && (
+          <p className="try-conta">
+            Sem conta ativa? <a href={site.cadastro} target="_blank" rel="noopener noreferrer">Criar conta</a>
+            {" · "}
+            Já tem conta? <a href={site.entrar} target="_blank" rel="noopener noreferrer">Entrar</a>
+          </p>
+        )}
 
         <p className="try-note">
           Dúvidas? Veja as <a href="#faq">perguntas frequentes</a> ou fale com a <a href="#contato">equipe</a>.

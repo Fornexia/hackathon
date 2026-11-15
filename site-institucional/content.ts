@@ -66,7 +66,7 @@ export const defaultTrial = (): TrialOption[] => [
   {
     title: "Usar o sistema pelo site",
     description: "Acesse a plataforma no navegador e faça sua primeira consulta de fornecedor.",
-    url: "https://fornexia.figueiredo.dev/",
+    url: "https://fornexia.figueiredo.dev/chat.html",
   },
 ];
 
