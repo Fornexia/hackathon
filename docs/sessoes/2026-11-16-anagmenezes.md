@@ -6,7 +6,7 @@
 
 ## Resumo
 
-Implementado o login publico sobre a autenticacao PHP/MariaDB existente, na branch derivada da feat. O codigo anterior ja aceitava clientes; faltavam verificacao de endereco e recuperacao de senha. Novos cadastros exigem Gmail e verificacao, sem promover usuarios a admin. A usuaria autorizou o commit e o push da branch ao repositorio. Ativacao no ambiente atual ainda depende de configuracao privada de correio, cron e migracao autorizada.
+Implementado o login publico sobre a autenticacao PHP/MariaDB existente, na branch derivada da feat. O codigo anterior ja aceitava clientes; faltavam verificacao de endereco e recuperacao de senha. Novos cadastros exigem Gmail e verificacao, sem promover usuarios a admin. Commit 5b22ad2 criado e branch enviada ao origin por autorizacao da usuaria. Ativacao no ambiente atual ainda depende de configuracao privada de correio, cron e migracao autorizada.
 
 ## Feito
 
@@ -19,7 +19,7 @@ Implementado o login publico sobre a autenticacao PHP/MariaDB existente, na bran
 - docs/AUTENTICACAO.md, README e guia local documentam diagnostico, contrato, compatibilidade, configuracao e ativacao.
 - A pedido da usuaria, gerado output/pdf/fornex-autenticacao-resumo.pdf: uma pagina simples sobre o que foi feito, funcionamento, finalidade, testes e pendencias para ativacao. Sem alterar o codigo da autenticacao nesta etapa.
 - Depois, a pedido da usuaria, excluido somente o PDF de resumo gerado. Test-Path confirmou a ausencia do arquivo; codigo de autenticacao preservado.
-- Preparada a entrega por commit e push da branch de autenticacao, conforme nova autorizacao da usuaria. Arquivos privados, dependencias instaladas, capturas de testes e stashes anteriores ficam fora do commit.
+- Entregue a implementacao no commit 5b22ad2, com 28 arquivos, e realizado push da branch gpt/gabriella-autenticacao-site-2026-11-15 para origin, com upstream configurado. Arquivos privados, dependencias instaladas, capturas de testes e stashes anteriores ficaram fora do commit.
 
 ## Verificado (e como)
 
@@ -31,6 +31,7 @@ Implementado o login publico sobre a autenticacao PHP/MariaDB existente, na bran
 - Rodada final em 16/11/2026, Windows bibis: .venv\Scripts\python -X utf8 site/dev/test_auth.py, com modulo Playwright temporario configurado no ambiente, concluiu 135 testes em 463,076 segundos, todos aprovados e sem pulos. Incluiu SMTP local com TLS, preservacao de admin apos recuperacao, prazo absoluto de sessao e interface no Edge, alem das regressoes completas de API e provas. Conteiner e arquivos privados temporarios encerrados pelo executor.
 - Diario validado com .venv\Scripts\python -X utf8 docs/sessoes/validar.py docs/sessoes/2026-11-16-anagmenezes.md. git diff --check sem erros; stashes anteriores preservados.
 - PDF gerado no Windows bibis com ReportLab e bibliotecas temporarias fora das dependencias do produto; pypdf confirmou uma pagina e os trechos esperados. Renderizado com PyMuPDF e inspecionado visualmente, sem cortes ou sobreposicoes. Script e imagem intermediarios removidos apos a conferencia.
+- Entrega em 16/11/2026, Windows bibis: git fetch origin, validacao dos dois diarios e git diff --cached --check concluidos. Hook executado no commit 5b22ad2; git push --set-upstream origin gpt/gabriella-autenticacao-site-2026-11-15 criou a branch remota com sucesso. Nenhum codigo alterado desde a rodada de 135 testes; nesta entrega apenas diario revisado e espaco final removido.
 
 ## Não verificado
 
@@ -82,7 +83,7 @@ Pendencias herdadas dos diarios de 14/11:
 
 ## Armadilhas
 
-- O primeiro push deve usar upstream para origin/gpt/gabriella-autenticacao-site-2026-11-15. Os stashes anteriores nao foram aplicados.
+- A branch acompanha origin/gpt/gabriella-autenticacao-site-2026-11-15. Os stashes anteriores nao foram aplicados. O push nao publica o site nem aplica migracao no banco atual.
 - A API atualizada exige executar a migracao aditiva antes de publica-la. Nao usar setup com argumentos do admin para uma atualizacao comum: o setup redefine a conta administrativa e aplica outras regras preexistentes.
 - Sem configuracao de correio, novos cadastros e solicitacoes de links retornam indisponibilidade; contas antigas continuam podendo entrar. Configuracao de SMTP sem cron nao comprova envio.
 - Nao executar suites antigas contra a base atual. Usar site/dev/test_auth.py, que cria e remove os recursos descartaveis.
@@ -91,4 +92,4 @@ Pendencias herdadas dos diarios de 14/11:
 
 ## Próximo passo sugerido
 
-Revisar as alteracoes locais e configurar o correio e a migracao para homologacao do login publico no ambiente escolhido, mantendo a separacao entre cliente e administrador.
+Revisar a branch publicada e configurar o correio e a migracao para homologacao do login publico no ambiente escolhido, mantendo a separacao entre cliente e administrador.
