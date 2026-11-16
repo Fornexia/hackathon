@@ -3,7 +3,6 @@ import {
   ArrowRight,
   BarChart3,
   BriefcaseBusiness,
-  Building2,
   Check,
   Clock3,
   Code2,
@@ -11,7 +10,6 @@ import {
   Layers3,
   Menu,
   Play,
-  Quote,
   Search,
   Settings2,
   ShieldCheck,
@@ -83,50 +81,22 @@ const features = [
   { icon: Settings2, title: "Integração (API)", text: "Conecte com seus sistemas (em breve)." },
 ];
 
+// O mesmo plano do produto (fornexia.figueiredo.dev, /api/planos). Se o plano mudar lá, mude aqui também.
+// Antes havia três planos (R$ 399, 149 e 999) que o produto não oferece.
 const plans = [
   {
     icon: Layers3,
-    name: "Profissional",
-    description: "Para equipes em crescimento.",
-    price: "399",
-    items: [
-      "Até 300 consultas/mês",
-      "Até 3 usuários",
-      "Relatórios e histórico",
-      "Suporte prioritário",
-    ],
-    action: "Assinar Profissional",
-    tag: "Para crescer",
-  },
-  {
-    // plano do meio e recomendado (destaque padrão): menor preço de entrada
-    icon: Layers3,
-    name: "Essencial",
-    description: "Ideal para pequenas operações.",
+    name: "Único",
+    description: "Para compliance, gestoras de terceiros e empresas menores.",
     price: "149",
     items: [
-      "Até 70 consultas/mês",
-      "1 usuário",
-      "Consultas com IA",
-      "Evidências com fontes oficiais",
+      "Consulta: Estado de Pernambuco e Município de Garanhuns",
+      "Site e WhatsApp, com nota de voz e a prova de cada fato",
+      "Até 3 números de WhatsApp por conta, liberados no cadastro",
     ],
     action: "Começar agora",
     featured: true,
-    tag: "Melhor custo-benefício",
-  },
-  {
-    icon: Building2,
-    name: "Corporativo",
-    description: "Para grandes operações.",
-    price: "999",
-    items: [
-      "Até 1.000 consultas/mês",
-      "Até 10 usuários",
-      "Integração via API (em breve)",
-      "Suporte dedicado",
-    ],
-    action: "Falar com um especialista",
-    tag: "Para grandes equipes",
+    tag: "Valor de demonstração",
   },
 ];
 
@@ -157,7 +127,9 @@ export default function App() {
   const [menuOpen, setMenuOpen] = useState(false);
   const route = useHashRoute();
   const scrolled = useScrolled();
-  const { images } = useContent();
+  const { images, founders } = useContent();
+  // "Fundadores" só aparece no menu quando há fundadores cadastrados no admin
+  const navItems = NAV_ITEMS.filter(([, id]) => id !== "fundadores" || founders.length > 0);
   useReveal(route);
 
   // ao voltar para o site vindo de outra tela, vai até a seção do endereço (ex.: #faq)
@@ -201,7 +173,7 @@ export default function App() {
         <div className="container nav-wrap">
           <Brand />
           <nav id="menu-principal" className={menuOpen ? "nav-open" : ""} aria-label="Navegação principal">
-            {NAV_ITEMS.map(([label, id]) => (
+            {navItems.map(([label, id]) => (
               <a key={id} href={`#${id}`} onClick={() => setMenuOpen(false)}>
                 {label}
               </a>
@@ -348,14 +320,14 @@ export default function App() {
         <div className="container pricing-layout">
           <div className="pricing-intro reveal">
             <div className="section-heading align-left">
-              <h2>Escolha o plano ideal para sua equipe</h2>
+              <h2>Um plano para começar a investigar hoje</h2>
               <i />
             </div>
             <p>
-              Soluções flexíveis para diferentes volumes de análise e necessidades de compliance.
+              Valor de demonstração, ainda não validado. Nada é cobrado nesta versão.
             </p>
           </div>
-          <div className="plans reveal">
+          <div className={`plans reveal${plans.length === 1 ? " plans-one" : ""}`}>
             {plans.map(({ icon: Icon, name, description, price, items, action, featured, tag }) => (
               <article className={`plan-card ${featured ? "featured" : ""}`} key={name}>
                 <span className="popular">{tag}</span>
@@ -374,7 +346,7 @@ export default function App() {
                     </li>
                   ))}
                 </ul>
-                <a href="#contato" className={`plan-button ${featured ? "primary" : ""}`}>
+                <a href="#/testar" className={`plan-button ${featured ? "primary" : ""}`}>
                   {action}
                 </a>
               </article>
@@ -383,62 +355,8 @@ export default function App() {
         </div>
       </section>
 
-      <section className="section testimonials" id="clientes">
-        <div className="container testimonials-grid reveal">
-          <div className="section-heading align-left">
-            <h2>Quem já confia na FornexIA</h2>
-            <i />
-          </div>
-          <article className="testimonial-card">
-            <Quote />
-            <p>
-              “Conseguimos reduzir drasticamente o tempo de análise de fornecedores, com mais
-              segurança e rastreabilidade.”
-            </p>
-            <div className="person">
-              <span>CM</span>
-              <div>
-                <b>Carlos M.</b>
-                <small>Analista de Compliance</small>
-              </div>
-            </div>
-          </article>
-          <article className="testimonial-card">
-            <Quote />
-            <p>
-              “A clareza das informações e a organização das evidências nos deram mais confiança nas
-              decisões.”
-            </p>
-            <div className="person person-two">
-              <span>RS</span>
-              <div>
-                <b>Renata S.</b>
-                <small>Gestora de Contratos</small>
-              </div>
-            </div>
-          </article>
-          <div className="metrics">
-            <span>
-              <BarChart3 />
-              <b>
-                +1.200<small>consultas realizadas</small>
-              </b>
-            </span>
-            <span>
-              <ShieldCheck />
-              <b>
-                98%<small>de satisfação</small>
-              </b>
-            </span>
-            <span>
-              <Clock3 />
-              <b>
-                30%<small>mais agilidade na análise</small>
-              </b>
-            </span>
-          </div>
-        </div>
-      </section>
+      {/* A seção "Quem já confia na FornexIA" saiu: os depoimentos (Carlos M., Renata S.) e os números
+          (+1.200 consultas, 98% de satisfação, 30% mais agilidade) eram fictícios. Volta só com clientes e dados reais. */}
 
       <Fundadores />
 

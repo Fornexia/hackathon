@@ -76,6 +76,7 @@ export function QuemSomos() {
 export function Historia() {
   const { history } = useContent();
   const paragraphs = history.text.split(/\n\s*\n/).map((p) => p.trim()).filter(Boolean);
+  if (!paragraphs.length) return null;   // sem a história real escrita no admin, a seção não aparece
   return (
     <section className="section story" id="historia" aria-labelledby="historia-titulo">
       <div className="container story-grid">
@@ -140,7 +141,7 @@ const FAQ = [
   },
   {
     q: "Como posso testar o sistema?",
-    a: "Pelo botão “Testar o nosso sistema”. Lá você escolhe usar pelo site ou conversar com a equipe pelo WhatsApp.",
+    a: "Pelo botão “Testar o nosso sistema”, que leva à plataforma no site. Com a conta criada, você também cadastra seus números para consultar pelo WhatsApp.",
   },
   {
     q: "Posso integrar com os meus sistemas?",
@@ -148,7 +149,7 @@ const FAQ = [
   },
   {
     q: "Como falo com a equipe?",
-    a: "Pelos canais da seção de contato: WhatsApp, Instagram, LinkedIn ou e-mail.",
+    a: "Pelos canais da seção de contato.",
   },
 ];
 
@@ -239,7 +240,7 @@ export function Contato() {
       href: contact.email ? `mailto:${contact.email}` : "",
       action: "Enviar e-mail",
     },
-  ];
+  ].filter((c) => c.href);   // canal sem endereço no admin não aparece (antes mostrava "Canal será divulgado em breve")
   return (
     <section className="section contact" id="contato">
       <div className="container">
@@ -247,8 +248,8 @@ export function Contato() {
           <h2>Fale com a gente</h2>
           <i />
           <p className="section-sub">
-            Quer conhecer melhor a FornexIA ou conversar diretamente com os fundadores? Escolha o canal que
-            for mais prático para você.
+            Quer conhecer melhor a FornexIA ou conversar com a equipe? Escolha o canal que for mais prático
+            para você.
           </p>
         </div>
         <div className="contact-grid reveal">
@@ -290,7 +291,7 @@ export function Contato() {
 
 /* ---------- Rodapé ---------- */
 export function SiteFooter({ brand }: { brand: React.ReactNode }) {
-  const { contact } = useContent();
+  const { contact, founders, history } = useContent();
   const wa = waLink(contact.whatsapp, WA_MSG);
   const ig = instagramUrl(contact.instagram);
   const li = contact.linkedin;
@@ -298,7 +299,7 @@ export function SiteFooter({ brand }: { brand: React.ReactNode }) {
     { label: "Instagram", href: ig, icon: InstagramIcon },
     { label: "WhatsApp", href: wa, icon: WhatsappIcon },
     { label: "LinkedIn", href: li, icon: LinkedinIcon },
-  ];
+  ].filter((s) => s.href);   // rede sem endereço no admin não aparece
   return (
     <footer className="site-footer">
       <div className="container footer-grid">
@@ -308,25 +309,21 @@ export function SiteFooter({ brand }: { brand: React.ReactNode }) {
             Inteligência em fornecedores com dados públicos, IA e evidências oficiais. Análises mais rápidas,
             seguras e rastreáveis.
           </p>
-          <div className="socials" aria-label="Redes sociais">
-            {socials.map(({ label, href, icon: Icon }) =>
-              href ? (
+          {socials.length > 0 && (
+            <div className="socials" aria-label="Redes sociais">
+              {socials.map(({ label, href, icon: Icon }) => (
                 <a key={label} href={href} target="_blank" rel="noopener noreferrer" aria-label={`${label} da FornexIA (abre em nova aba)`}>
                   <Icon />
                 </a>
-              ) : (
-                <span key={label} className="off" role="img" aria-label={`${label}: em breve`} title={`${label}: em breve`}>
-                  <Icon />
-                </span>
-              ),
-            )}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
         <nav aria-label="Empresa">
           <h3>Empresa</h3>
           <a href="#quem-somos">Quem somos</a>
-          <a href="#historia">Nossa história</a>
-          <a href="#fundadores">Fundadores</a>
+          {history.text.trim() && <a href="#historia">Nossa história</a>}
+          {founders.length > 0 && <a href="#fundadores">Fundadores</a>}
           <a href="#faq">Perguntas frequentes</a>
           <a href="#contato">Contato</a>
         </nav>

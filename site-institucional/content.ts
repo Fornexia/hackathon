@@ -70,13 +70,11 @@ export const defaultTrial = (): TrialOption[] => [
   },
 ];
 
-/** Texto de exemplo (fictício). Deve ser trocado no painel administrativo. */
+/** Sem texto: a seção "Nossa história" só aparece depois que a história real é escrita no admin.
+ *  (Antes havia um texto de exemplo fictício, que aparecia para todos os visitantes.) */
 export const defaultHistory = (): History => ({
   title: "Como tudo começou",
-  text:
-    "A FornexIA nasceu de uma conversa entre colegas que viviam o mesmo problema: conferir um fornecedor exigia abrir vários portais públicos, comparar informações e registrar tudo à mão.\n\n" +
-    "Ao longo de conversas e testes, a equipe percebeu que dados públicos já existiam, mas estavam espalhados. Surgiu a ideia de reuni-los em um só lugar, com a fonte oficial e a data de cada informação.\n\n" +
-    "Hoje, o projeto segue com o mesmo propósito: tornar a análise de fornecedores mais rápida, segura e transparente. (Texto de exemplo, a ser substituído pela história real da equipe.)",
+  text: "",
 });
 
 export const emptyContent = (): SiteContent => ({
@@ -84,7 +82,7 @@ export const emptyContent = (): SiteContent => ({
   founders: [],
   images: { hero: "", features: "" },
   history: defaultHistory(),
-  contact: { whatsapp: "", instagram: "", linkedin: "", email: "contato@fornexia.com.br" },
+  contact: { whatsapp: "", instagram: "", linkedin: "", email: "hackathon@figueiredo.dev" },
   trial: defaultTrial(),
   updatedAt: "",
 });

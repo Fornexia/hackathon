@@ -1,4 +1,3 @@
-import { UserRound } from "lucide-react";
 import { useContent, waLink, type Founder } from "./content";
 import { LinkedinIcon, WhatsappIcon } from "./Social";
 
@@ -54,21 +53,10 @@ function FounderCard({ f }: { f: Founder }) {
   );
 }
 
-function Placeholder({ n }: { n: number }) {
-  return (
-    <article className="founder-card founder-placeholder" aria-label={`Espaço reservado ${n}`}>
-      <div className="founder-photo">
-        <UserRound aria-hidden="true" />
-      </div>
-      <h3>Nome do fundador</h3>
-      <p className="founder-role">Cargo</p>
-      <p className="founder-bio">A biografia e a foto serão adicionadas em breve.</p>
-    </article>
-  );
-}
-
 export default function Fundadores() {
   const { founders } = useContent();
+  // Sem fundadores cadastrados no admin, a seção não aparece (antes mostrava 3 cartões "Nome do fundador").
+  if (!founders.length) return null;
   return (
     <section className="section founders" id="fundadores">
       <div className="container">
@@ -81,9 +69,7 @@ export default function Fundadores() {
           </p>
         </div>
         <div className="founders-grid reveal">
-          {founders.length > 0
-            ? founders.map((f) => <FounderCard f={f} key={f.id} />)
-            : [1, 2, 3].map((n) => <Placeholder n={n} key={n} />)}
+          {founders.map((f) => <FounderCard f={f} key={f.id} />)}
         </div>
       </div>
     </section>

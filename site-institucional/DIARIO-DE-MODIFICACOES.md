@@ -2,7 +2,7 @@
 
 > **Para quem for continuar (pessoa ou modelo de IA):** este arquivo é autossuficiente. Leia só ele para saber o que foi
 > feito, por quê, onde está cada coisa, como rodar, o que foi testado, o que **não** foi testado e o que está pendente.
-> Última atualização: **14/11/2026**. Escrito durante uma sessão de trabalho com o assistente Claude (Anthropic).
+> Última atualização: **16/11/2026**. Escrito durante uma sessão de trabalho com o assistente Claude (Anthropic).
 
 ## 1. Contexto
 
@@ -162,6 +162,22 @@ Os scripts de teste ficaram fora do repositório.
 - Ordem dos planos: Profissional, Essencial (meio, destaque), Corporativo (ver 4.2).
 - README atualizado e este diário criado.
 
+### 4.11 Limpeza para publicar em nexus.figueiredo.dev (16/11/2026)
+O site foi trazido para a `main` (branch `feat/site-institucional-nexus`, a partir do commit `b7dc44b` do Rodrigo) e limpo antes de
+ir ao ar. Decisão do Lucas: tirar o que era fictício.
+- **Seção "Quem já confia na FornexIA" removida:** depoimentos ("Carlos M.", "Renata S.") e números (`+1.200`, `98%`, `30%`) eram
+  fictícios (era a pendência 3).
+- **Planos:** os três (R$ 399, 149 e 999) viraram o plano **Único de R$ 149**, o mesmo do produto (`/api/planos` em
+  fornexia.figueiredo.dev), com o aviso "valor de demonstração, nada é cobrado". O botão leva a `#/testar`. Classe `plans-one` em `pro.css`.
+- **Sem conteúdo, sem seção:** Fundadores, Nossa história e canais de contato vazios não aparecem mais. Antes apareciam "Nome do fundador",
+  um texto de exemplo e "Canal será divulgado em breve". Voltam sozinhos quando cadastrados no admin e publicados no `content.json`.
+  Menu e rodapé seguem a mesma regra. O texto de exemplo da história (`defaultHistory`) ficou vazio.
+- **E-mail de contato:** `hackathon@figueiredo.dev`. O `contato@fornexia.com.br` era de um domínio sem DNS: ninguém recebia, e quem
+  registrasse o domínio passaria a receber.
+- **FAQ:** "Como posso testar" e "Como falo com a equipe" não citam mais canais que ainda não existem.
+- **Publicação:** `deploy.sh` (build + backup em `~/backups-nexus/` + rsync) e `public/.htaccess` (HTTPS, sem listagem de pasta,
+  `no-cache` no HTML e no `content.json`, cache longo em `assets/`).
+
 ## 5. Decisões e cuidados (por quê)
 
 - **Sem dependências novas** (nem roteador, nem biblioteca de ícones de marcas, nem de estado): menos superfície de risco e de manutenção.
@@ -173,16 +189,15 @@ Os scripts de teste ficaram fora do repositório.
 
 ## 6. Pendências e avisos
 
-1. Definir o endereço definitivo do sistema em `trial[0].url` (hoje vazio no repositório; ver 4.6).
+1. `trial[0].url` está vazio no `content.json`; o site usa o padrão (`https://fornexia.figueiredo.dev/chat.html`).
 2. Cadastrar contatos reais (WhatsApp, Instagram, LinkedIn), fundadores e a história real, pelo admin, e **exportar para
-   `public/content.json`** para publicar.
-3. A seção "Clientes" tem depoimentos e números fictícios (`+1.200 consultas`, `98%`, "Carlos M.", "Renata S."): trocar por reais ou
-   remover antes de publicar.
+   `public/content.json`** para publicar. Enquanto isso, essas seções ficam escondidas (ver 4.11).
+3. ~~Depoimentos e números fictícios~~: removidos em 16/11/2026 (ver 4.11). Só voltam com clientes e dados reais.
 4. Integrar o admin a um back-end com login para publicar sem exportar arquivo (reaproveitar `site/public_html/api/lib_conta.php`).
 5. Acessibilidade: falta teste com **leitor de tela real** (NVDA/VoiceOver), **controle por voz**, ampliador e dispositivos de acionador
    único; revisar os textos alternativos das imagens; testar em Firefox e Safari (só foi usado o Chrome).
 6. A fonte Manrope é carregada do Google Fonts (`@import` no `index.css`): envia requisição a terceiro. Considerar hospedar localmente.
-7. Nada disto foi commitado nem enviado ao GitHub.
+7. Se o plano do produto mudar, atualizar `plans` em `App.tsx` (o preço não vem da API).
 
 ## 7. Como continuar sem se perder
 

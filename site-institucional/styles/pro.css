@@ -160,6 +160,11 @@ section[id] {
   max-width: 1120px;
   margin: 0 auto;
 }
+/* Um plano só: cartão centralizado, sem a grade de três colunas */
+.pricing .plans.plans-one {
+  grid-template-columns: minmax(0, 460px);
+  justify-content: center;
+}
 .pricing .plan-card {
   position: relative;
   display: flex;
@@ -675,6 +680,9 @@ section[id] {
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 20px;
 }
+/* Poucos canais cadastrados: cartões centralizados em vez de encostados à esquerda */
+.contact-grid:has(> :only-child) { grid-template-columns: minmax(0, 300px); justify-content: center; }
+.contact-grid:has(> :nth-child(2):last-child) { grid-template-columns: repeat(2, minmax(0, 300px)); justify-content: center; }
 .contact-card {
   display: flex;
   flex-direction: column;
