@@ -1,12 +1,15 @@
 #!/usr/bin/env bash
 # Sobe o site para fornexia.figueiredo.dev em ~10s. Uso: ./site/deploy.sh [--setup]
-#   --setup  cria/atualiza as tabelas, os planos e o admin (rode na primeira vez e após mudar o schema)
+#   --setup  instalação inicial e provisionamento explícito do admin; atualizações usam migração aditiva
 #
 # Precisa no .env (ou no ambiente, como no GitHub Actions): HOSTINGER_*, SITE, DB_HOST, DB_NAME, DB_USER,
 # DB_PASS, WORKER_KEY (24+ caracteres), e ADMIN_EMAIL e ADMIN_SENHA para o --setup. DB_PORT é opcional.
 # Antes de publicar, guarda os arquivos e o banco em ~/backups-fornexia/ no servidor (fica com os 10 últimos).
 # Se o backup falhar, nada é publicado.
 set -euo pipefail
+MODO=atualizar
+if [[ "${1:-}" == --setup && $# == 1 ]]; then MODO=instalar
+elif [[ $# != 0 ]]; then echo 'Uso: deploy.sh [--setup]' >&2; exit 1; fi
 RAIZ="$(cd "$(dirname "$0")/.." && pwd)"
 if [[ -f "$RAIZ/.env" ]]; then set -a; source "$RAIZ/.env"; set +a; fi
 
@@ -26,8 +29,12 @@ DOMINIO_DIR="/home/$HOSTINGER_USER/domains/$SITE"
 
 # Backup antes de tudo: arquivos do domínio e o banco. A senha do banco vai pela entrada padrão, nunca na linha de comando.
 CARIMBO="$(date +%Y%m%d-%H%M%S)"
-$SSH "$ALVO" "umask 077; mkdir -p ~/backups-fornexia; if [ -d $DOMINIO_DIR ]; then tar czf ~/backups-fornexia/$CARIMBO-arquivos.tar.gz -C $DOMINIO_DIR .; fi"
-printf '%s' "$DB_PASS" | $SSH "$ALVO" "umask 077; MYSQL_PWD=\$(cat) mysqldump --no-tablespaces -h $(printf '%q' "$DB_HOST") -u $(printf '%q' "$DB_USER") $(printf '%q' "$DB_NAME") | gzip > ~/backups-fornexia/$CARIMBO-banco.sql.gz && test \$(zcat ~/backups-fornexia/$CARIMBO-banco.sql.gz | grep -c 'CREATE TABLE') -gt 0"
+$SSH "$ALVO" "set -eu; umask 077; mkdir -p ~/backups-fornexia; if [ -d $DOMINIO_DIR ]; then tar czf ~/backups-fornexia/$CARIMBO-arquivos.tar.gz -C $DOMINIO_DIR .; fi"
+{
+  printf 'export MYSQL_PWD=%q\n' "$DB_PASS"
+  printf 'set -- %q %q %q %q "$HOME/backups-fornexia/%s-banco.sql.gz" %q\n' "$DB_HOST" "${DB_PORT:-3306}" "$DB_USER" "$DB_NAME" "$CARIMBO" "$MODO"
+  cat "$RAIZ/site/backup-banco.sh"
+} | $SSH "$ALVO" 'bash -s'
 $SSH "$ALVO" "cd ~/backups-fornexia && ls -1t | tail -n +21 | xargs -r rm -f"
 echo "backup ok: ~/backups-fornexia/$CARIMBO-*"
 

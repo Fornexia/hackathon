@@ -8,7 +8,12 @@
 
 Implementado o login publico sobre a autenticacao PHP/MariaDB existente, na branch derivada da feat. O codigo anterior ja aceitava clientes; faltavam verificacao de endereco e recuperacao de senha. Novos cadastros exigem Gmail e verificacao, sem promover usuarios a admin. Commit 5b22ad2 criado e branch enviada ao origin por autorizacao da usuaria. Ativacao no ambiente atual ainda depende de configuracao privada de correio, cron e migracao autorizada.
 
+Auditoria final solicitada depois da publicacao: a suite existente passou novamente, mas testes complementares encontraram cinco falhas tecnicas. A usuaria autorizou as correcoes, agora implementadas e verificadas com 143 testes aprovados, e depois autorizou o commit e push deste conjunto. A comparacao com main inclui o portfolio herdado; a decisao de escopo continua pendente. A usuaria abrira o Pull Request pelo GitHub.
+
 ## Feito
+
+- Apos autorizacao, corrigidos cinco achados da auditoria: backup remoto com helper validado, limite concorrente de login por IP/endereco, retencao privada das sessoes, isolamento do teste de prova e login do benchmark com contas existentes. Correcoes incluidas no commit desta etapa, com envio autorizado. Sem merge ou deploy.
+- Acrescentados oito testes em site/dev/test_auth_regressoes.py ao executor isolado. Atualizados modelo publico de configuracao, ignorados, guia Windows/Linux e docs/AUTENTICACAO.md. Inventario e proposta de separacao dos 43 arquivos institucionais em docs/REVISAO-AUTENTICACAO-PR.md; nenhum desses arquivos foi reorganizado ou alterado.
 
 - API: cadastro pendente, reenvio/verificacao, recuperacao/redefinicao com tokens temporarios de uso unico, CSRF e limites atomicos. Senhas novas com Argon2id e confirmacao.
 - Sessoes: versao por conta para invalidar todos os acessos apos redefinir a senha, expiração por inatividade e prazo total, cookie removido no logout e permissões consultadas no backend.
@@ -23,6 +28,15 @@ Implementado o login publico sobre a autenticacao PHP/MariaDB existente, na bran
 
 ## Verificado (e como)
 
+- Antes do envio autorizado, `git fetch origin` e `git rev-list --left-right --count HEAD...origin/gpt/gabriella-autenticacao-site-2026-11-15` no Windows confirmaram 0/0; nenhum merge necessario. Indice contem apenas os 15 arquivos revisados; `git diff --cached --check` aprovado.
+
+- Execucao final no Windows: `.venv\Scripts\python -X utf8 site/dev/test_auth.py`, com modulo Playwright temporario informado no ambiente: 143 testes aprovados em 321,308 segundos, zero falhas e zero pulados. Inclui autenticacao, perfis, planos, consultas, worker/WhatsApp simulado, provas, SMTP TLS local, navegador e oito regressoes. Todos os bancos eram descartaveis.
+
+- Windows local, PHP 8.2.35 e MariaDB 10.11 descartavel: `.venv\Scripts\python -X utf8 site/dev/test_auth.py test_auth_regressoes` aprovou oito casos. A primeira tentativa teve tres falhas de transporte CRLF no executor de shell, corrigidas usando entrada binaria LF antes da reexecucao aprovada.
+- Copia temporaria dos arquivos versionados com alteracoes atuais, sem configuracao privada nem .env: executor isolado com `test_prova.TestSemSegredo` aprovou um teste. Nenhum acesso ao banco atual.
+- Sintaxe PHP, Bash e Python aprovada; `composer validate --no-check-publish` valido (aviso preexistente de licenca), `composer check-platform-reqs --no-dev` aprovado. Varredura de 76 caminhos envolvidos nao detectou credenciais reais; nenhuma configuracao privada/dependencia/sessao versionada. `git check-ignore` confirma protecao dos novos caminhos privados.
+- `git fetch origin` sem merge: main permanece em af43561, sem diferenca de conteudo desde a base comum 584efc2; branch de trabalho permanece em f255342 antes do commit proposto. Arquivos institucionais seguem intactos.
+
 - Windows local, maquina bibis, PHP 8.2.35, Python da .venv, Docker/MariaDB 10.11 e Edge. Leitura das instrucoes e diarios; git status e log conferidos. git pull buscou a origem, mas a branch continua sem upstream por decisao da preparacao anterior; nenhum merge foi realizado.
 - python site/dev/test_auth.py: rodada inicial com 129 testes aprovados em banco descartavel, cobrindo autenticacao, consultas, planos, telefones/worker e exportacao de provas, sem servicos pagos.
 - Caso de interface executado com Playwright e Edge: cadastro, verificacao, login de cliente, bloqueio de administracao, recuperacao, invalidacao de sessao, logout e largura movel passaram. Capturas em logs/auth-ui inspecionadas visualmente.
@@ -32,6 +46,13 @@ Implementado o login publico sobre a autenticacao PHP/MariaDB existente, na bran
 - Diario validado com .venv\Scripts\python -X utf8 docs/sessoes/validar.py docs/sessoes/2026-11-16-anagmenezes.md. git diff --check sem erros; stashes anteriores preservados.
 - PDF gerado no Windows bibis com ReportLab e bibliotecas temporarias fora das dependencias do produto; pypdf confirmou uma pagina e os trechos esperados. Renderizado com PyMuPDF e inspecionado visualmente, sem cortes ou sobreposicoes. Script e imagem intermediarios removidos apos a conferencia.
 - Entrega em 16/11/2026, Windows bibis: git fetch origin, validacao dos dois diarios e git diff --cached --check concluidos. Hook executado no commit 5b22ad2; git push --set-upstream origin gpt/gabriella-autenticacao-site-2026-11-15 criou a branch remota com sucesso. Nenhum codigo alterado desde a rodada de 135 testes; nesta entrega apenas diario revisado e espaco final removido.
+- Auditoria em 16/11/2026, Windows bibis: git fetch origin, status/log/diff conferidos em HEAD f255342 e origin/main af43561. Usado fetch em vez de pull para respeitar a proibicao de merge. Sao 71 arquivos no diff de PR: 28 da autenticacao e 43 do site institucional herdado; main tem o mesmo conteudo do ancestral comum 584efc2, sem conflito de conteudo identificado. Nenhum merge executado.
+- Reexecucao de .venv\Scripts\python -X utf8 site/dev/test_auth.py com Playwright temporario: 135 testes aprovados, sem pulos, em 449,347 segundos. Somente conteineres e bancos descartaveis usados.
+- Oito casos complementares temporarios, fora do repositorio: quatro aprovados, tres falhas de assercao e um erro em clone limpo. Limite de cinco falhas de login ultrapassado por seis requisicoes concorrentes em tres rodadas. GC do PHP com retencao de 1440 segundos removeu sessao com 25 minutos, antes dos 30 configurados. bench/carga.py nao entrou mesmo com credenciais legadas validas. test_prova.py leu caminho privado fixo e falhou quando esse arquivo nao existia na copia limpa.
+- Casos complementares aprovados: duas migracoes preservaram os hashes do conteudo de sete tabelas com contas, planos, assinatura, telefone, pergunta e eventos; tres emissores concorrentes enviaram uma unica mensagem; SMTP local indisponivel preservou a fila e o bloqueio da conta pendente; redefinicao expirou corretamente e apenas um de tres consumos concorrentes foi aceito.
+- Copia temporaria dos arquivos versionados, sem configuracao privada: npm ci com scripts desabilitados, npm run build e tsc aprovados. O tsconfig do portfolio inclui apenas src e vite.config.ts, deixando componentes na raiz fora da checagem de tipos. npm audit e composer audit sem alertas publicados. composer validate e check-platform-reqs aprovados, com aviso de licenca nao declarada. PHP, JavaScript e Bash sem erros de sintaxe. Diff de PR tem dois avisos de linha vazia final em arquivos herdados do portfolio.
+- Reproducao local isolada do pipeline de backup: um mysqldump ficticio que escreveu CREATE TABLE e terminou com erro foi aceito sem pipefail; com pipefail foi recusado. Nao foi executado o deploy.sh nem qualquer comando remoto de deploy. O script tambem nao passa DB_PORT ao dump e bloqueia banco vazio antes do setup.
+- Varredura dos arquivos alterados nao encontrou credenciais reais; candidatos detectados no teste de prova eram sentinelas ficticias ja existentes. .gitignore protege configuracoes privadas, vendor, capturas e dependencias locais. Nenhum arquivo privado foi modificado; um teste existente leu a configuracao local internamente, lacuna registrada acima.
 
 ## Não verificado
 
@@ -48,11 +69,11 @@ Implementado o login publico sobre a autenticacao PHP/MariaDB existente, na bran
 
 ## Em aberto (por prioridade)
 
+- [ ] Auditoria, escopo: decidir tratamento dos 43 arquivos do portfolio antes de PR exclusivo da autenticacao; proposta documentada e comandos antigos do README e guia Windows/Linux atualizados. Se o portfolio permanecer no PR, revisar inclusao de componentes reais no tsconfig. Nao remover funcionalidades nem mudar historia sem aprovacao. (origem: 2026-11-16-anagmenezes)
 - [ ] Para ativar o login publico: configurar SMTP, origem HTTPS, chave privada da fila e cron; aplicar a migracao apos backup no ambiente escolhido e homologar entrega real e perfis. Nenhuma dessas configuracoes foi alterada nesta sessao. (origem: 2026-11-16-anagmenezes)
 
 
 Pendencias herdadas da branch anterior; nao revalidadas nesta tarefa:
-- [ ] Feat, backup: propagar falha do mysqldump no shell remoto, tratar primeiro setup em banco vazio e respeitar DB_PORT; testar recuperação antes do deploy. (origem: 2026-11-15-anagmenezes)
 - [ ] Feat, rastreabilidade: registrar modelo concreto no ramo Codex e definir complementação automática de provas, além de preservar os metadados já apontados. (origem: 2026-11-15-anagmenezes)
 
 - [ ] Portfolio ja recebido em site-institucional/: manter revisao de planos, deploy, autenticacao do admin, inclusao de componentes no TypeScript e build no CI. Links para o chat foram atualizados na origem. (origem: 2026-11-15-anagmenezes)
@@ -76,6 +97,9 @@ Pendencias herdadas dos diarios de 14/11:
 
 ## Resolvido de sessões anteriores
 
+- [x] Cinco achados da auditoria corrigidos com autorizacao: backup, limite concorrente, retencao de sessoes, teste de prova isolado e benchmark. Oito regressoes e suite completa de 143 casos aprovadas. Commit e push autorizados posteriormente pela usuaria. (origem: 2026-11-16-anagmenezes)
+- [x] Backup herdado da feat corrigido: falhas propagadas, porta respeitada, primeira instalacao distinguida e restauracao validada em banco descartavel. Sem executar deploy. (origem: 2026-11-15-anagmenezes)
+
 - [x] Analise e implementacao do login publico na branch de autenticacao, preservando contas antigas e papeis, com 135 testes reais aprovados em ambiente isolado. (origem: 2026-11-15-anagmenezes)
 - [x] Preparacao da branch de autenticacao concluida a partir da feat atualizada. (origem: 2026-11-15-anagmenezes)
 - [x] Push anterior concluido em e387ca2 na branch de CI; nao altera a origem desta nova branch. (origem: 2026-11-15-anagmenezes)
@@ -92,4 +116,4 @@ Pendencias herdadas dos diarios de 14/11:
 
 ## Próximo passo sugerido
 
-Revisar a branch publicada e configurar o correio e a migracao para homologacao do login publico no ambiente escolhido, mantendo a separacao entre cliente e administrador.
+Abrir o Pull Request pelo GitHub e decidir a proposta dos 43 arquivos institucionais antes de um PR exclusivo da autenticacao. Depois, configuracoes privadas e homologacao de producao, sem deploy nesta etapa.

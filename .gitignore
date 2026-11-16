@@ -42,3 +42,7 @@ site/painel.json
 
 # Modelos de voz baixados (Whisper, algumas centenas de MB): voltam a ser baixados na primeira transcrição
 inferencia/modelos/
+
+# Sessões privadas e arquivos locais de contas do teste de carga
+site/sessoes/
+bench/contas-carga*.json

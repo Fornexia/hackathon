@@ -42,7 +42,7 @@ def executar_isolado():
         (privado / "sessions").mkdir()
         config = privado / "config.php"
         env.update(FORNEX_CONFIG=str(config), AUTH_MAIL_CAPTURE=str(privado / "emails.jsonl"),
-                   AUTH_TEST_SESSION_PATH=str(privado / "sessions"), MAIL_TRANSPORT="capture",
+                   AUTH_TEST_SESSION_PATH=str(privado / "sessions"), AUTH_SESSION_PATH=str(privado / "sessions"), MAIL_TRANSPORT="capture",
                    AUTH_MAIL_KEY=base64.b64encode(secrets.token_bytes(32)).decode(), APP_URL="http://127.0.0.1")
         def executar(args, **kw):
             return subprocess.run(args, env=env, check=True, capture_output=True, text=True, encoding="utf-8", **kw)
@@ -78,7 +78,7 @@ def executar_isolado():
             executar(["docker", "exec", "-e", "MYSQL_PWD", container, "mariadb", "-uroot", banco, "-e", sql])
             executar([php, str(raiz / "site/migrar-autenticacao.php")])
             executar([php, str(raiz / "site/setup.php")])
-            suites = sys.argv[1:] or ["test_auth", "test_api", "test_prova"]
+            suites = sys.argv[1:] or ["test_auth", "test_api", "test_prova", "test_auth_regressoes"]
             resultado = subprocess.run([sys.executable, "-X", "utf8", "-m", "unittest", "-v", *suites],
                                       cwd=raiz / "site/dev", env=env)
             return resultado.returncode

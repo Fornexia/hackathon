@@ -49,6 +49,23 @@ function ip_do_cliente(): string {
 // ---------- sessão e CSRF ----------
 
 function iniciar_sessao(): void {
+    $inativa = max(1, (int)auth_config('AUTH_IDLE_SECONDS', 1800));
+    $maxima = max(1, (int)auth_config('AUTH_MAX_SECONDS', 43200));
+    // Diretório exclusivo: o coletor de outro site não deve apagar nossas sessões antes do prazo.
+    $pasta = (string)auth_config('AUTH_SESSION_PATH', dirname(__DIR__, 2) . '/sessoes');
+    if (!is_dir($pasta) && !mkdir($pasta, 0700, true) && !is_dir($pasta)) {
+        throw new RuntimeException('Diretório de sessões indisponível.');
+    }
+    $real = realpath($pasta);
+    $publico = realpath(dirname(__DIR__));
+    $normalizar = fn($p) => strtolower(str_replace('\\', '/', (string)$p));
+    if ($real === false || !is_writable($real) || $normalizar($real) === $normalizar($publico)
+        || str_starts_with($normalizar($real) . '/', $normalizar($publico) . '/')) {
+        throw new RuntimeException('Diretório de sessões deve ser privado e gravável.');
+    }
+    ini_set('session.save_handler', 'files');
+    session_save_path($real);
+    ini_set('session.gc_maxlifetime', (string)max($inativa, $maxima));
     $seguro = !(defined('AMBIENTE') && in_array(AMBIENTE, ['dev', 'test'], true));
     ini_set('session.use_strict_mode', '1');
     ini_set('session.use_only_cookies', '1');
@@ -57,8 +74,6 @@ function iniciar_sessao(): void {
     session_start();
     if (isset($_SESSION['uid'])) {
         $agora = time();
-        $inativa = (int)auth_config('AUTH_IDLE_SECONDS', 1800);
-        $maxima = (int)auth_config('AUTH_MAX_SECONDS', 43200);
         if ($agora - (int)($_SESSION['ativa_em'] ?? $agora) >= max(1, $inativa)
             || $agora - (int)($_SESSION['criada_em'] ?? $agora) >= max(1, $maxima)) {
             $_SESSION = [];

@@ -32,8 +32,15 @@ reenvio de verificação, configuração SMTP e invalidação das sessões depoi
 - As sessões PHP continuam independentes por navegador, com cookie `hsid`, HttpOnly, SameSite=Lax,
   Secure em produção e troca de identificador ao entrar. Logout remove o cookie e a sessão.
   Expiram após 30 minutos sem interação ou 12 horas desde o login. O polling do chat não prolonga a sessão.
+  O armazenamento usa diretório exclusivo privado (`site/sessoes` por padrão), com retenção do coletor PHP
+  alinhada ao maior prazo configurado. `AUTH_SESSION_PATH` permite escolher outro diretório absoluto privado
+  e gravável, exclusivo desta aplicação. A adoção desse diretório exige um novo login das sessões antigas;
+  não modifica contas, senhas ou permissões. Não incluir essa pasta em artefatos públicos ou no Git.
 - As rotas privadas continuam verificando a conta no backend; a administração verifica o papel em cada requisição.
   Limites de login existentes permanecem. Cadastro e solicitações de e-mail têm contadores atômicos por IP/endereço.
+  No login, travas MariaDB por IP e e-mail serializam contagem, verificação e registro da tentativa entre processos.
+  Os limites continuam sendo 5 falhas por par, 20 por IP e 30 por endereço em 15 minutos. As travas são liberadas
+  antes da resposta; indisponibilidade da trava recusa a tentativa com 429, sem verificar a senha.
 
 ## Compatibilidade e migração
 
@@ -82,6 +89,7 @@ O modelo está em `site/hackathon-config.exemplo.php`. O PHP não carrega o `.en
 | `MAIL_FROM`, `MAIL_FROM_NAME` | Remetente autorizado pelo provedor e nome de exibição |
 | `AUTH_MAIL_KEY` | Base64 de 32 bytes aleatórios, usada para cifrar a fila de mensagens |
 | `AUTH_IDLE_SECONDS`, `AUTH_MAX_SECONDS` | Opcionais; padrões 1800 e 43200 segundos |
+| `AUTH_SESSION_PATH` | Opcional; diretório privado exclusivo e gravável, fora de `public_html` |
 
 Gere `AUTH_MAIL_KEY` com um gerenciador de segredos ou `base64_encode(random_bytes(32))` no PHP.
 Não coloque credenciais em commits, mensagens ou diário. Guarde a chave junto dos backups privados.
@@ -108,6 +116,21 @@ e o domínio remetente deve ser autorizado no provedor, com SPF/DKIM/DMARC confo
 `deploy.sh` inclui as dependências e os arquivos privados e executa a migração antes de trocar a API pública.
 Exige as variáveis de correio antes de publicar. Não cria o cron automaticamente.
 Nenhum deploy nem envio externo foi executado nesta implementação.
+
+O backup de banco é executado por `site/backup-banco.sh` sob Bash remoto com `pipefail`, respeitando `DB_PORT`
+(padrão 3306). Uma falha do dump ou da compressão impede publicar o arquivo final e interrompe o deploy.
+O arquivo é temporário até validar gzip e quantidade de tabelas; depois é renomeado, com permissões privadas.
+Banco vazio é recusado na atualização comum e permitido somente em `--setup`, para instalação inicial explícita.
+A senha é transmitida no SSH pela entrada padrão e usada via ambiente. A hospedagem precisa disponibilizar
+Bash, gzip, cliente MariaDB/MySQL e mariadb-dump/mysqldump. O teste local restaura um backup real em um segundo
+banco descartável e compara os dados; a restauração na Hostinger ainda deve ser homologada antes do deploy.
+
+Na Hostinger, selecione PHP 8.2+ com as extensões listadas, instale o `vendor` fora de `public_html` e configure
+um cron com o caminho absoluto do PHP e de `enviar-emails.php`, usando a mesma configuração privada do site.
+Use host, porta, autenticação e modalidade TLS fornecidos para a caixa remetente no painel do provedor.
+Não copie credenciais para a documentação. Confira permissão do diretório de sessões, HTTPS, certificado SMTP,
+remetente autorizado e entrega real. Configuração SMTP ausente/inválida impede o cadastro com 503;
+uma indisponibilidade de rede posterior ao enfileiramento preserva a conta pendente e a mensagem para novas tentativas.
 
 ## Contrato da API
 
@@ -148,6 +171,17 @@ O teste opcional de interface requer Playwright instalado fora das dependências
 defina `FORNEX_PLAYWRIGHT_MODULE` para o caminho do módulo e, se necessário, `FORNEX_BROWSER_CHANNEL` (padrão `msedge`).
 Ele testa cadastro, confirmação, login, recuperação e largura móvel, bloqueando acessos externos.
 As capturas ficam em `logs/auth-ui/`, fora do versionamento.
+
+`test_auth_regressoes` cobre: seis logins simultâneos em três servidores PHP, limites globais e liberação de travas,
+GC forçado com sessão de 25 minutos e expiração aos 31, exportação sem ler configuração privada,
+login do benchmark para contas legadas/verificadas e recusa de pendentes, migração repetida sem mudar dados,
+backup/restauração real, dump parcial, preservação de backup anterior, porta e banco vazio.
+Os scripts de backup são testados diretamente no contêiner descartável; `deploy.sh` não é executado pelos testes.
+
+O benchmark `bench/carga.py --contas /caminho/privado/contas.json` recebe contas de teste já verificadas, com
+`email`, `senha` e `nome` opcional. Faz apenas login e segue o fluxo de planos existente. Não cadastra contas
+automaticamente nem contorna a confirmação. Sem esse arquivo, usa as contas legadas de carga, se já existirem.
+O teste automatizado verifica somente a preparação das sessões; não inicia carga, worker pago ou envio externo.
 
 Pendências para ativação real: configurar correio e cron, aplicar a migração no ambiente escolhido após backup,
 publicar mediante autorização e conferir HTTPS, entrega real de mensagens e separação dos perfis nesse ambiente.

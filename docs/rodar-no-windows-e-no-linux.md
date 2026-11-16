@@ -766,13 +766,13 @@ ao receber a mensagem. Enquanto a etapa estiver pendente, `bun acesso.ts status`
 
 ## 12. Testes automáticos
 
-Rode nesta ordem, com a venv ativa e os bancos no ar. **Pare o worker antes de rodar os testes da API:** ele compartilha o banco
-e levaria perguntas dos testes, derrubando um deles.
+Rode com a venv ativa. As suítes de consulta dependem do ambiente descrito acima. Para autenticação/API/provas,
+use exclusivamente o executor isolado: ele cria seu próprio MariaDB e não compartilha o banco com o worker.
 
 ```bash
 python -m unittest discover -s consulta/testes
 python -m unittest discover -s chat/testes
-python site/dev/test_api.py
+python site/dev/test_auth.py
 ```
 
 | Comando | Esperado | Se vier diferente |
@@ -780,7 +780,7 @@ python site/dev/test_api.py
 | `consulta/testes` | `Ran 65 tests` e `OK` | `skipped=...`: o Neo4j está parado ou sem os dados (etapas 6 e 7). Falha: leia o nome do teste |
 | `chat/testes` | `Ran 202 tests` e `OK (skipped=12)` no Windows (portabilidade, provedores, fallback, dados do pacote de prova, robustez do worker, o fluxo do WhatsApp e os scripts de shell; sem internet e sem `.env`; os 12 pulados só rodam no Linux; os de shell levam ~100 s) | |
 | `canal-whatsapp` (`bun test testes`) | `24 pass` (números, acesso, fila de saída e log estruturado do gateway; sem WhatsApp) | `bun` não instalado: veja a etapa 11 |
-| `site/dev/test_api.py` | `Ran 80 tests` e `OK` (leva uns 40 s) | `php não encontrado`: defina `PHP_BIN` (abaixo). `servidor ... não subiu`: o MariaDB não está no ar. Uma falha em `dois_pedidos_ao_mesmo_tempo...`: o worker estava rodando |
+| `site/dev/test_auth.py` | Autenticação, API, provas e regressões com resultado `OK` | Requer Docker ativo, PHP 8.2+ com extensões e dependências Composer em `site/`. Não executar os módulos antigos diretamente |
 
 `PHP_BIN` no Windows (PowerShell), se o PHP não estiver no PATH:
 
@@ -1063,11 +1063,16 @@ base pequena da etapa 7. Os testes automáticos da consulta (etapa 12) só passa
 | 2 | `python coleta/carregar_neo4j.py --zerar --benchmark` | Carrega essa base no Neo4j |
 | 3 | `python bench/benchmark.py gabarito` | Deriva as 50 perguntas e respostas do grafo e congela (grava em `dados/bench/`) |
 | 4 | `BENCH_PARALELO=8 python bench/benchmark.py rodar --modelos todos` | Roda o benchmark nos 4 modelos (150 perguntas cada). **Usa o `claude` logado e a chave do DeepSeek; leva uns 20 minutos com 8 chamadas simultâneas** (o padrão é 3, e então leva mais de uma hora). No PowerShell: `$env:BENCH_PARALELO=8` antes do comando |
-| 5 | `python bench/carga.py` | Teste de carga: 8 contas perguntando ao mesmo tempo pela API. **O site e o worker precisam estar no ar** |
+| 5 | `python bench/carga.py --contas /caminho/privado/contas.json` | Contas de teste previamente verificadas perguntam pela API. **O site e o worker precisam estar no ar**. Pode consumir modelos pagos |
 | 6 | `python consulta/gerar_painel.py --dev` | Junta tudo em `site/painel.json` |
 | 7 | `python coleta/carregar_neo4j.py --zerar --exemplo` | Volta à base pequena dos testes |
 
 Depois, entre em `http://127.0.0.1:8080/chat.html` com uma das contas e abra **Área técnica** na barra de cima.
+
+O JSON privado de carga contém uma lista de objetos com `email`, `senha` e `nome` opcional. Guarde-o fora do
+repositório. O benchmark faz login antes da medição; não cria contas nem confirma endereços automaticamente.
+Cadastre as contas pelo fluxo público Gmail, confirme os links e só então rode a carga em ambiente autorizado.
+Sem `--contas`, tenta oito contas legadas já existentes; endereços `local.test` não são aceitos no cadastro público.
 
 **Adicionar outro modelo depois**, sem refazer os anteriores (o resultado acumula em `dados/bench/resultado.json`):
 
@@ -1088,7 +1093,7 @@ conta Claude.
 | `FileNotFoundError ... gabarito.json` ou `resultado.json` | O passo 3 ou 4 não rodou | Rode os passos em ordem |
 | `AssertionError` ao congelar o gabarito | O grafo não é o da base inventada (passo 2) | Rode o passo 2 e tente de novo |
 | Área técnica diz "Não consegui carregar" | `site/painel.json` não existe (a API devolve 503) | Rode o passo 6 |
-| Teste de carga: `não consegui criar/entrar` | Site fora do ar, ou `setup.php` não rodou | Etapa 8 |
+| Teste de carga: `Não consegui entrar` | Site indisponível, credenciais incorretas ou endereço pendente | Confira as contas privadas de teste e conclua a verificação de e-mail |
 | Teste de carga com várias falhas | Worker parado ou fila cheia | Etapa 9; confira `worker no ar:` no log |
 
 ### 18.6 Vários provedores de modelo (Claude, DeepSeek e, depois, Gemini)

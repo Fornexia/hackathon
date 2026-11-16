@@ -146,19 +146,28 @@ function rota_cadastro(): never {
     auth_resposta_envio();
 }
 
-function rota_login(): never {
-    exigir_csrf();
-    $c = corpo(8192);
-    $email = strtolower(texto_limpo($c['email'] ?? '', 190));
-    $senha = is_string($c['senha'] ?? null) ? $c['senha'] : '';
-    if (strlen($senha) > 1024) erro(401, 'E-mail ou senha inválidos.');
-    $ip = ip_do_cliente();
-
-    if (login_bloqueado($email, $ip)) {
-        header('Retry-After: 900');
-        erro(429, 'Muitas tentativas. Aguarde alguns minutos e tente de novo.');
+/** Sem respostas/exit aqui: finally precisa liberar as duas travas, inclusive nas recusas. */
+function validar_login(string $email, string $senha, string $ip): array {
+    $chaves = array_map(fn($v) => 'login:' . substr(hash('sha256', DB_NAME . ':' . $v), 0, 58), ['ip:' . $ip, 'email:' . $email]);
+    sort($chaves, SORT_STRING);
+    $travadas = [];
+    try {
+        foreach ($chaves as $chave) {
+            $st = db()->prepare('SELECT GET_LOCK(?, 5)');
+            $st->execute([$chave]);
+            if ((int)$st->fetchColumn() !== 1) return [429, null];
+            $travadas[] = $chave;
+        }
+        return validar_login_travado($email, $senha, $ip);
+    } finally {
+        foreach (array_reverse($travadas) as $chave) {
+            db()->prepare('SELECT RELEASE_LOCK(?)')->execute([$chave]);
+        }
     }
+}
 
+function validar_login_travado(string $email, string $senha, string $ip): array {
+    if (login_bloqueado($email, $ip)) return [429, null];
     $st = db()->prepare('SELECT id, senha_hash, auth_versao, email_verificacao_exigida, email_verificado_em FROM usuarios WHERE email = ?');
     $st->execute([$email]);
     $u = $st->fetch();
@@ -167,13 +176,29 @@ function rota_login(): never {
     $ok = password_verify($senha, $hash) && $u !== false;
     if (!$ok) {
         registrar_falha($email, $ip);
-        erro(401, 'E-mail ou senha inválidos.');   // não diz qual dos dois falhou
+        return [401, null];
     }
     if ((int)$u['email_verificacao_exigida'] === 1 && $u['email_verificado_em'] === null) {
         registrar_falha($email, $ip);
-        responder(403, ['erro' => 'Verifique seu e-mail antes de entrar. Você pode solicitar um novo link.', 'codigo' => 'email_nao_verificado']);
+        return [403, null];
     }
     db()->prepare('DELETE FROM tentativas_login WHERE email = ? AND ip = ?')->execute([$email, $ip]);
+    return [200, $u];
+}
+
+function rota_login(): never {
+    exigir_csrf();
+    $c = corpo(8192);
+    $email = strtolower(texto_limpo($c['email'] ?? '', 190));
+    $senha = is_string($c['senha'] ?? null) ? $c['senha'] : '';
+    if (strlen($senha) > 1024) erro(401, 'E-mail ou senha inválidos.');
+    [$status, $u] = validar_login($email, $senha, ip_do_cliente());
+    if ($status === 429) {
+        header('Retry-After: 900');
+        erro(429, 'Muitas tentativas. Aguarde alguns minutos e tente de novo.');
+    }
+    if ($status === 401) erro(401, 'E-mail ou senha inválidos.');
+    if ($status === 403) responder(403, ['erro' => 'Verifique seu e-mail antes de entrar. Você pode solicitar um novo link.', 'codigo' => 'email_nao_verificado']);
     entrar((int)$u['id'], (int)$u['auth_versao']);
     $logado = usuario_atual();
     if (!$logado) erro(401, 'Sua senha foi alterada. Entre novamente.');
