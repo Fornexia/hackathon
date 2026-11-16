@@ -83,7 +83,7 @@ def main(argv: list[str]) -> int:
                     print(f"    ! {aviso}")
                 if r.get("erro_de_envio"):
                     print(f"    ! envio falhou, tenta de novo na próxima rodada: {r['erro_de_envio']}")
-    except assinaturas.ErroDeAssinatura as erro:
+    except (assinaturas.ErroDeAssinatura, RuntimeError) as erro:
         print(f"erro: {erro}", file=sys.stderr)
         return 1
     return 0

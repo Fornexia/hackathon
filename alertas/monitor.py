@@ -44,6 +44,24 @@ def _chave_sancao(s: dict) -> str:
     return hashlib.sha1(base.encode("utf-8")).hexdigest()[:16]
 
 
+def _chave_contrato(c: dict) -> str:
+    """Identifica o contrato sem depender da ordem da consulta. O número sozinho não basta: unidades diferentes repetem número, e há contrato sem número."""
+    partes = [c.get("ente"), c.get("numero"), c.get("unidade"), c.get("inicio")]
+    if not c.get("numero"):
+        partes.append(c.get("objeto"))
+    return "|".join("" if p is None else str(p) for p in partes)
+
+
+def _indexar(itens: list[dict], chave, campos: tuple[str, ...]) -> dict:
+    """Um dicionário por chave. Itens de chave igual não se sobrescrevem: o segundo vira `chave#2`, e assim por diante."""
+    saida, vistos = {}, {}
+    for item in itens:
+        k = chave(item)
+        vistos[k] = vistos.get(k, 0) + 1
+        saida[k if vistos[k] == 1 else f"{k}#{vistos[k]}"] = _linha(item, campos)
+    return saida
+
+
 class FonteGrafo:
     """Lê o grafo pelas consultas do agente, com o perfil da assinatura. É o único lugar que toca o Neo4j."""
 
@@ -53,6 +71,7 @@ class FonteGrafo:
         self.nucleo = nucleo
         p = perfis.carregar()[perfil]
         self.perfil, self.tenants = perfil, list(p["tenants"])
+        self.limite = nucleo.LIMITE_LINHAS      # as consultas devolvem no máximo isto: com tantos itens a foto pode ser um recorte
 
     def _no_perfil(self, funcao, *args):
         with self.nucleo.com_perfil(self.perfil, self.tenants, False, "alertas"):
@@ -78,12 +97,26 @@ def fotografar(fonte, cnpj: str) -> dict | None:
     cru = fonte.ler(cnpj)
     if cru is None:
         return None
-    return {
+    sancoes, contratos = cru.get("sancoes", []), cru.get("contratos", [])
+    foto = {
         "nome": cru.get("nome"),
-        "sancoes": {_chave_sancao(s): _linha(s, CAMPOS_SANCAO) for s in cru.get("sancoes", [])},
-        "contratos": {f"{c.get('ente')}|{c.get('numero')}": _linha(c, CAMPOS_CONTRATO) for c in cru.get("contratos", [])},
+        "sancoes": _indexar(sancoes, _chave_sancao, CAMPOS_SANCAO),
+        "contratos": _indexar(contratos, _chave_contrato, CAMPOS_CONTRATO),
         "cadastro": _linha(cru["cadastro"][0], CAMPOS_CADASTRO) if cru.get("cadastro") else None,
     }
+    limite = getattr(fonte, "limite", None)
+    cheias = [nome for nome, lista in (("sancoes", sancoes), ("contratos", contratos)) if limite and len(lista) >= limite]
+    if cheias:
+        foto["truncado"] = cheias
+    return foto
+
+
+def _fundir_truncado(antes: dict, foto: dict) -> None:
+    """Quando a consulta veio cheia, a foto é só uma janela: o que saiu dela não foi removido na fonte e o que voltou não é novo.
+    Então o que já se conhecia fica na foto. O custo: remoção e mudança de itens fora da janela deixam de ser vistas."""
+    for nome in foto.get("truncado", []):
+        for chave, item in antes.get(nome, {}).items():
+            foto[nome].setdefault(chave, item)
 
 
 def _vazia(foto: dict | None) -> bool:
@@ -182,6 +215,8 @@ def verificar(loja, fabricar_fonte, enviar, ensaio: bool = False, agora: datetim
             except Exception as erro:       # base fora do ar: não troca a foto e tenta de novo na próxima rodada
                 avisos.append(f"{cnpj}: consulta falhou ({_limpo(erro, 80)})")
                 continue
+            if foto and foto.get("truncado"):
+                avisos.append(f"{cnpj}: a consulta veio cheia ({', '.join(foto['truncado'])}): comparação parcial, o que sair da janela não gera aviso")
             antes = antes_tudo.get(cnpj)
             if antes is None:
                 base.append(cnpj)
@@ -190,6 +225,8 @@ def verificar(loja, fabricar_fonte, enviar, ensaio: bool = False, agora: datetim
             if _vazia(foto) and not _vazia(antes):
                 avisos.append(f"{cnpj}: tinha dados e agora não tem nenhum (recarga ou queda da base?). Sem aviso; a foto anterior foi mantida")
                 continue
+            if foto:
+                _fundir_truncado(antes, foto)
             eventos += comparar(cnpj, antes, foto or {"nome": antes.get("nome"), "sancoes": {}, "contratos": {}, "cadastro": None})
             depois_tudo[cnpj] = foto if foto is not None else antes
         eventos = [_com_prova(fonte, e) for e in eventos[:LIMITE_EVENTOS_POR_EMAIL]] + eventos[LIMITE_EVENTOS_POR_EMAIL:]
@@ -197,11 +234,14 @@ def verificar(loja, fabricar_fonte, enviar, ensaio: bool = False, agora: datetim
         if eventos and not ensaio:
             try:
                 item["enviado_para"] = enviar(a, eventos, agora)
-                loja.marcar_envio(a["id"])
             except Exception as erro:
                 item["erro_de_envio"] = _limpo(erro, 200)
                 relatorio.append(item)
                 continue          # a foto não muda: o aviso sai na próxima rodada
+            try:
+                loja.marcar_envio(a["id"])
+            except Exception as erro:      # o e-mail JÁ saiu: a foto avança mesmo assim, senão o mesmo aviso se repetiria a cada rodada
+                avisos.append(f"aviso enviado, mas o horário do envio não foi gravado ({_limpo(erro, 80)})")
         if not ensaio:
             estado[a["id"]] = depois_tudo
             loja.gravar_estado(estado)

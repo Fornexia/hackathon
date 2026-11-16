@@ -28,6 +28,8 @@ def modo() -> str:
     escolhido = (os.environ.get("ALERTAS_ENVIO") or "").strip().lower()
     if escolhido in ("arquivo", "smtp"):
         return escolhido
+    if escolhido:        # erro de digitação não pode virar "arquivo" em silêncio: o aviso seria dado como enviado e ninguém receberia
+        raise RuntimeError(f"ALERTAS_ENVIO inválido: '{escolhido[:20]}' (use arquivo ou smtp)")
     return "smtp" if os.environ.get("ALERTAS_SMTP_HOST") else "arquivo"
 
 

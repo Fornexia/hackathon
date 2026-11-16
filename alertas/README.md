@@ -65,9 +65,19 @@ python alertas/simular.py restaurar --banco-de-teste         # desfaz
 NEO4J_URI=... NEO4J_SENHA=... python -m unittest discover -s alertas/testes -v
 ```
 
-39 testes: assinaturas (e-mail, CPF, limite, cancelar), comparação (sanção nova, alterada, removida; contrato; cadastro), entrega (arquivo e um SMTP de brincadeira numa
-porta local), injeção de cabeçalho e HTML, falha no envio, recarga da base, e-mail verificado (trava, linha de base ao confirmar, conta Google) e, com o Neo4j de teste, o isolamento entre perfis. Sem o banco, 3 são pulados.
+46 testes: assinaturas (e-mail, CPF, limite, cancelar), comparação (sanção nova, alterada, removida; contrato; cadastro), entrega (arquivo e um SMTP de brincadeira numa
+porta local), injeção de cabeçalho e HTML, falha no envio (e e-mail que saiu sem gravar o horário), modo de envio escrito errado, recarga da base, consulta cheia (50 itens),
+contratos de mesmo número, e-mail verificado (trava, linha de base ao confirmar, conta Google, pedido de terceiro) e, com o Neo4j de teste, o isolamento entre perfis. Sem o banco, 3 são pulados.
 Nenhum teste manda e-mail de verdade nem gasta crédito de modelo.
+
+## Limites conhecidos
+
+- **Consulta cheia:** as consultas do agente devolvem no máximo 50 contratos e 50 sanções por fornecedor. Quando uma volta cheia, a foto é só uma janela: o que já se conhecia fica na foto,
+  então nada vira "removido" nem "novo" por ter saído ou voltado à janela. O custo é que remoção e mudança de itens fora da janela não são vistas (o relatório da rodada avisa).
+- **Pedido sem verificar:** quem pede aviso para um e-mail que já tem assinatura verificada é recusado; quem confirma o e-mail descarta o que foi pedido antes sem confirmação.
+- **Cancelar por e-mail e confirmar por e-mail** (`cancelar`, `confirmar`) são do CLI local. Na ponte com o site, exigir o código aleatório, nunca só o e-mail.
+- **Arquivos JSON sem trava:** o cron `verificar` e o cadastro pelo site gravando ao mesmo tempo podem perder uma atualização. A tabela no MariaDB resolve.
+- `ALERTAS_ENVIO` com valor diferente de `arquivo` ou `smtp` falha em vez de cair em arquivo.
 
 ## O que não está feito
 

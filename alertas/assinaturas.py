@@ -105,12 +105,21 @@ class Assinaturas:
         # a mesma pessoa e o mesmo perfil não geram duas assinaturas (dois e-mails iguais por dia): os CNPJs somam
         for a in itens:
             if a["ativa"] and a["email"] == email and a["perfil"] == perfil:
+                if a.get("email_verificado") and not verificado:
+                    # quem não provou ser dono do e-mail não mexe numa assinatura de quem provou: senão qualquer um encheria a caixa dele
+                    raise ErroDeAssinatura("este e-mail já tem assinatura verificada: confirme o e-mail antes de mudar os CNPJs")
+                if verificado and not a.get("email_verificado"):
+                    # quem confirmou é a dona do e-mail: o que foi pedido antes, sem confirmação, é descartado (e o código antigo deixa de valer)
+                    if len(novos) > MAX_CNPJS:
+                        raise ErroDeAssinatura(f"no máximo {MAX_CNPJS} CNPJs por assinatura")
+                    a["cnpjs"], a["token"], a["origem"] = novos, secrets.token_hex(16), origem
+                    a["email_verificado"], a["consentimento_em"] = True, _agora()
+                    _gravar(self.arquivo, itens)
+                    return a
                 juntos = list(dict.fromkeys(a["cnpjs"] + novos))
                 if len(juntos) > MAX_CNPJS:
                     raise ErroDeAssinatura(f"no máximo {MAX_CNPJS} CNPJs por assinatura")
                 a["cnpjs"] = juntos
-                if verificado and not a.get("email_verificado"):
-                    a["email_verificado"], a["consentimento_em"] = True, _agora()
                 _gravar(self.arquivo, itens)
                 return a
         if len(novos) > MAX_CNPJS:

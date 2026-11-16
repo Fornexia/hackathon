@@ -205,10 +205,29 @@ class TestVerificacaoDoEmail(Base):
         self.loja.cancelar(b["token"])
         self.assertEqual(self.loja.marcar_verificado(b["id"]), 0)
 
-    def test_assinar_de_novo_com_verificacao_confirma_a_existente(self):
-        self.assinar(verificado=False)
-        self.assertTrue(self.assinar(verificado=True)["email_verificado"])
+    def test_quem_confirma_o_email_fica_so_com_o_que_ele_pediu(self):
+        antigo = self.assinar((OUTRO,), verificado=False)           # pedido de um terceiro, sem prova de posse do e-mail
+        dono = self.assinar((CNPJ,), verificado=True)
+        self.assertTrue(dono["email_verificado"])
         self.assertEqual(len(self.loja.listar()), 1)
+        self.assertEqual(self.loja.listar()[0]["cnpjs"], [CNPJ])    # o CNPJ do terceiro não sobrevive
+        self.assertNotEqual(dono["token"], antigo["token"])         # e o código que o terceiro viu deixou de valer
+        self.assertEqual(self.loja.cancelar(antigo["token"]), 0)
+
+    def test_pedido_sem_verificar_nao_mexe_na_assinatura_de_quem_verificou(self):
+        self.assinar((CNPJ,), verificado=True)
+        with self.assertRaises(ass.ErroDeAssinatura):
+            self.assinar((OUTRO,), verificado=False)
+        self.assertEqual(self.loja.listar()[0]["cnpjs"], [CNPJ])
+        self.assertEqual(len(self.loja.listar()), 1)
+        self.assinar((OUTRO,), verificado=True)                    # quem prova o e-mail continua podendo acrescentar
+        self.assertEqual(self.loja.listar()[0]["cnpjs"], [CNPJ, OUTRO])
+
+    def test_dois_pedidos_sem_verificar_somam_e_continuam_parados(self):
+        self.assinar((CNPJ,), verificado=False)
+        self.assinar((OUTRO,), verificado=False)
+        self.assertEqual(self.loja.listar()[0]["cnpjs"], [CNPJ, OUTRO])
+        self.assertFalse(self.loja.listar()[0]["email_verificado"])
 
 
 class TestMonitor(Base):
@@ -307,6 +326,69 @@ class TestMonitor(Base):
         self.assertEqual(r[0]["eventos"], 1)
         self.assertTrue(r[0]["enviado_para"])
         self.assertTrue(self.loja.listar()[0]["ultimo_envio"])
+
+    def test_email_ja_saiu_mas_nao_gravou_o_horario_nao_repete_o_aviso(self):
+        self.assinar()
+        fonte = FonteFalsa({CNPJ: cru()})
+        self.rodar(fonte)
+        fonte.dados[CNPJ]["sancoes"].append(sancao())
+        with mock.patch.object(ass.Assinaturas, "marcar_envio", side_effect=OSError("disco cheio")):
+            r = self.rodar(fonte)
+        self.assertEqual(len(self.enviados), 1)
+        self.assertNotIn("erro_de_envio", r[0])
+        self.assertTrue(any("horário" in x for x in r[0]["avisos"]))
+        self.assertEqual(self.rodar(fonte)[0]["eventos"], 0)       # a foto avançou: nada de reenviar
+        self.assertEqual(len(self.enviados), 1)
+
+    def test_modo_de_envio_com_nome_errado_falha_e_nao_consome_o_aviso(self):
+        self.assinar()
+        fonte = FonteFalsa({CNPJ: cru()})
+        self.rodar(fonte)
+        fonte.dados[CNPJ]["sancoes"].append(sancao())
+        os.environ["ALERTAS_ENVIO"] = "email"
+        r = self.rodar(fonte)
+        self.assertIn("ALERTAS_ENVIO inválido", r[0]["erro_de_envio"])
+        os.environ["ALERTAS_ENVIO"] = "arquivo"
+        self.assertEqual(self.rodar(fonte)[0]["eventos"], 1)       # a foto antiga ficou: o aviso ainda sai
+
+    def test_consulta_cheia_nao_vira_remocao_nem_novidade_falsa(self):
+        self.assinar()
+        fonte = FonteFalsa({CNPJ: cru(sancoes=[sancao(), sancao(publicada_em="2026-10-01", inicio_suspensao="2026-10-01")])})
+        fonte.limite = 2                                            # a consulta devolve no máximo 2: está cheia
+        self.rodar(fonte)
+        nova = sancao(publicada_em="2026-11-10", inicio_suspensao="2026-11-10")
+        fonte.dados[CNPJ]["sancoes"] = [nova, sancao()]             # a nova empurrou a mais antiga para fora da janela
+        r = self.rodar(fonte)
+        self.assertEqual([e["tipo"] for e in r[0]["lista"]], ["sancao_nova"])
+        self.assertTrue(any("comparação parcial" in x for x in r[0]["avisos"]))
+        fonte.dados[CNPJ]["sancoes"] = [sancao(), sancao(publicada_em="2026-10-01", inicio_suspensao="2026-10-01")]   # a antiga volta à janela
+        self.assertEqual(self.rodar(fonte)[0]["eventos"], 0)       # já era conhecida: não é "nova"
+
+    def test_consulta_que_nao_esta_cheia_continua_vendo_remocao(self):
+        self.assinar()
+        fonte = FonteFalsa({CNPJ: cru(sancoes=[sancao()])})
+        fonte.limite = 50
+        self.rodar(fonte)
+        fonte.dados[CNPJ]["sancoes"] = []
+        fonte.dados[CNPJ]["contratos"] = [contrato()]
+        self.assertEqual([e["tipo"] for e in self.rodar(fonte)[0]["lista"]], ["sancao_removida", "contrato_novo"])
+
+    def test_contratos_de_mesmo_numero_nao_se_fundem(self):
+        a, b = contrato(unidade="Secretaria A"), contrato(unidade="Secretaria B", objeto="Drenagem", valor_contratado=900000.0)
+        sem_numero_1, sem_numero_2 = contrato(numero=None, objeto="Compra X"), contrato(numero=None, objeto="Compra Y")
+        gemeos = [contrato(numero="7/2026", unidade="U"), contrato(numero="7/2026", unidade="U")]     # idênticos nos campos da chave
+        foto = monitor.fotografar(FonteFalsa({CNPJ: cru(contratos=[a, b, sem_numero_1, sem_numero_2, *gemeos])}), CNPJ)
+        self.assertEqual(len(foto["contratos"]), 6)
+        self.assinar()
+        fonte = FonteFalsa({CNPJ: cru(contratos=[a, b])})
+        self.rodar(fonte)
+        fonte.dados[CNPJ]["contratos"].reverse()                    # a consulta não garante ordem entre contratos do mesmo dia
+        self.assertEqual(self.rodar(fonte)[0]["eventos"], 0)
+        fonte.dados[CNPJ]["contratos"].reverse()
+        fonte.dados[CNPJ]["contratos"][1]["valor_contratado"] = 1000000.0
+        r = self.rodar(fonte)
+        self.assertEqual([e["tipo"] for e in r[0]["lista"]], ["contrato_alterado"])
+        self.assertIn("Drenagem", r[0]["lista"][0]["detalhe"])     # o contrato B mudou, não o A
 
     def test_ensaio_nao_envia_nem_grava(self):
         self.assinar()
