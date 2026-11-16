@@ -107,6 +107,7 @@ function rota_me(): never {
         'usuario' => $u ? usuario_para_json($u) : null,
         'plano' => $u ? plano_ativo((int)$u['id']) : null,
         'csrf' => csrf_token(),
+        'google_client_id' => google_client_id() ?: null,
     ]);
 }
 
@@ -178,7 +179,7 @@ function validar_login_travado(string $email, string $senha, string $ip): array 
     $u = $st->fetch();
     // Mesmo sem conta, executa a verificação de hash. Hashes legados podem ter custo diferente.
     $hash = $u['senha_hash'] ?? '$argon2id$v=19$m=65536,t=4,p=1$cGp5cm15eUdXWndCT2l1UQ$y45kMLx7UCtFPNkCnRDuI9V9aPwRkAhG14VI9JwEsNM';
-    $ok = password_verify($senha, $hash) && $u !== false;
+    $ok = password_verify($senha, $hash) && $u !== false && $u['senha_hash'] !== null;
     if (!$ok) {
         registrar_falha($email, $ip);
         return [401, null];

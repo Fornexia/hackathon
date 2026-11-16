@@ -12,12 +12,17 @@ function migrar_autenticacao(PDO $pdo): void {
             // Contas anteriores continuam funcionando, sem afirmar que foram verificadas.
             'email_verificacao_exigida' => 'TINYINT NOT NULL DEFAULT 0',
             'auth_versao' => 'INT UNSIGNED NOT NULL DEFAULT 0',
+            'google_sub' => 'VARCHAR(64) CHARACTER SET ascii COLLATE ascii_bin NULL',
         ];
         foreach ($colunas as $coluna => $tipo) {
             $st = $pdo->prepare('SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = "usuarios" AND COLUMN_NAME = ?');
             $st->execute([$coluna]);
             if (!(int)$st->fetchColumn()) $pdo->exec("ALTER TABLE usuarios ADD COLUMN $coluna $tipo");
         }
+        $st = $pdo->query('SELECT IS_NULLABLE FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = "usuarios" AND COLUMN_NAME = "senha_hash"');
+        if ($st->fetchColumn() === 'NO') $pdo->exec('ALTER TABLE usuarios MODIFY senha_hash VARCHAR(255) NULL');
+        $st = $pdo->query('SELECT COUNT(*) FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = "usuarios" AND COLUMN_NAME = "google_sub" AND NON_UNIQUE = 0 AND SEQ_IN_INDEX = 1');
+        if (!(int)$st->fetchColumn()) $pdo->exec('ALTER TABLE usuarios ADD UNIQUE INDEX usuarios_google_sub_unico (google_sub)');
         $pdo->exec('CREATE TABLE IF NOT EXISTS auth_tokens (
             id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
             usuario_id INT NOT NULL,

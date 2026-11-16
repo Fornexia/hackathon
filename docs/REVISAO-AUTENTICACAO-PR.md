@@ -1,5 +1,13 @@
 # Revisão da autenticação para Pull Request
 
+> Este documento registra a auditoria anterior aos ajustes de e-mail/proxy e ao login Google.
+> A entrega de ajustes está no commit local `3f61265`, com 147 testes aprovados. A nova entrega Google
+> acrescenta uma coluna e altera a nulabilidade do hash: exige a migração atualizada antes da ativação.
+> A suíte completa posterior ao Google aprovou 164 testes, sem falhas ou pulos, com serviços simulados.
+> Configuração, testes atuais e limites estão em [AUTENTICACAO.md](AUTENTICACAO.md) e no diário de 16/11.
+> Para o próximo PR, sugere-se a base `feat/portabilidade-windows-linux`, que já inclui os 43 arquivos
+> institucionais; não houve mudança de base, reorganização, reescrita do histórico ou novo push nesta tarefa.
+
 Branch: `gpt/gabriella-autenticacao-site-2026-11-15`. Ponto de partida das correções: `f255342`.
 Referência remota conferida: `origin/main` em `af43561`.
 

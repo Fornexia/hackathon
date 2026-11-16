@@ -6,13 +6,17 @@
 
 ## Resumo
 
-Nova tarefa autorizada em duas entregas locais, sem push: a primeira implementa e-mails de qualquer dominio valido, estado de verificacao, verificacao de contas antigas logadas e proxies confiaveis. A segunda, login Google, ainda nao foi iniciada: depende da primeira verde e commitada. A regra solicitada para Google sera token validado e email_verified verdadeiro; a limitacao de autoridade sobre dominios externos sera documentada. Estes registros mais recentes substituem a restricao antiga a Gmail descrita no historico abaixo.
+Nova tarefa autorizada em duas entregas locais, sem push: a primeira implementa e-mails de qualquer dominio valido, estado de verificacao, verificacao de contas antigas logadas e proxies confiaveis, concluida no commit 3f61265 com 147 testes aprovados. Depois desse commit e com status limpo foi iniciada a segunda, login Google, incluida neste segundo commit local com 164 testes aprovados. A regra solicitada para Google e token validado e email_verified verdadeiro; a limitacao de autoridade sobre dominios externos foi documentada. Estes registros mais recentes substituem a restricao antiga a Gmail descrita no historico abaixo.
 
 Implementado o login publico sobre a autenticacao PHP/MariaDB existente, na branch derivada da feat. O codigo anterior ja aceitava clientes; faltavam verificacao de endereco e recuperacao de senha. Novos cadastros exigem Gmail e verificacao, sem promover usuarios a admin. Commit 5b22ad2 criado e branch enviada ao origin por autorizacao da usuaria. Ativacao no ambiente atual ainda depende de configuracao privada de correio, cron e migracao autorizada.
 
 Auditoria final solicitada depois da publicacao: a suite existente passou novamente, mas testes complementares encontraram cinco falhas tecnicas. A usuaria autorizou as correcoes, agora implementadas e verificadas com 143 testes aprovados, e depois autorizou o commit e push deste conjunto. A comparacao com main inclui o portfolio herdado; a decisao de escopo continua pendente. A usuaria abrira o Pull Request pelo GitHub.
 
 ## Feito
+
+- Entrega 2 incluida neste segundo commit local: GIS nas duas abas do chat, configuracao opcional do Client ID, API Google com CSRF e limites, tokeninfo via HTTPS/TLS sem redirecionar e com tempo/tamanho limitados. Conferidas assinatura pelo servico e claims no PHP; sem Client ID, rota 404 e botao oculto. Validacao nova em lib_google.php, sem novas dependencias Composer.
+- Migracao acrescenta sub unico sensivel a maiusculas e permite hash nulo sem alterar nenhum valor existente. Conta nova Google recebe usuario comum; existente verificada preserva senha e plano; nao verificada perde senha, sessoes e tokens anteriores ao vinculo. Administrador sempre recusado por Google. Identidade usa sub estavel, com travas e rejeicao de vinculos conflitantes. Login por senha e redefinicao recusam hash nulo.
+- Criados testes RSA/tokeninfo locais e GIS simulado em navegador. Documentados configuracao, origens localhost, CSP, limites do tokeninfo e do vinculo de enderecos externos, sem implementar desafio adicional nao pedido. Nenhum arquivo de deploy, site institucional ou configuracao privada modificado.
 
 - Entrega 1 implementada: cadastro aceita formato valido ate 190 caracteres; login e me expõem email_verificado; Minha conta mostra o estado e solicita verificacao pelo endereco da sessao com login, CSRF, limite e fila existentes. Confirmacao preserva senha, papel e regra de compatibilidade das contas antigas. TRUSTED_PROXIES usa IPs exatos, vazio por padrao, e so confia no ultimo IP valido do cabecalho quando o remetente esta configurado.
 - Atualizados textos, modelo publico de configuracao, README e guias de autenticacao e Windows/Linux. Acrescentados quatro testes em site/dev/test_auth_ajustes.py. Nenhuma alteracao em site-institucional, api da raiz, alertas, consulta ou configuracoes privadas. Entrega 2 continua pendente; nao houve push, PR ou deploy nesta tarefa.
@@ -34,6 +38,11 @@ Auditoria final solicitada depois da publicacao: a suite existente passou novame
 - Entregue a implementacao no commit 5b22ad2, com 28 arquivos, e realizado push da branch gpt/gabriella-autenticacao-site-2026-11-15 para origin, com upstream configurado. Arquivos privados, dependencias instaladas, capturas de testes e stashes anteriores ficaram fora do commit.
 
 ## Verificado (e como)
+
+- Entrega 2 final, Windows bibis, PHP 8.2.35, Python da .venv, Edge e MariaDB 10.11 descartavel: `.venv\Scripts\python -X utf8 site/dev/test_auth.py`, com Playwright temporario, aprovou 164 testes em 602,878 segundos, zero falhas e zero pulados. Inclui 17 casos Google, navegador GIS simulado em duas abas a 390 px e todas as regressoes anteriores. Bancos e configuracoes temporarios removidos pelo executor, sem rede externa para Google, SMTP ou WhatsApp.
+- Depois de reforcar o teste para alterar somente a assinatura e manter claims validas, `.venv\Scripts\python -X utf8 site/dev/test_auth.py test_auth_google.TestGoogle.test_assinatura_adulterada_e_credencial_malformada_recusadas` aprovou um caso em 4,689 segundos. Nenhum codigo de produto mudou depois do inicio da suite completa. `php -l` em seis PHP, `node --check` nos dois JavaScript do produto e no teste de interface, py_compile, validador do diario e git diff --check aprovados. Git ignore protege configuracao, sessoes, vendor e .env. Revisao dos caminhos alterados sem credenciais reais nos padroes examinados; nenhum arquivo privado ou fora do escopo.
+
+- Entrega 2 parcial anterior: executor descartavel `.venv\Scripts\python -X utf8 site/dev/test_auth.py test_auth_google` aprovou os primeiros 13 testes em 53,467 segundos, sem chamadas externas. Essa rodada foi complementada pela suite completa acima; nenhuma delas comprova o GIS real.
 
 - Entrega 1, Windows local bibis, PHP 8.2.35, Python da .venv, Edge e MariaDB 10.11 descartavel: `.venv\Scripts\python -X utf8 site/dev/test_auth.py`, com Playwright temporario, aprovou 147 testes em 360,313 segundos, zero falhas e zero pulados. Inclui os quatro novos casos, autenticacao, permissoes, sessoes, consultas, planos, worker/WhatsApp simulado, provas, SMTP TLS local e navegador. Uma rodada anterior aprovou 164 execucoes por descobrir novamente 17 testes importados; corrigida somente a importacao no novo modulo e repetida a suite completa sem duplicacoes.
 - `php -l` nos cinco PHP alterados, `node --check` nos tres JavaScript alterados, validador do diario e `git diff --check` aprovados. Revisao dos 17 caminhos alterados nao encontrou credenciais reais nos padroes examinados nem arquivos privados/fora do escopo. Nao executados deploy, migracao em bancos existentes ou envio externo. Entrega 1 preparada para commit local autorizado; Google ainda nao iniciado.
@@ -70,13 +79,15 @@ Auditoria final solicitada depois da publicacao: a suite existente passou novame
 
 ## Não verificado
 
-- Novos fluxos de Google ainda nao implementados nem testados. Verificacao de conta antiga na pagina Minha conta validada por API e sintaxe, sem exercicio especifico desse botao em navegador. Configuracao de proxy e endereco corporativo nao homologados na hospedagem real.
+- GIS real, popup, consentimento, Client ID e origens no Google Cloud nao configurados nem homologados. Tokeninfo real nao chamado. Verificacao de conta antiga na pagina Minha conta validada por API e sintaxe, sem exercicio especifico desse botao em navegador. Configuracao de proxy e endereco corporativo nao homologados na hospedagem real.
 
 - Sem entrega de correio real, credenciais SMTP reais, cron em hospedagem, deploy Hostinger, banco remoto ou migracao sobre a base atual. Nao houve acesso autenticado ao site publicado, uso de modelo pago nem envio WhatsApp.
 - Sem homologacao em Linux, aparelho fisico ou leitor de tela. Empacotamento do deploy foi revisado e teve sintaxe conferida, sem execucao remota.
 - Pendencias herdadas abaixo nao foram revalidadas. O envio da branch ao Git nao executa merge nem deploy.
 
 ## Decisões e motivo
+
+- Google segue a regra expressa da tarefa: email_verified verdadeiro apos validar o token. Registrada a recomendacao do Google de desafio adicional para dominio externo sem Workspace; nenhum fluxo adicional ou restricao de dominio foi acrescentado. Usado tokeninfo, opcao autorizada, para manter lock enxuto sem implementar verificador JWT proprio. Documentado que o Google recomenda biblioteca para producao e que ha dependencia de rede e disponibilidade a cada login.
 
 - Reaproveitar PHP puro, MariaDB, cookie de sessao, CSRF e verificacao de papeis existentes. Nao foi encontrada uma restricao de login apenas para admin no codigo. A quantidade/estado de contas no banco remoto nao foi comprovada.
 - Exigir verificacao apenas de novos cadastros, mantendo contas antigas e seus hashes/papeis. A compatibilidade nao informa falsamente que os enderecos antigos foram verificados.
@@ -85,7 +96,7 @@ Auditoria final solicitada depois da publicacao: a suite existente passou novame
 
 ## Em aberto (por prioridade)
 
-- [ ] Entrega 2: implementar Google somente depois do commit local verde da entrega 1. Seguir a regra expressa da tarefa para tokens validados, documentando a recomendacao do Google de desafio adicional para enderecos externos sem Workspace. Nao acrescentar restricoes de dominio ou novo fluxo fora do pedido. (origem: 2026-11-16-anagmenezes)
+- [ ] Google em homologacao: revisar limites do tokeninfo e a politica explicita de vinculo para enderecos externos sem Workspace, configurar Client ID, popup/origens e validar com contas reais. Migração atualizada somente apos backup e autorizacao no ambiente escolhido. Sem push nesta tarefa. (origem: 2026-11-16-anagmenezes)
 
 - [ ] Auditoria, escopo: decidir tratamento dos 43 arquivos do portfolio antes de PR exclusivo da autenticacao; proposta documentada e comandos antigos do README e guia Windows/Linux atualizados. Se o portfolio permanecer no PR, revisar inclusao de componentes reais no tsconfig. Nao remover funcionalidades nem mudar historia sem aprovacao. (origem: 2026-11-16-anagmenezes)
 - [ ] Para ativar o login publico: configurar SMTP, origem HTTPS, chave privada da fila e cron; aplicar a migracao apos backup no ambiente escolhido e homologar entrega real e perfis. Nenhuma dessas configuracoes foi alterada nesta sessao. (origem: 2026-11-16-anagmenezes)
@@ -115,6 +126,8 @@ Pendencias herdadas dos diarios de 14/11:
 
 ## Resolvido de sessões anteriores
 
+- [x] Duas entregas autorizadas implementadas separadamente: ajustes no commit 3f61265, com 147 testes, depois Google neste segundo commit local, com 164 testes e nenhum pulo. Sem publicacao ou alteracao de bancos existentes. (origem: 2026-11-16-anagmenezes)
+
 - [x] Cinco achados da auditoria corrigidos com autorizacao: backup, limite concorrente, retencao de sessoes, teste de prova isolado e benchmark. Oito regressoes e suite completa de 143 casos aprovadas. Commit e push autorizados posteriormente pela usuaria. (origem: 2026-11-16-anagmenezes)
 - [x] Backup herdado da feat corrigido: falhas propagadas, porta respeitada, primeira instalacao distinguida e restauracao validada em banco descartavel. Sem executar deploy. (origem: 2026-11-15-anagmenezes)
 
@@ -134,4 +147,4 @@ Pendencias herdadas dos diarios de 14/11:
 
 ## Próximo passo sugerido
 
-Concluir a entrega 1 em commit local verde e seguir com Google conforme a tarefa autorizada. Para o futuro PR, sugerida a base feat/portabilidade-windows-linux, que ja inclui o site institucional; nao alterar essa base nem publicar sem autorizacao.
+Revisar os dois commits locais e aguardar autorizacao de push. Para o futuro PR, sugerida a base feat/portabilidade-windows-linux, que ja inclui o site institucional; nao alterar essa base nem publicar sem autorizacao. Homologacao real e configuracoes privadas continuam pendentes.

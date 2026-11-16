@@ -18,7 +18,8 @@ reenvio de verificação, configuração SMTP e invalidação das sessões depoi
 ## Comportamento implementado
 
 - Novas contas: qualquer e-mail válido com até 190 caracteres, pessoal ou corporativo, senha exclusiva do FORNEX de 15 a 128 caracteres e confirmação.
-  A senha do Google não é solicitada e não há OAuth. Hash Argon2id, com espaços, Unicode e caracteres especiais.
+  No fluxo de senha, a senha do provedor de e-mail não é solicitada. Hash Argon2id, com espaços, Unicode e caracteres especiais.
+  O acesso alternativo com Google está descrito abaixo e não exige criar senha do FORNEX.
 - O cadastro retorna `202` com mensagem genérica, inclusive para endereço já cadastrado. Não altera a conta existente.
   Não inicia sessão nem ativa plano antes da confirmação. O perfil é explicitamente `usuario`.
 - Verificação: link de 24 horas, confirmação por POST com CSRF. Reenvio invalida o link anterior.
@@ -44,10 +45,14 @@ reenvio de verificação, configuração SMTP e invalidação das sessões depoi
 
 ## Compatibilidade e migração
 
-`site/migrar-autenticacao.php` acrescenta três colunas a `usuarios` e cria as tabelas `auth_tokens`,
+`site/migrar-autenticacao.php` acrescenta quatro colunas a `usuarios` e cria as tabelas `auth_tokens`,
 `auth_limites` e `auth_emails`. Pode ser executada novamente. Não exclui contas nem muda IDs, senhas,
 papéis, planos, telefones, assinaturas, consultas ou provas. DDL no MariaDB não é transacional:
 faça backup antes; uma execução interrompida pode ser retomada com o mesmo comando.
+
+A quarta coluna, `google_sub VARCHAR(64) NULL`, tem índice único e comparação sensível a maiúsculas.
+`senha_hash` passa a aceitar `NULL` para contas só-Google. A migração não anula nem recalcula nenhum hash
+existente: esse campo só é anulado pelo fluxo de vínculo de conta ainda não verificada descrito abaixo.
 
 Contas anteriores ficam com `email_verificacao_exigida=0` e `email_verificado_em=NULL`.
 Continuam entrando com seus endereços e hashes anteriores, inclusive o administrador e clientes com outro domínio.
@@ -97,6 +102,7 @@ O modelo está em `site/hackathon-config.exemplo.php`. O PHP não carrega o `.en
 | `AUTH_IDLE_SECONDS`, `AUTH_MAX_SECONDS` | Opcionais; padrões 1800 e 43200 segundos |
 | `AUTH_SESSION_PATH` | Opcional; diretório privado exclusivo e gravável, fora de `public_html` |
 | `TRUSTED_PROXIES` | Opcional; lista de IPs exatos, padrão vazio. Constante PHP como array ou ambiente com IPs separados por vírgula |
+| `GOOGLE_CLIENT_ID` | Opcional; Client ID de um aplicativo Web do Google. Vazio oculta o botão e faz a rota Google retornar 404 |
 
 Sem `TRUSTED_PROXIES`, o IP é sempre `REMOTE_ADDR`. Só para um remetente expressamente listado se usa
 o último IP válido, da direita para a esquerda, em `X-Forwarded-For`; sem IP válido mantém-se o remetente.
@@ -145,6 +151,69 @@ Não copie credenciais para a documentação. Confira permissão do diretório d
 remetente autorizado e entrega real. Configuração SMTP ausente/inválida impede o cadastro com 503;
 uma indisponibilidade de rede posterior ao enfileiramento preserva a conta pendente e a mensagem para novas tentativas.
 
+## Login com Google
+
+O botão aparece nas abas Entrar e Criar conta apenas quando `GOOGLE_CLIENT_ID` está definido. O Google
+Identity Services entrega um ID token ao callback JavaScript, enviado por POST como `{credential}` à API
+com o CSRF do FORNEX. Não há fluxo OAuth por redirecionamento nem solicitação da senha do Google.
+O Google cuida da credencial da conta Google; o FORNEX continua responsável pela conta local, perfil,
+plano, sessão e autorização de cada recurso.
+
+O servidor consulta exclusivamente `https://oauth2.googleapis.com/tokeninfo` por HTTPS com certificado
+verificado, sem seguir redirecionamentos, prazo de cinco segundos e resposta limitada. Esse serviço valida
+a assinatura; o PHP também exige `aud` igual ao Client ID configurado, `iss` permitido, `exp` futuro,
+`email_verified=true`, endereço válido e `sub` de até 64 caracteres. Nunca aceita somente decodificar o JWT.
+Tokens, respostas brutas e URLs com credenciais não são registrados pela aplicação. Falhas são 401 genérico;
+CSRF inválido continua 403 e excesso de tentativas, 429. Há limites atômicos antes da chamada externa e
+por endereço validado. PHP precisa de `allow_url_fopen` ativo, saída HTTPS liberada e cadeia de CAs válida.
+
+Foi escolhida a opção tokeninfo autorizada na tarefa para manter o lock e evitar uma implementação própria
+de verificação JWT. Há custo de rede a cada login e dependência da disponibilidade do Google. O Google
+recomenda biblioteca de validação para produção e apresenta tokeninfo como ferramenta de desenvolvimento
+e depuração; esta escolha e seus limites devem ser considerados na homologação.
+[Referência oficial sobre validação](https://developers.google.com/identity/gsi/web/guides/verify-google-id-token).
+
+Regras de conta, aplicadas em transação com travas por e-mail/sub e índice único:
+
+- Conta nova: papel `usuario`, e-mail verificado, `email_verificacao_exigida=0`, `google_sub` preenchido,
+  sem senha local. Não recebe acesso administrativo.
+- Conta existente verificada: vincula o sub sem mudar senha, versão, plano, papel ou exigência de verificação.
+- Conta existente sem verificação: anula a senha local, incrementa `auth_versao`, inutiliza todos os tokens
+  abertos e apaga o conteúdo de sua fila antes de marcar como verificada e entrar. As sessões antigas deixam
+  de valer; a senha que alguém tenha cadastrado antes de comprovar o endereço não conserva acesso.
+  `email_verificacao_exigida` permanece como estava. Essa ação acontece no login Google, nunca na migração.
+- Administrador: recusado por Google com a mesma mensagem genérica, sem modificar a conta; continua por senha.
+- Um sub já vinculado identifica a mesma conta em acessos posteriores. Não sobrescreve outro vínculo,
+  não junta contas diferentes e não reescreve o endereço local quando o endereço do Google muda.
+- Contas só-Google não entram por senha e não recebem link de redefinição. Mesmo um token anterior não pode
+  criar senha em uma conta com hash nulo. A resposta da solicitação continua genérica.
+
+Conforme a regra expressa da tarefa, um token validado com `email_verified=true` é aceito também para endereço
+externo ao Gmail/Workspace. Limitação relevante: para endereço sem Gmail e sem `hd`, o Google informa que
+a verificação pode ter ocorrido no passado e recomenda comprovação adicional de controle do endereço.
+Esse desafio adicional não foi acrescentado ao escopo. O comportamento deve ser revisado pela equipe antes
+da ativação pública, especialmente para vínculo com contas corporativas existentes.
+
+Para configurar, sem colocar credenciais no repositório:
+
+1. No Google Cloud Console, configure a tela de consentimento/branding do Google Auth Platform. Em modo de
+   teste, autorize as contas de homologação conforme as opções do painel.
+2. Crie um Client ID OAuth do tipo **Aplicativo da Web**. Em origens JavaScript autorizadas, inclua
+   `http://localhost:8080` e a origem HTTPS exata da produção, sem caminho. Use `localhost`, não `127.0.0.1`.
+3. Configure apenas `GOOGLE_CLIENT_ID` no ambiente do PHP ou no arquivo privado `site/hackathon-config.php`.
+   O Client ID é público e é exposto por `/api/me`; nenhum Client Secret é necessário neste fluxo.
+   O `.env` não é carregado pelo PHP. O script de deploy não foi alterado nesta entrega para transportar
+   esta nova opção: garanta sua configuração no processo PHP da hospedagem ou no arquivo privado após
+   o procedimento de publicação adotado pela equipe. Não habilitar no ambiente real nesta tarefa.
+4. Homologue popup, origens, consentimento e entrega do token com contas reais antes de liberar ao público.
+   Se a hospedagem configura COOP, confira `same-origin-allow-popups` conforme a documentação do GIS.
+
+`chat.html` não define CSP própria. Se a hospedagem impõe CSP, permita o script
+`https://accounts.google.com/gsi/client`, frame e conexão `https://accounts.google.com/gsi/` e estilo
+`https://accounts.google.com/gsi/style` nas respectivas diretivas, preservando as outras fontes locais
+já necessárias. Não liberar curingas. `acesso.html` continua com sua CSP local restrita e não carrega GIS.
+[Configuração oficial do Client ID e da página](https://developers.google.com/identity/gsi/web/guides/get-google-api-clientid).
+
 ## Contrato da API
 
 Todas as escritas abaixo exigem cookie de sessão e `X-CSRF-Token`, obtido em `GET /api/me`.
@@ -153,6 +222,7 @@ Todas as escritas abaixo exigem cookie de sessão e `X-CSRF-Token`, obtido em `G
 |---|---|
 | `POST /api/cadastro` | `{nome, email, senha, confirmacao}` → 202; sem usuário/sessão de login |
 | `POST /api/login` | `{email, senha}` → 200; pendente com senha correta: 403 `email_nao_verificado` |
+| `POST /api/login/google` | `{credential}` → 200 com usuário/plano/CSRF; 401 genérico para token/vínculo inválido, 404 sem Client ID |
 | `POST /api/email/reenviar` | `{email}` → 202 genérico |
 | `POST /api/email/verificar` | `{token}` → 200 ou 400 para inválido/expirado/usado |
 | `POST /api/email/verificar-conta` | `{}` → 202 genérico; exige login/CSRF e usa somente o endereço da conta autenticada |
@@ -196,6 +266,14 @@ Os scripts de backup são testados diretamente no contêiner descartável; `depl
 o campo booleano de verificação no login e em `/api/me`, confirmação de conta antiga sem alterar seu
 hash, papel ou regra de compatibilidade, solicitação restrita à própria conta, login/CSRF obrigatórios
 e uso de `X-Forwarded-For` somente quando o remetente é um proxy configurado (IPv4 e IPv6).
+
+`test_auth_google` usa um tokeninfo HTTP exclusivo de loopback e JWTs RSA gerados durante os testes.
+O substituto só é aceito com `AMBIENTE=test` e banco com o prefixo reservado; fora disso o destino é sempre
+o Google oficial. Testa assinatura adulterada, aud/iss/exp/verificação inválidos, contas novas/repetidas,
+vínculos, preservação de conta verificada, revogação de senha/sessões/tokens de conta não verificada,
+recusa de admin, hash nulo, CSRF, limites, concorrência, migração repetida e indisponibilidade do validador.
+Com Playwright, simula também o script GIS nas duas abas, passa pelo backend real e ativa o plano existente
+a 390 px, bloqueando rede externa. Não valida o popup nem o serviço real do Google.
 
 O benchmark `bench/carga.py --contas /caminho/privado/contas.json` recebe contas de teste já verificadas, com
 `email`, `senha` e `nome` opcional. Faz apenas login e segue o fluxo de planos existente. Não cadastra contas

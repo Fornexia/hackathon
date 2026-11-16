@@ -29,7 +29,7 @@ declare(strict_types=1);
 define('API', true);
 
 require dirname(__DIR__, 2) . '/config.php';   // fora do public_html
-foreach (['base', 'auth', 'conta', 'chat', 'telefones', 'worker', 'prova'] as $modulo) {
+foreach (['base', 'auth', 'conta', 'google', 'chat', 'telefones', 'worker', 'prova'] as $modulo) {
     require __DIR__ . "/lib_$modulo.php";
 }
 
@@ -46,6 +46,7 @@ $rotas = [
     ['GET',  '#^planos$#',                         true,  'rota_planos'],
     ['POST', '#^cadastro$#',                       true,  'rota_cadastro'],
     ['POST', '#^login$#',                          true,  'rota_login'],
+    ['POST', '#^login/google$#',                   true,  'rota_login_google'],
     ['POST', '#^logout$#',                         true,  'rota_logout'],
     ['POST', '#^email/reenviar$#',                  true,  fn() => rota_auth_solicitar('verificar')],
     ['POST', '#^email/verificar$#',                 true,  fn() => rota_auth_confirmar('verificar')],

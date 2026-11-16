@@ -88,6 +88,35 @@
   }
 
   // ---------- entrar e criar conta ----------
+  async function receberGoogle(resposta) {
+    try {
+      erroEm('#erro-entrar', ''); erroEm('#erro-cadastro', '')
+      aplicarConta(await Api.entrarGoogle(resposta.credential))
+      await decidirTela()
+    } catch (e) {
+      erroEm($('#form-entrar').hidden ? '#erro-cadastro' : '#erro-entrar', e.message)
+    }
+  }
+
+  function prepararGoogle(clientId) {
+    if (!clientId) return
+    const script = document.createElement('script')
+    script.src = 'https://accounts.google.com/gsi/client'
+    script.async = true
+    script.onload = () => {
+      if (!window.google?.accounts?.id) return
+      google.accounts.id.initialize({ client_id: clientId, callback: receberGoogle, auto_select: false })
+      for (const bloco of document.querySelectorAll('.acesso-google')) {
+        bloco.hidden = false
+        google.accounts.id.renderButton(bloco.querySelector('.botao-google'), {
+          type: 'standard', theme: 'outline', size: 'large', text: 'signin_with', locale: 'pt-BR', width: 280,
+        })
+      }
+    }
+    script.onerror = () => { /* acesso por e-mail e senha permanece disponível */ }
+    document.head.append(script)
+  }
+
   function trocarAba(qual) {
     const entrar = qual === 'entrar'
     $('#aba-entrar').setAttribute('aria-selected', String(entrar))
@@ -417,7 +446,7 @@
   })
 
   // ---------- início ----------
-  Api.me().then(aplicarConta).then(decidirTela).catch(e => {
+  Api.me().then(dados => { prepararGoogle(dados.google_client_id); aplicarConta(dados) }).then(decidirTela).catch(e => {
     tela('entrar')
     erroEm('#erro-entrar', e.message)
   })

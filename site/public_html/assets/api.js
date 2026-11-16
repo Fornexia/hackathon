@@ -49,6 +49,7 @@
     recuperarSenha: email => enviar('POST', '/senha/recuperar', { email }),
     redefinirSenha: (token, senha, confirmacao) => enviar('POST', '/senha/redefinir', { token, senha, confirmacao }),
     entrar: (email, senha) => enviar('POST', '/login', { email, senha }),
+    entrarGoogle: credential => enviar('POST', '/login/google', { credential }),
     sair: () => enviar('POST', '/logout', {}),
     ativarPlano: planoId => enviar('POST', '/assinatura', { plano_id: planoId }),
     perguntar: texto => enviar('POST', '/perguntas', { texto }),

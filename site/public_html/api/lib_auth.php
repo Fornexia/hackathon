@@ -124,7 +124,7 @@ function rota_auth_solicitar(string $finalidade): never {
         $st->execute([$email]);
         $u = $st->fetch();
         $pendente = $u && (int)$u['email_verificacao_exigida'] === 1 && $u['email_verificado_em'] === null;
-        if ($u && (($finalidade === 'verificar' && $pendente) || ($finalidade === 'redefinir' && !$pendente))) {
+        if ($u && (($finalidade === 'verificar' && $pendente) || ($finalidade === 'redefinir' && !$pendente && $u['senha_hash'] !== null))) {
             auth_emitir_token($u, $finalidade);
         }
         $pdo->commit();
@@ -173,8 +173,12 @@ function rota_auth_confirmar(string $finalidade): never {
     $pdo->beginTransaction();
     try {
         // Mesma ordem em emissão e consumo: usuário, depois token. Evita corrida de reenvio/consumo.
-        $st = $pdo->prepare('SELECT id FROM usuarios WHERE id = ? FOR UPDATE');
+        $st = $pdo->prepare('SELECT id, senha_hash FROM usuarios WHERE id = ? FOR UPDATE');
         $st->execute([$uid]);
+        $u = $st->fetch();
+        if (!$u || ($finalidade === 'redefinir' && $u['senha_hash'] === null)) {
+            $pdo->rollBack(); erro(400, 'Link inválido ou expirado. Solicite outro.');
+        }
         $st = $pdo->prepare('SELECT id FROM auth_tokens WHERE token_hash = ? AND finalidade = ? AND usado_em IS NULL AND expira_em > NOW() FOR UPDATE');
         $st->execute([$hash, $finalidade]);
         $id = $st->fetchColumn();
