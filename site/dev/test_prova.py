@@ -1,8 +1,6 @@
 """Testes do pacote de prova exportável contra PHP e MariaDB de verdade (mesmo ambiente do test_api.py).
 
-    docker compose -f site/dev/docker-compose.yml up -d
-    php site/setup.php
-    python site/dev/test_prova.py
+    python site/dev/test_auth.py            # executor isolado, inclui esta suíte
 
 O worker é simulado: os testes mandam à API os mesmos eventos que o worker manda, e depois baixam o pacote como o navegador.
 O pacote é aberto fora do projeto (pasta temporária) e reconferido por cálculo próprio, sem usar código do sistema.

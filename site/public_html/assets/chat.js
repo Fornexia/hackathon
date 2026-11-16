@@ -98,11 +98,21 @@
   }
 
   async function enviarForm(form, botaoTexto, erroId, acao) {
+    if (!form.reportValidity()) return
     const botao = form.querySelector('button[type=submit]')
     erroEm(erroId, '')
     botao.disabled = true
     try {
-      aplicarConta(await acao())
+      const dados = await acao()
+      if (form.id === 'form-cadastro') {
+        form.reset()
+        $('#cadastro-status').textContent = dados.mensagem
+        mostrar('#cadastro-status', true)
+        mostrar('#cadastro-reenvio', true)
+        trocarAba('entrar')
+        return
+      }
+      aplicarConta(dados)
       form.reset()
       await decidirTela()
     } catch (e) {
@@ -389,7 +399,7 @@
   })
   $('#form-cadastro').addEventListener('submit', e => {
     e.preventDefault()
-    enviarForm(e.target, 'Criar conta', '#erro-cadastro', () => Api.cadastrar($('#cad-nome').value, $('#cad-email').value, $('#cad-senha').value))
+    enviarForm(e.target, 'Criar conta', '#erro-cadastro', () => Api.cadastrar($('#cad-nome').value, $('#cad-email').value, $('#cad-senha').value, $('#cad-confirmacao').value))
   })
 
   $('#sair').addEventListener('click', async () => {

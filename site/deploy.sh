@@ -12,6 +12,13 @@ if [[ -f "$RAIZ/.env" ]]; then set -a; source "$RAIZ/.env"; set +a; fi
 
 : "${WORKER_KEY:?defina WORKER_KEY no .env (mínimo 24 caracteres)}"
 if [[ ${#WORKER_KEY} -lt 24 ]]; then echo "WORKER_KEY precisa ter pelo menos 24 caracteres" >&2; exit 1; fi
+# O cadastro novo depende do correio; falhar antes de publicar evita contas sem caminho de verificação.
+for VAR_AUTH in APP_URL SMTP_HOST SMTP_USER SMTP_PASS MAIL_FROM AUTH_MAIL_KEY; do
+  if [[ -z "${!VAR_AUTH:-}" ]]; then echo "defina $VAR_AUTH antes de publicar o login público" >&2; exit 1; fi
+done
+if [[ "$APP_URL" != https://* || ! -f "$RAIZ/site/vendor/autoload.php" ]]; then
+  echo "APP_URL deve usar HTTPS; execute composer install --no-dev em site/ antes de publicar" >&2; exit 1
+fi
 
 SSH="ssh -i ${HOSTINGER_SSH_KEY/#\~/$HOME} -p $HOSTINGER_PORT -o BatchMode=yes"
 ALVO="$HOSTINGER_USER@$HOSTINGER_HOST"
@@ -38,15 +45,27 @@ const DB_NAME = '$(php_str "$DB_NAME")';
 const DB_USER = '$(php_str "$DB_USER")';
 const DB_PASS = '$(php_str "$DB_PASS")';
 const WORKER_KEY = '$(php_str "$WORKER_KEY")';
+const APP_URL = '$(php_str "$APP_URL")';
+const SMTP_HOST = '$(php_str "$SMTP_HOST")';
+const SMTP_PORT = '$(php_str "${SMTP_PORT:-587}")';
+const SMTP_SECURITY = '$(php_str "${SMTP_SECURITY:-tls}")';
+const SMTP_USER = '$(php_str "$SMTP_USER")';
+const SMTP_PASS = '$(php_str "$SMTP_PASS")';
+const MAIL_FROM = '$(php_str "$MAIL_FROM")';
+const MAIL_FROM_NAME = '$(php_str "${MAIL_FROM_NAME:-FORNEX}")';
+const AUTH_MAIL_KEY = '$(php_str "$AUTH_MAIL_KEY")';
 PHP
 
+# Dependências e migração antes de trocar a API pública. O setup completo não é necessário para atualizar contas.
+rsync -az -e "$SSH" "$RAIZ/site/config.php" "$RAIZ/site/migrar-autenticacao.php" "$RAIZ/site/enviar-emails.php" "$RAIZ/site/setup.php" "$RAIZ/site/composer.json" "$RAIZ/site/composer.lock" "$ALVO:$DOMINIO_DIR/"
+rsync -az --exclude=.git -e "$SSH" "$RAIZ/site/vendor/" "$ALVO:$DOMINIO_DIR/vendor/"
+if [[ "${1:-}" == "--setup" ]]; then
+  # Somente instalação/provisionamento explícito; a migração comum não redefine o admin.
+  $SSH "$ALVO" "php $DOMINIO_DIR/setup.php $(printf '%q' "$ADMIN_EMAIL") Admin $(printf '%q' "$ADMIN_SENHA")"
+fi
+$SSH "$ALVO" "php $DOMINIO_DIR/migrar-autenticacao.php"
 rsync -az --delete -e "$SSH" "$RAIZ/site/public_html/" "$ALVO:$DOMINIO_DIR/public_html/"
-rsync -az -e "$SSH" "$RAIZ/site/setup.php" "$ALVO:$DOMINIO_DIR/setup.php"
 [[ -f "$RAIZ/dados/painel.json" ]] && rsync -az --chmod=F600 -e "$SSH" "$RAIZ/dados/painel.json" "$ALVO:$DOMINIO_DIR/painel.json"
 $SSH "$ALVO" "rm -f $DOMINIO_DIR/public_html/default.php"
 
-if [[ "${1:-}" == "--setup" ]]; then
-  # printf %q protege o texto para o shell do servidor (aspas, espaços, $ e outros).
-  $SSH "$ALVO" "php $DOMINIO_DIR/setup.php $(printf '%q' "$ADMIN_EMAIL") Admin $(printf '%q' "$ADMIN_SENHA")"
-fi
 echo "ok → https://$SITE"

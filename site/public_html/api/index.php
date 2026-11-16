@@ -28,8 +28,8 @@
 declare(strict_types=1);
 define('API', true);
 
-require dirname(__DIR__, 2) . '/hackathon-config.php';   // fora do public_html
-foreach (['base', 'conta', 'chat', 'telefones', 'worker', 'prova'] as $modulo) {
+require dirname(__DIR__, 2) . '/config.php';   // fora do public_html
+foreach (['base', 'auth', 'conta', 'chat', 'telefones', 'worker', 'prova'] as $modulo) {
     require __DIR__ . "/lib_$modulo.php";
 }
 
@@ -47,6 +47,13 @@ $rotas = [
     ['POST', '#^cadastro$#',                       true,  'rota_cadastro'],
     ['POST', '#^login$#',                          true,  'rota_login'],
     ['POST', '#^logout$#',                         true,  'rota_logout'],
+    ['POST', '#^email/reenviar$#',                  true,  fn() => rota_auth_solicitar('verificar')],
+    ['POST', '#^email/verificar$#',                 true,  fn() => rota_auth_confirmar('verificar')],
+    ['POST', '#^senha/recuperar$#',                  true,  fn() => rota_auth_solicitar('redefinir')],
+    ['POST', '#^senha/redefinir$#',                 true,  fn() => rota_auth_confirmar('redefinir')],
+    ['POST', '#^sessao/atividade$#',                true,  function () {
+        exigir_login(); exigir_csrf(); $_SESSION['ativa_em'] = time(); responder(200, ['ok' => true]);
+    }],
     ['POST', '#^assinatura$#',                     true,  'rota_assinatura'],
     ['POST', '#^perguntas$#',                      true,  'rota_perguntas_criar'],
     ['GET',  '#^perguntas/aberta$#',               true,  'rota_pergunta_aberta'],
@@ -79,6 +86,7 @@ try {
     }
     erro($existe ? 405 : 404, $existe ? 'Método não permitido.' : 'Rota não encontrada.');
 } catch (Throwable $e) {
-    error_log('[api] ' . $e::class . ': ' . $e->getMessage() . ' em ' . $e->getFile() . ':' . $e->getLine());
+    // Mensagens SQL/SMTP podem conter dados pessoais: só classe e localização no log.
+    error_log('[api] ' . $e::class . ' em ' . basename($e->getFile()) . ':' . $e->getLine());
     erro(500, 'Erro interno. Tente novamente em instantes.');
 }

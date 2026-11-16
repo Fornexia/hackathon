@@ -2,6 +2,12 @@
 
 PHP 8.2 e MariaDB, os mesmos da hospedagem. Tudo roda na sua máquina.
 
+O login público agora exige verificar o Gmail antes de entrar. Configure o envio e a migração conforme
+[`docs/AUTENTICACAO.md`](../../docs/AUTENTICACAO.md). Contas anteriores permanecem compatíveis.
+Para testes sem enviar e-mails nem alterar sua base, rode `python site/dev/test_auth.py` na raiz:
+ele cria e remove um ambiente descartável e executa também as suítes antigas de API e provas.
+`test_api.py` e `test_prova.py` recusam execução direta contra o banco local compartilhado.
+
 ## Primeira vez
 
 ```bash
@@ -49,7 +55,8 @@ php -S 127.0.0.1:8080 -t site/public_html site/dev/router.php     # o site em ht
 python site/dev/worker_falso.py                                   # responde às perguntas com um roteiro fixo
 ```
 
-Abra `http://127.0.0.1:8080/chat.html`, crie uma conta, ative um plano e pergunte. O `router.php` faz o papel do `.htaccess`
+Abra `http://127.0.0.1:8080/chat.html` e entre com uma conta existente, ou cadastre e verifique uma conta com o correio configurado.
+O `router.php` faz o papel do `.htaccess`
 (manda `/api/*` para `api/index.php`).
 
 O worker falso muda de roteiro conforme a pergunta: "erro" termina com um evento de erro, "lento" não responde (para ver o
@@ -58,7 +65,7 @@ limite de tempo) e "sem fonte" responde sem citar fonte. O worker real, do Dev B
 ## Testes
 
 ```bash
-python site/dev/test_api.py       # 82 testes contra PHP e MariaDB de verdade; PHP_BIN=/caminho/php.exe se preciso
+python site/dev/test_auth.py      # banco descartável; PHP_BIN=/caminho/php.exe se preciso
 ```
 
 Os testes sobem os próprios servidores PHP e limpam o que criam. Cobrem os critérios de aceite de A01 a A09, incluindo a

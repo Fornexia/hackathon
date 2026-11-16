@@ -49,10 +49,25 @@ function ip_do_cliente(): string {
 // ---------- sessão e CSRF ----------
 
 function iniciar_sessao(): void {
-    $seguro = !(defined('AMBIENTE') && AMBIENTE === 'dev');   // em dev (http://localhost) o cookie Secure não voltaria
+    $seguro = !(defined('AMBIENTE') && in_array(AMBIENTE, ['dev', 'test'], true));
+    ini_set('session.use_strict_mode', '1');
+    ini_set('session.use_only_cookies', '1');
     session_name('hsid');
     session_set_cookie_params(['lifetime' => 0, 'path' => '/', 'httponly' => true, 'secure' => $seguro, 'samesite' => 'Lax']);
     session_start();
+    if (isset($_SESSION['uid'])) {
+        $agora = time();
+        $inativa = (int)auth_config('AUTH_IDLE_SECONDS', 1800);
+        $maxima = (int)auth_config('AUTH_MAX_SECONDS', 43200);
+        if ($agora - (int)($_SESSION['ativa_em'] ?? $agora) >= max(1, $inativa)
+            || $agora - (int)($_SESSION['criada_em'] ?? $agora) >= max(1, $maxima)) {
+            $_SESSION = [];
+            session_regenerate_id(true);
+        } else {
+            $_SESSION['ativa_em'] ??= $agora;
+            $_SESSION['criada_em'] ??= $agora;
+        }
+    }
 }
 
 function csrf_token(): string {
@@ -64,7 +79,7 @@ function csrf_token(): string {
 function exigir_csrf(): void {
     $enviado = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
     if (!is_string($enviado) || $enviado === '' || !hash_equals(csrf_token(), $enviado)) {
-        erro(403, 'Sua sessão expirou. Recarregue a página e tente de novo.');
+        responder(403, ['erro' => 'Sua sessão expirou. Recarregue a página e tente de novo.', 'codigo' => 'csrf']);
     }
 }
 

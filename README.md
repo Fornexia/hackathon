@@ -111,6 +111,7 @@ Todas as rotas ficam em `/api/...`. O contrato completo (formatos, códigos de e
 | Grupo | Rotas |
 |---|---|
 | Conta | `GET /me`, `POST /cadastro`, `POST /login`, `POST /logout` |
+| Verificação e senha | `POST /email/reenviar`, `/email/verificar`, `/senha/recuperar`, `/senha/redefinir`, `/sessao/atividade` |
 | Planos | `GET /planos`, `POST /assinatura` |
 | Chat | `POST /perguntas`, `GET /perguntas/aberta`, `GET /perguntas/{id}/eventos` |
 | Telefones | `GET`/`POST /telefones`, `DELETE /telefones/{id}` |
@@ -125,10 +126,12 @@ liberar novamente.
 
 ### Segurança do site
 
-- Cookie de sessão `hsid` com `HttpOnly`, `SameSite=Lax` e `Secure` (menos com `AMBIENTE='dev'`); o id é trocado no login.
+- Cadastro público com Gmail e senha própria do FORNEX, confirmação do e-mail antes do login e recuperação de senha.
+  Contas anteriores, incluindo o administrador, são preservadas. [Configuração, migração e diagnóstico](docs/AUTENTICACAO.md).
+- Cookie de sessão `hsid` com `HttpOnly`, `SameSite=Lax` e `Secure` (exceto em dev/test); o id é trocado no login.
+  Expiração por inatividade e prazo total; redefinir a senha invalida as sessões antigas.
 - **CSRF:** toda escrita exige o cabeçalho `X-CSRF-Token`, obtido em `GET /api/me`.
-- **Limite de tentativas de login:** 429 com `Retry-After` de 900 s. O login leva o mesmo tempo para e-mail existente e inexistente
-  (não revela quais e-mails têm conta).
+- **Limite de tentativas de login:** 429 com `Retry-After` de 900 s e mensagens genéricas para credenciais incorretas.
 - Consultas SQL sempre parametrizadas. Senhas com hash. O worker se autentica com uma chave própria (`WORKER_KEY`, mínimo de 24
   caracteres), separada das sessões de usuário.
 - Telefones normalizados para `55` + DDD + `9` + 8 dígitos; caracteres fora de dígitos, espaço, parênteses, `+` e `-` são recusados.
@@ -140,10 +143,10 @@ liberar novamente.
 ### Como rodar o site localmente
 
 Passo a passo (PHP, banco em Docker, worker falso, usuário administrador de teste) em [`site/dev/README.md`](site/dev/README.md).
-Testes da API, com banco e servidor locais no ar:
+Testes de autenticação, API e provas, com banco e configuração descartáveis separados da base atual:
 
 ```bash
-python site/dev/test_api.py          # 80 testes
+python site/dev/test_auth.py
 ```
 
 Além do comportamento normal, eles cobrem concorrência (80 perguntas com 12 workers; 25 rodadas com 6 sessões) e foram validados por

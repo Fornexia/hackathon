@@ -16,6 +16,7 @@ portal/dados/bruto/
 
 # Ambiente
 node_modules/
+site/vendor/
 .venv/
 __pycache__/
 
