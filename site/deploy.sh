@@ -23,6 +23,15 @@ if [[ "$APP_URL" != https://* || ! -f "$RAIZ/site/vendor/autoload.php" ]]; then
   echo "APP_URL deve usar HTTPS; execute composer install --no-dev em site/ antes de publicar" >&2; exit 1
 fi
 
+# Opcionais do login: GOOGLE_CLIENT_ID (liga o botão "Entrar com Google") e TRUSTED_PROXIES (IPs de proxies confiáveis, separados por vírgula).
+# Formato conferido antes de publicar: um erro de digitação deixaria o botão sem funcionar ou o limite de tentativas errado.
+if [[ -n "${GOOGLE_CLIENT_ID:-}" && ! "$GOOGLE_CLIENT_ID" =~ ^[0-9]+-[A-Za-z0-9_]+\.apps\.googleusercontent\.com$ ]]; then
+  echo "GOOGLE_CLIENT_ID fora do formato (NUMEROS-texto.apps.googleusercontent.com); confira no Google Cloud Console" >&2; exit 1
+fi
+if [[ -n "${TRUSTED_PROXIES:-}" && ! "$TRUSTED_PROXIES" =~ ^[0-9A-Fa-f:.,\ ]+$ ]]; then
+  echo "TRUSTED_PROXIES deve ter só endereços IP separados por vírgula" >&2; exit 1
+fi
+
 SSH="ssh -i ${HOSTINGER_SSH_KEY/#\~/$HOME} -p $HOSTINGER_PORT -o BatchMode=yes"
 ALVO="$HOSTINGER_USER@$HOSTINGER_HOST"
 DOMINIO_DIR="/home/$HOSTINGER_USER/domains/$SITE"
@@ -61,6 +70,8 @@ const SMTP_PASS = '$(php_str "$SMTP_PASS")';
 const MAIL_FROM = '$(php_str "$MAIL_FROM")';
 const MAIL_FROM_NAME = '$(php_str "${MAIL_FROM_NAME:-FORNEX}")';
 const AUTH_MAIL_KEY = '$(php_str "$AUTH_MAIL_KEY")';
+$( [[ -n "${GOOGLE_CLIENT_ID:-}" ]] && echo "const GOOGLE_CLIENT_ID = '$(php_str "$GOOGLE_CLIENT_ID")';" )
+$( [[ -n "${TRUSTED_PROXIES:-}" ]] && echo "const TRUSTED_PROXIES = '$(php_str "$TRUSTED_PROXIES")';" )
 PHP
 
 # Dependências e migração antes de trocar a API pública. O setup completo não é necessário para atualizar contas.

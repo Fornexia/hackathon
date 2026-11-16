@@ -48,6 +48,12 @@ O admin entra em `/admin.html` para aprovar e bloquear telefones do WhatsApp (A0
 
 Sem PHP no Windows: `winget install PHP.PHP.NTS.8.2`. Depois ative `pdo_mysql`, `curl`, `fileinfo`, `openssl` e `mbstring` no `php.ini`.
 
+## Login com Google no computador local
+
+O botão só aparece se `GOOGLE_CLIENT_ID` estiver no `site/hackathon-config.php`. Crie o Client ID como descrito em
+[`docs/AUTENTICACAO.md`](../../docs/AUTENTICACAO.md) (origem JavaScript autorizada `http://localhost:8080`) e abra o site por
+**`http://localhost:8080`**, não por `127.0.0.1`. O login com Google não depende de e-mail; o cadastro por senha, sim.
+
 ## Rodar
 
 ```bash

@@ -202,11 +202,16 @@ Para configurar, sem colocar credenciais no repositório:
    `http://localhost:8080` e a origem HTTPS exata da produção, sem caminho. Use `localhost`, não `127.0.0.1`.
 3. Configure apenas `GOOGLE_CLIENT_ID` no ambiente do PHP ou no arquivo privado `site/hackathon-config.php`.
    O Client ID é público e é exposto por `/api/me`; nenhum Client Secret é necessário neste fluxo.
-   O `.env` não é carregado pelo PHP. O script de deploy não foi alterado nesta entrega para transportar
-   esta nova opção: garanta sua configuração no processo PHP da hospedagem ou no arquivo privado após
-   o procedimento de publicação adotado pela equipe. Não habilitar no ambiente real nesta tarefa.
+   O `.env` não é carregado pelo PHP, mas o `site/deploy.sh` lê `GOOGLE_CLIENT_ID` e `TRUSTED_PROXIES` (os dois opcionais) do
+   `.env` do notebook, confere o formato antes de publicar (o Client ID precisa ser `NUMEROS-texto.apps.googleusercontent.com`;
+   proxies, só endereços IP) e os grava no arquivo privado do servidor. Sem `GOOGLE_CLIENT_ID`, o botão fica oculto.
+   **No computador local, abra o site por `http://localhost:8080`**, nunca por `127.0.0.1`: o Google só aceita `localhost`
+   como origem. Com um Client ID inexistente, o botão aparece, mas o clique mostra "Error 401: invalid_client".
 4. Homologue popup, origens, consentimento e entrega do token com contas reais antes de liberar ao público.
    Se a hospedagem configura COOP, confira `same-origin-allow-popups` conforme a documentação do GIS.
+
+O botão é desenhado pelo Google e só aceita tema, formato e largura. O `chat.js` o redesenha no tema atual do site
+(`outline` no claro, `filled_black` no escuro), na largura do cartão (até 400 px) e ao trocar de aba, janela ou tema.
 
 `chat.html` não define CSP própria. Se a hospedagem impõe CSP, permita o script
 `https://accounts.google.com/gsi/client`, frame e conexão `https://accounts.google.com/gsi/` e estilo

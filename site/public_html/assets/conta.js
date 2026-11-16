@@ -123,7 +123,7 @@
   $('#verificar-agora').addEventListener('click', async e => {
     e.target.disabled = true
     const status = $('#verificacao-status')
-    try { status.textContent = (await Api.verificarConta()).mensagem }
+    try { status.textContent = (await Api.verificarConta()).mensagem; e.target.hidden = true }
     catch (erro) { status.textContent = erro.message }
     finally { status.hidden = false; e.target.disabled = false }
   })

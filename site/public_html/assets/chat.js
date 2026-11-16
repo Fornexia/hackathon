@@ -98,6 +98,25 @@
     }
   }
 
+  // O botão é desenhado pelo Google dentro de um iframe: só aceita tema, formato e largura (máx. 400 px). Por isso ele é
+  // redesenhado no tema atual do site (claro/escuro), na largura do cartão e sempre que a aba ou a janela mudam.
+  let googlePronto = false
+  const temaEscuro = () => (document.documentElement.dataset.tema || (matchMedia('(prefers-color-scheme: light)').matches ? 'claro' : 'escuro')) === 'escuro'
+
+  function desenharGoogle() {
+    if (!googlePronto) return
+    for (const bloco of document.querySelectorAll('.acesso-google')) {
+      const alvo = bloco.querySelector('.botao-google')
+      const largura = Math.max(200, Math.min(400, Math.floor(alvo.clientWidth) || 320))   // formulário escondido mede 0: usa 320 e redesenha ao abrir a aba
+      alvo.replaceChildren()
+      alvo.classList.toggle('escuro', temaEscuro())      // o botão escuro não tem borda: pode ganhar o canto arredondado dos botões do site
+      google.accounts.id.renderButton(alvo, {
+        type: 'standard', theme: temaEscuro() ? 'filled_black' : 'outline', size: 'large', shape: 'rectangular',
+        text: 'continue_with', logo_alignment: 'center', locale: 'pt-BR', width: largura,
+      })
+    }
+  }
+
   function prepararGoogle(clientId) {
     if (!clientId) return
     const script = document.createElement('script')
@@ -106,12 +125,12 @@
     script.onload = () => {
       if (!window.google?.accounts?.id) return
       google.accounts.id.initialize({ client_id: clientId, callback: receberGoogle, auto_select: false })
-      for (const bloco of document.querySelectorAll('.acesso-google')) {
-        bloco.hidden = false
-        google.accounts.id.renderButton(bloco.querySelector('.botao-google'), {
-          type: 'standard', theme: 'outline', size: 'large', text: 'signin_with', locale: 'pt-BR', width: 280,
-        })
-      }
+      googlePronto = true
+      for (const bloco of document.querySelectorAll('.acesso-google')) bloco.hidden = false
+      desenharGoogle()
+      let espera
+      window.addEventListener('tema', desenharGoogle)
+      window.addEventListener('resize', () => { clearTimeout(espera); espera = setTimeout(desenharGoogle, 150) })
     }
     script.onerror = () => { /* acesso por e-mail e senha permanece disponível */ }
     document.head.append(script)
@@ -124,6 +143,7 @@
     mostrar('#form-entrar', entrar)
     mostrar('#form-cadastro', !entrar)
     erroEm('#erro-entrar', ''); erroEm('#erro-cadastro', '')
+    requestAnimationFrame(desenharGoogle)     // a aba que abriu agora passa a ter largura medida
   }
 
   async function enviarForm(form, botaoTexto, erroId, acao) {
