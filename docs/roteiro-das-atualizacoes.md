@@ -1,4 +1,4 @@
-# Roteiro das atualizações do FornexIA (13 e 14/11/2026)
+# Roteiro das atualizações do FornexIA (13 a 15/11/2026)
 
 Para a equipe, sem precisar conhecer o código. Cada ponto diz **o que é**, **por que importa**, **como foi conferido** e **o que falta**. Os detalhes técnicos estão em
 [`testes-seguranca.md`](testes-seguranca.md) (seções 2.3 a 2.11) e no diário [`sessoes/2026-11-14-rodrigo.md`](sessoes/2026-11-14-rodrigo.md).
@@ -6,6 +6,21 @@ Para a equipe, sem precisar conhecer o código. Cada ponto diz **o que é**, **p
 ## O problema que começou tudo
 Três CNPJs reais foram testados pelo WhatsApp (a **Ferreira Costa**, a **filial da Bernhoeft** e um MEI de Garanhuns) e o bot respondeu "não encontrei" nos três.
 **Causa:** a base era uma amostra de 100 contratos, e o banco do notebook estava com dados de exemplo. A busca por CNPJ funcionava. O que faltava era **mais fontes**. Foi isso que os pontos 1 a 7 resolveram.
+
+## 15/11: API para IAs de terceiros e site novo
+
+**13. API para a IA de outra empresa (versão de demonstração para 18/11).** Uma empresa recebe uma **chave**, e é a chave que define o que ela enxerga (município, estado etc.); o perfil nunca vem do pedido. Foram feitas **três portas sobre as mesmas consultas do agente**, para decidir depois com números:
+- **REST** (`/v1/...`): para o sistema da empresa. Entrada fixa (busca de fornecedor, contratos, sanções, cadastro, execução, evidência), resposta em JSON com a fonte. Custo para nós quase zero e resposta previsível.
+- **MCP** (`/mcp`): para a **IA da empresa** usar as mesmas ferramentas por conta própria. Custo quase zero; é o formato natural de vender "dados para a sua IA".
+- **Pergunta em português** (`POST /v1/perguntar`): para quem não tem IA; o nosso agente pesquisa e devolve o texto com fontes. É a que mais impressiona e a única que custa (cerca de **US$ 0,026 por pergunta**, 5 s numa pergunta real).
+*Segurança nas três:* só o hash da chave é guardado; limite por minuto e teto diário de perguntas; chave revogada para de valer na hora; **dado pessoal nunca sai pela API**; cada chamada é isolada (teste com 60 chamadas simultâneas, e o teste falha se o isolamento for quebrado de propósito).
+*Como foi conferido:* 50 testes automáticos da API, ataques manuais nas portas REST e MCP (chave forjada, perfil forjado, injeção, caminho ../, limite, revogação: todos barrados), `consulta` 313 e `chat` 262 passando depois da mudança.
+*O que falta:* a bateria de ataques de prompt pela porta pergunta (cerca de US$ 0,50), rodar atrás da Tailscale restringindo o `Host`, testar com um cliente MCP de verdade e abrir o PR. O código está na branch `feat/api-demo` (commit `2cc47b9`). Detalhes: `api/README.md` e o diário `sessoes/2026-11-15-rodrigo.md`.
+
+**14. Site novo da empresa e fluxo para o chat.** O site institucional da Rafaella (React) foi trazido para a pasta `site-institucional/`, sem o histórico antigo da branch dela. Na tela **Testar o nosso sistema**, o botão leva direto ao **chat** (quem já tem conta cai na conversa) e há a linha "Sem conta ativa? **Criar conta** · Já tem conta? **Entrar**"; o link de criar conta abre a aba de cadastro do chat.
+*O que falta:* o `./site/deploy.sh` para a aba de cadastro funcionar em produção, e **login com Google** (tarefa da Gabriella, depende de criar o Client ID no Google).
+
+**15. Servidor de teste (VM) para o Lucas.** Máquina virtual `fornexia-srv` no PC do Rodrigo (Ubuntu 24.04, Docker, Tailscale). Falta compartilhar com o Lucas, fechar a segurança (tirar a chave de acesso temporária e o login por senha), criptografia e backup, e conferir se ela liga sozinha com o Windows.
 
 ## 14/11: o que foi acrescentado (pontos 1 a 12)
 

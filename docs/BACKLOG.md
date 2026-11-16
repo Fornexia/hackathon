@@ -51,3 +51,14 @@ Motivo: três CNPJs reais testados pelo WhatsApp (Ferreira Costa e dois outros) 
 7. [ ] **(Lucas)** **Melhorias vistas no teste de voz de 14/11** (`docs/testes-seguranca.md` §2.11): (a) ferramenta `sancionados_entre_contratados` para a pergunta "existe fornecedor com sanção?" (hoje 44 consultas, cobertura parcial dita como total: 43 de 49 fornecedores), e a `cobertura` informar quantos itens a lista mostra do total; (b) a `cobertura` declarar que o CEIS/CNEP de PJ foi carregado inteiro, para "CNPJ não aparece" virar "sem sanção federal registrada em 13/11" em vez de "não sei". Exige repetir ataques e benchmark.
 6. [x] **Áudio no WhatsApp**: preparado e verificado com **voz sintética** em 14/11 (`docs/testes-seguranca.md` §2.11): ambiente, modelo, contexto do domínio, **CNPJ falado conferido pelo dígito verificador** e eco "Entendi". **Falta: mandar notas de voz reais pelo celular** (T14), que é o único jeito de saber a taxa de erro de verdade.
 8. [x] **`ligar-tudo-e-instalar-docker.bat`** (pedido do dono, 14/11): feito. `scripts/instalar-e-ligar.ps1` instala o Docker Desktop **só se faltar, perguntando antes** (winget; administrador, WSL 2 e reinício possíveis), cria o `.env` se faltar, **só confere** git/Python/PHP/bun/`.venv` (mostra o comando do guia) e chama o `ligar-tudo`. `-Teste` não instala nada; `-Sim` responde sozinho. **Falta verificar a instalação de verdade numa máquina sem Docker** (os dois colegas com Windows). O `ligar-tudo.sh` (Linux) continua exigindo Docker já ligado.
+
+## API para IAs de terceiros (demonstração de 18/11/2026)
+
+Três portas sobre as mesmas consultas, com chave que define o perfil (ver `api/README.md`). Branch `feat/api-demo`, commit `2cc47b9`.
+
+1. [x] **API feita e testada:** REST, MCP e pergunta em português; 50 testes da API e ataques manuais nas portas REST e MCP.
+2. [ ] **Bateria de ataques de prompt pela porta pergunta** com o modelo real (cerca de US$ 0,50 por 20 perguntas); repetir quando prompt, modelo ou ferramentas mudarem.
+3. [ ] **Rodar atrás da Tailscale** com `API_HOSTS_PERMITIDOS` definido (hoje um `Host` forjado é aceito) e contra o Neo4j grande do bot, não só a base fictícia.
+4. [ ] **Cliente MCP de verdade** (hoje só JSON-RPC cru) e **PR da `feat/api-demo`** para a `main`.
+5. [ ] **Decidir a abordagem** (REST, MCP ou pergunta, ou combinação) com `python api/medir.py` depois da demonstração. A pergunta precisa de cobrança por consulta (custo cresce com o uso).
+6. [ ] **Limites na memória** zeram ao reiniciar a API: guardar em disco se virar produto.
