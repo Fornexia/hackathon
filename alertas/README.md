@@ -84,6 +84,6 @@ Nenhum teste manda e-mail de verdade nem gasta crédito de modelo.
 - **Cadastro pelo site** e link de cancelamento que se clica (hoje: código e CLI). A troca natural é uma tabela no MariaDB do site e uma página de cancelar.
 - **Consentimento e LGPD:** guardar o e-mail exige base legal e descadastro simples. Falta o texto de consentimento no cadastro.
 - **Recoleta agendada** (cron/systemd): este módulo só compara; a coleta que alimenta o grafo é a de sempre (`coleta/`).
-- **Servidor de e-mail real:** só testado com SMTP local de teste. Falta configurar o remetente (SPF/DKIM do domínio) para não cair em spam.
+- **Canal definitivo de e-mail:** o envio real já foi provado pelo SMTP de uma conta Gmail com senha de app (variáveis `ALERTAS_SMTP_*` no `.env`; veja `.env.exemplo`). Limite de cerca de 500 por dia e remetente `@gmail.com`. Para clientes de verdade falta um endereço no domínio da empresa (SPF/DKIM) e o teste de entrega a um endereço externo.
 - **Aviso por webhook** para o sistema do cliente (combina com a API para IAs) e **resumo semanal**.
 - Os avisos valem a atualização da fonte: o cadastro de sanções de PE é de 05/06/2025, então para ele não haverá novidade.

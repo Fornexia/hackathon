@@ -10,6 +10,7 @@
 """
 
 import argparse
+import os
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -28,8 +29,32 @@ def _saida_utf8() -> None:
             pass
 
 
+RAIZ = Path(__file__).resolve().parents[1]
+
+
+def carregar_env(caminho: Path | None = None) -> int:
+    """Lê o .env da raiz (o mesmo do resto do projeto) sem sobrescrever o que já está no ambiente. Valor vazio não vira variável.
+    Sem isso, `enviar-teste` não enxergaria ALERTAS_SMTP_*: só `verificar` carregava o .env, e por tabela. Devolve quantas variáveis entraram."""
+    arquivo = caminho or RAIZ / ".env"
+    if not arquivo.exists():
+        return 0
+    entrou = 0
+    for linha in arquivo.read_text(encoding="utf-8").splitlines():
+        if "=" not in linha or linha.lstrip().startswith("#"):
+            continue
+        k, v = linha.split("=", 1)
+        k, v = k.strip(), v.strip()
+        if len(v) >= 2 and v[0] == v[-1] and v[0] in "\"'":
+            v = v[1:-1]
+        if k and v and k not in os.environ:
+            os.environ[k] = v
+            entrou += 1
+    return entrou
+
+
 def main(argv: list[str]) -> int:
     _saida_utf8()
+    carregar_env()
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = ap.add_subparsers(dest="comando", required=True)
     s = sub.add_parser("assinar")

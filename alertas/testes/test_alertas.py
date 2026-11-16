@@ -548,6 +548,23 @@ class TestEnvio(Base):
             envio.montar(a, [], AGORA)
 
 
+class TestEnvDoProjeto(unittest.TestCase):
+    def test_carrega_o_env_sem_sobrescrever_e_sem_valor_vazio(self):
+        import cli
+        with tempfile.TemporaryDirectory() as d:
+            arq = Path(d) / ".env"
+            arq.write_text('# comentario\nALERTAS_T1=abc\nALERTAS_T2=\nALERTAS_T3="com aspas"\nALERTAS_T4=do-arquivo\nsem_igual\n', encoding="utf-8")
+            with mock.patch.dict(os.environ, {"ALERTAS_T4": "do-ambiente"}):
+                self.addCleanup(os.environ.pop, "ALERTAS_T1", None)
+                self.addCleanup(os.environ.pop, "ALERTAS_T3", None)
+                self.assertEqual(cli.carregar_env(arq), 2)
+                self.assertEqual(os.environ["ALERTAS_T1"], "abc")
+                self.assertNotIn("ALERTAS_T2", os.environ)               # vazio não vira variável
+                self.assertEqual(os.environ["ALERTAS_T3"], "com aspas")
+                self.assertEqual(os.environ["ALERTAS_T4"], "do-ambiente")  # o ambiente vence o arquivo
+            self.assertEqual(cli.carregar_env(Path(d) / "nao-existe"), 0)
+
+
 class TestSimular(unittest.TestCase):
     def test_recusa_sem_confirmacao_e_o_banco_padrao_do_bot(self):
         with mock.patch.dict(os.environ, {"NEO4J_URI": "bolt://127.0.0.1:7699"}):
