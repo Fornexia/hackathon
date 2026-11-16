@@ -45,7 +45,7 @@ A chave também vale no cabeçalho `X-API-Key`. Rotas de dados: `/v1/cobertura`,
 `/v1/fornecedores/{id}/contratos|sancoes|cadastro|execucao[?ano=]` e `/v1/evidencias/{id}`.
 
 **MCP** (cliente que aceita servidor remoto): URL `http://<host>:8088/mcp` com o cabeçalho `Authorization: Bearer <chave>`. Sem sessão:
-cada chamada é independente, então `tools/list` e `tools/call` funcionam direto.
+cada chamada é independente, então `tools/list` e `tools/call` funcionam direto. Testado com o **Claude Code** como cliente (`--mcp-config` com `"type":"http"` e `"headers":{"Authorization":"Bearer ..."}`). Atenção: a busca de fornecedor leva `termo` no MCP e `q` na REST.
 
 ## Regras de segurança (e onde estão provadas)
 

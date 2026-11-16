@@ -59,6 +59,6 @@ Três portas sobre as mesmas consultas, com chave que define o perfil (ver `api/
 1. [x] **API feita e testada:** REST, MCP e pergunta em português; 50 testes da API e ataques manuais nas portas REST e MCP.
 2. [ ] **Bateria de ataques de prompt pela porta pergunta** com o modelo real (cerca de US$ 0,50 por 20 perguntas); repetir quando prompt, modelo ou ferramentas mudarem.
 3. [ ] **Rodar atrás da Tailscale** com `API_HOSTS_PERMITIDOS` definido (hoje um `Host` forjado é aceito) e contra o Neo4j grande do bot, não só a base fictícia.
-4. [ ] **Cliente MCP de verdade** (hoje só JSON-RPC cru) e **PR da `feat/api-demo`** para a `main`.
+4. [ ] **PR da `feat/api-demo`** para a `main`. Cliente MCP de verdade: **Claude Code testado em 16/11** (cabeçalho `Authorization: Bearer`, 9 ferramentas, 2 chamadas, US$ 0,006 do lado do cliente). Falta o conector de interface do Claude.ai (pode exigir OAuth) e o acesso por HTTPS público.
 5. [ ] **Decidir a abordagem** (REST, MCP ou pergunta, ou combinação) com `python api/medir.py` depois da demonstração. A pergunta precisa de cobrança por consulta (custo cresce com o uso).
 6. [ ] **Limites na memória** zeram ao reiniciar a API: guardar em disco se virar produto.
