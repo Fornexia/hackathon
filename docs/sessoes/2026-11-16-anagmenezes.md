@@ -14,6 +14,8 @@ Auditoria final solicitada depois da publicacao: a suite existente passou novame
 
 ## Feito
 
+- Apos autorizacao explicita posterior, realizado push dos commits 3f61265 e 1ebc1f3 para origin na mesma branch. Nenhum PR, merge ou deploy executado. Este registro acompanha o envio em commit separado apenas de documentacao.
+
 - Entrega 2 incluida neste segundo commit local: GIS nas duas abas do chat, configuracao opcional do Client ID, API Google com CSRF e limites, tokeninfo via HTTPS/TLS sem redirecionar e com tempo/tamanho limitados. Conferidas assinatura pelo servico e claims no PHP; sem Client ID, rota 404 e botao oculto. Validacao nova em lib_google.php, sem novas dependencias Composer.
 - Migracao acrescenta sub unico sensivel a maiusculas e permite hash nulo sem alterar nenhum valor existente. Conta nova Google recebe usuario comum; existente verificada preserva senha e plano; nao verificada perde senha, sessoes e tokens anteriores ao vinculo. Administrador sempre recusado por Google. Identidade usa sub estavel, com travas e rejeicao de vinculos conflitantes. Login por senha e redefinicao recusam hash nulo.
 - Criados testes RSA/tokeninfo locais e GIS simulado em navegador. Documentados configuracao, origens localhost, CSP, limites do tokeninfo e do vinculo de enderecos externos, sem implementar desafio adicional nao pedido. Nenhum arquivo de deploy, site institucional ou configuracao privada modificado.
@@ -38,6 +40,8 @@ Auditoria final solicitada depois da publicacao: a suite existente passou novame
 - Entregue a implementacao no commit 5b22ad2, com 28 arquivos, e realizado push da branch gpt/gabriella-autenticacao-site-2026-11-15 para origin, com upstream configurado. Arquivos privados, dependencias instaladas, capturas de testes e stashes anteriores ficaram fora do commit.
 
 ## Verificado (e como)
+
+- Envio autorizado, Windows local: git status limpo antes do push; HEAD tinha dois commits a frente e nenhum atras da referencia remota. `git push origin gpt/gabriella-autenticacao-site-2026-11-15` concluiu o envio de 37e6396 a 1ebc1f3; `git rev-list --left-right --count HEAD...origin/gpt/gabriella-autenticacao-site-2026-11-15` retornou 0/0. Nao repetidos testes de produto, pois o codigo nao mudou desde os 164 aprovados. Diario validado novamente.
 
 - Entrega 2 final, Windows bibis, PHP 8.2.35, Python da .venv, Edge e MariaDB 10.11 descartavel: `.venv\Scripts\python -X utf8 site/dev/test_auth.py`, com Playwright temporario, aprovou 164 testes em 602,878 segundos, zero falhas e zero pulados. Inclui 17 casos Google, navegador GIS simulado em duas abas a 390 px e todas as regressoes anteriores. Bancos e configuracoes temporarios removidos pelo executor, sem rede externa para Google, SMTP ou WhatsApp.
 - Depois de reforcar o teste para alterar somente a assinatura e manter claims validas, `.venv\Scripts\python -X utf8 site/dev/test_auth.py test_auth_google.TestGoogle.test_assinatura_adulterada_e_credencial_malformada_recusadas` aprovou um caso em 4,689 segundos. Nenhum codigo de produto mudou depois do inicio da suite completa. `php -l` em seis PHP, `node --check` nos dois JavaScript do produto e no teste de interface, py_compile, validador do diario e git diff --check aprovados. Git ignore protege configuracao, sessoes, vendor e .env. Revisao dos caminhos alterados sem credenciais reais nos padroes examinados; nenhum arquivo privado ou fora do escopo.
@@ -147,4 +151,4 @@ Pendencias herdadas dos diarios de 14/11:
 
 ## Próximo passo sugerido
 
-Revisar os dois commits locais e aguardar autorizacao de push. Para o futuro PR, sugerida a base feat/portabilidade-windows-linux, que ja inclui o site institucional; nao alterar essa base nem publicar sem autorizacao. Homologacao real e configuracoes privadas continuam pendentes.
+Usuaria pode abrir o PR pelo GitHub; sugerida a base feat/portabilidade-windows-linux, que ja inclui o site institucional. Push autorizado concluido; nenhuma abertura de PR, merge ou publicacao do site foi realizada. Homologacao real e configuracoes privadas continuam pendentes.
