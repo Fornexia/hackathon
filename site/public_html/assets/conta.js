@@ -20,6 +20,8 @@
   function desenharDados(me) {
     $('#dado-nome').textContent = me.usuario.nome
     $('#dado-email').textContent = me.usuario.email
+    $('#dado-verificacao').textContent = me.usuario.email_verificado ? 'E-mail verificado' : 'E-mail não verificado'
+    $('#verificar-agora').hidden = me.usuario.email_verificado
     $('#dado-plano').textContent = me.plano ? me.plano.nome : 'Sem plano ativo'
     $('#dado-entes').textContent = me.plano ? nomesDosEntes(me.plano.tenants) : 'Nada ainda: abra o assistente para ativar o acesso.'
   }
@@ -118,5 +120,12 @@
   }
 
   $('#form-tel').addEventListener('submit', cadastrarTelefone)
+  $('#verificar-agora').addEventListener('click', async e => {
+    e.target.disabled = true
+    const status = $('#verificacao-status')
+    try { status.textContent = (await Api.verificarConta()).mensagem }
+    catch (erro) { status.textContent = erro.message }
+    finally { status.hidden = false; e.target.disabled = false }
+  })
   iniciar()
 })()

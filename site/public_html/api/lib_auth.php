@@ -135,6 +135,28 @@ function rota_auth_solicitar(string $finalidade): never {
     auth_resposta_envio();
 }
 
+function rota_verificar_conta(): never {
+    $u = exigir_login();
+    exigir_csrf();
+    auth_limitar('verificar', $u['email']);
+    if ($u['email_verificado_em'] === null) auth_exigir_email();
+    $pdo = db();
+    $pdo->beginTransaction();
+    try {
+        $st = $pdo->prepare('SELECT id, email, email_verificado_em FROM usuarios WHERE id = ? FOR UPDATE');
+        $st->execute([$u['id']]);
+        $atual = $st->fetch();
+        if ($atual && $atual['email_verificado_em'] === null) {
+            auth_emitir_token($atual, 'verificar');
+        }
+        $pdo->commit();
+    } catch (Throwable $e) {
+        if ($pdo->inTransaction()) $pdo->rollBack();
+        throw $e;
+    }
+    auth_resposta_envio();
+}
+
 function rota_auth_confirmar(string $finalidade): never {
     exigir_csrf();
     $c = corpo(8192);

@@ -49,6 +49,7 @@ $rotas = [
     ['POST', '#^logout$#',                         true,  'rota_logout'],
     ['POST', '#^email/reenviar$#',                  true,  fn() => rota_auth_solicitar('verificar')],
     ['POST', '#^email/verificar$#',                 true,  fn() => rota_auth_confirmar('verificar')],
+    ['POST', '#^email/verificar-conta$#',           true,  'rota_verificar_conta'],
     ['POST', '#^senha/recuperar$#',                  true,  fn() => rota_auth_solicitar('redefinir')],
     ['POST', '#^senha/redefinir$#',                 true,  fn() => rota_auth_confirmar('redefinir')],
     ['POST', '#^sessao/atividade$#',                true,  function () {

@@ -43,7 +43,17 @@ function corpo(int $limite = 262144): array {
 }
 
 function ip_do_cliente(): string {
-    return substr((string)($_SERVER['REMOTE_ADDR'] ?? '0.0.0.0'), 0, 45);
+    $remoto = (string)($_SERVER['REMOTE_ADDR'] ?? '0.0.0.0');
+    $config = auth_config('TRUSTED_PROXIES', []);
+    $confiaveis = is_array($config) ? $config : preg_split('/[\s,]+/', (string)$config, -1, PREG_SPLIT_NO_EMPTY);
+    if (filter_var($remoto, FILTER_VALIDATE_IP) && in_array($remoto, $confiaveis, true)) {
+        $encaminhados = explode(',', (string)($_SERVER['HTTP_X_FORWARDED_FOR'] ?? ''));
+        foreach (array_reverse($encaminhados) as $ip) {
+            $ip = trim($ip);
+            if (filter_var($ip, FILTER_VALIDATE_IP)) return $ip;
+        }
+    }
+    return substr($remoto, 0, 45);
 }
 
 // ---------- sessão e CSRF ----------

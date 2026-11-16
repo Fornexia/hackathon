@@ -17,7 +17,7 @@ reenvio de verificação, configuração SMTP e invalidação das sessões depoi
 
 ## Comportamento implementado
 
-- Novas contas: endereço `@gmail.com`, senha exclusiva do FORNEX de 15 a 128 caracteres e confirmação.
+- Novas contas: qualquer e-mail válido com até 190 caracteres, pessoal ou corporativo, senha exclusiva do FORNEX de 15 a 128 caracteres e confirmação.
   A senha do Google não é solicitada e não há OAuth. Hash Argon2id, com espaços, Unicode e caracteres especiais.
 - O cadastro retorna `202` com mensagem genérica, inclusive para endereço já cadastrado. Não altera a conta existente.
   Não inicia sessão nem ativa plano antes da confirmação. O perfil é explicitamente `usuario`.
@@ -55,6 +55,12 @@ Isso é compatibilidade com as contas existentes, **não** uma declaração de q
 Novos cadastros recebem obrigatoriamente `email_verificacao_exigida=1`. Nenhuma exceção depende do papel.
 Recuperar a senha de uma conta antiga mantém seu papel e passa a usar Argon2id.
 
+`usuario.email_verificado`, retornado por `/api/me` e pelo login, é booleano e representa exclusivamente
+`email_verificado_em IS NOT NULL`. Contas antigas compatíveis podem retornar `false` e continuar entrando.
+Na página Minha conta, uma conta logada pode solicitar "Verificar agora". A rota usa somente o endereço
+da sessão; ignora um endereço enviado no corpo. Confirmar o link não altera papel, senha ou
+`email_verificacao_exigida`. Uma conta já verificada recebe a resposta genérica sem novo envio.
+
 Para atualizar um banco existente, use apenas:
 
 ```bash
@@ -90,6 +96,13 @@ O modelo está em `site/hackathon-config.exemplo.php`. O PHP não carrega o `.en
 | `AUTH_MAIL_KEY` | Base64 de 32 bytes aleatórios, usada para cifrar a fila de mensagens |
 | `AUTH_IDLE_SECONDS`, `AUTH_MAX_SECONDS` | Opcionais; padrões 1800 e 43200 segundos |
 | `AUTH_SESSION_PATH` | Opcional; diretório privado exclusivo e gravável, fora de `public_html` |
+| `TRUSTED_PROXIES` | Opcional; lista de IPs exatos, padrão vazio. Constante PHP como array ou ambiente com IPs separados por vírgula |
+
+Sem `TRUSTED_PROXIES`, o IP é sempre `REMOTE_ADDR`. Só para um remetente expressamente listado se usa
+o último IP válido, da direita para a esquerda, em `X-Forwarded-For`; sem IP válido mantém-se o remetente.
+Aceita IPv4 e IPv6, não CIDR nem curingas. O proxy confiável deve acrescentar corretamente o endereço
+do par que o acessa: cabeçalhos preservados sem saneamento podem permitir falsificação. Em uma cadeia
+de vários proxies, esse critério pode identificar o proxy anterior; configure conforme a topologia real.
 
 Gere `AUTH_MAIL_KEY` com um gerenciador de segredos ou `base64_encode(random_bytes(32))` no PHP.
 Não coloque credenciais em commits, mensagens ou diário. Guarde a chave junto dos backups privados.
@@ -142,6 +155,7 @@ Todas as escritas abaixo exigem cookie de sessão e `X-CSRF-Token`, obtido em `G
 | `POST /api/login` | `{email, senha}` → 200; pendente com senha correta: 403 `email_nao_verificado` |
 | `POST /api/email/reenviar` | `{email}` → 202 genérico |
 | `POST /api/email/verificar` | `{token}` → 200 ou 400 para inválido/expirado/usado |
+| `POST /api/email/verificar-conta` | `{}` → 202 genérico; exige login/CSRF e usa somente o endereço da conta autenticada |
 | `POST /api/senha/recuperar` | `{email}` → 202 genérico |
 | `POST /api/senha/redefinir` | `{token, senha, confirmacao}` → 200; sessões antigas deixam de valer |
 | `POST /api/sessao/atividade` | `{}` → 200 com login; renova somente o prazo de inatividade |
@@ -177,6 +191,11 @@ GC forçado com sessão de 25 minutos e expiração aos 31, exportação sem ler
 login do benchmark para contas legadas/verificadas e recusa de pendentes, migração repetida sem mudar dados,
 backup/restauração real, dump parcial, preservação de backup anterior, porta e banco vazio.
 Os scripts de backup são testados diretamente no contêiner descartável; `deploy.sh` não é executado pelos testes.
+
+`test_auth_ajustes` cobre cadastro corporativo, recusa de formatos inválidos e endereços acima do limite,
+o campo booleano de verificação no login e em `/api/me`, confirmação de conta antiga sem alterar seu
+hash, papel ou regra de compatibilidade, solicitação restrita à própria conta, login/CSRF obrigatórios
+e uso de `X-Forwarded-For` somente quando o remetente é um proxy configurado (IPv4 e IPv6).
 
 O benchmark `bench/carga.py --contas /caminho/privado/contas.json` recebe contas de teste já verificadas, com
 `email`, `senha` e `nome` opcional. Faz apenas login e segue o fluxo de planos existente. Não cadastra contas

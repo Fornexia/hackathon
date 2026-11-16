@@ -45,6 +45,7 @@
     cadastrar: (nome, email, senha, confirmacao) => enviar('POST', '/cadastro', { nome, email, senha, confirmacao }),
     reenviarVerificacao: email => enviar('POST', '/email/reenviar', { email }),
     verificarEmail: token => enviar('POST', '/email/verificar', { token }),
+    verificarConta: () => enviar('POST', '/email/verificar-conta', {}),
     recuperarSenha: email => enviar('POST', '/senha/recuperar', { email }),
     redefinirSenha: (token, senha, confirmacao) => enviar('POST', '/senha/redefinir', { token, senha, confirmacao }),
     entrar: (email, senha) => enviar('POST', '/login', { email, senha }),

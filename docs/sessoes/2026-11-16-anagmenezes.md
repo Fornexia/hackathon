@@ -6,11 +6,18 @@
 
 ## Resumo
 
+Nova tarefa autorizada em duas entregas locais, sem push: a primeira implementa e-mails de qualquer dominio valido, estado de verificacao, verificacao de contas antigas logadas e proxies confiaveis. A segunda, login Google, ainda nao foi iniciada: depende da primeira verde e commitada. A regra solicitada para Google sera token validado e email_verified verdadeiro; a limitacao de autoridade sobre dominios externos sera documentada. Estes registros mais recentes substituem a restricao antiga a Gmail descrita no historico abaixo.
+
 Implementado o login publico sobre a autenticacao PHP/MariaDB existente, na branch derivada da feat. O codigo anterior ja aceitava clientes; faltavam verificacao de endereco e recuperacao de senha. Novos cadastros exigem Gmail e verificacao, sem promover usuarios a admin. Commit 5b22ad2 criado e branch enviada ao origin por autorizacao da usuaria. Ativacao no ambiente atual ainda depende de configuracao privada de correio, cron e migracao autorizada.
 
 Auditoria final solicitada depois da publicacao: a suite existente passou novamente, mas testes complementares encontraram cinco falhas tecnicas. A usuaria autorizou as correcoes, agora implementadas e verificadas com 143 testes aprovados, e depois autorizou o commit e push deste conjunto. A comparacao com main inclui o portfolio herdado; a decisao de escopo continua pendente. A usuaria abrira o Pull Request pelo GitHub.
 
 ## Feito
+
+- Entrega 1 implementada: cadastro aceita formato valido ate 190 caracteres; login e me expõem email_verificado; Minha conta mostra o estado e solicita verificacao pelo endereco da sessao com login, CSRF, limite e fila existentes. Confirmacao preserva senha, papel e regra de compatibilidade das contas antigas. TRUSTED_PROXIES usa IPs exatos, vazio por padrao, e so confia no ultimo IP valido do cabecalho quando o remetente esta configurado.
+- Atualizados textos, modelo publico de configuracao, README e guias de autenticacao e Windows/Linux. Acrescentados quatro testes em site/dev/test_auth_ajustes.py. Nenhuma alteracao em site-institucional, api da raiz, alertas, consulta ou configuracoes privadas. Entrega 2 continua pendente; nao houve push, PR ou deploy nesta tarefa.
+
+- Analisada a proposta de duas novas entregas de autenticacao, sem iniciar implementacao: liberar dominios validos, expor verificacao, verificacao de conta antiga logada e proxies confiaveis; depois login Google separado. Base atual 37e6396. Identificadas decisoes de seguranca sobre vinculacao por dominio externo e validador de token; nenhuma alteracao em codigo, banco, dependencias ou configuracoes privadas nesta analise.
 
 - Apos autorizacao, corrigidos cinco achados da auditoria: backup remoto com helper validado, limite concorrente de login por IP/endereco, retencao privada das sessoes, isolamento do teste de prova e login do benchmark com contas existentes. Correcoes incluidas no commit desta etapa, com envio autorizado. Sem merge ou deploy.
 - Acrescentados oito testes em site/dev/test_auth_regressoes.py ao executor isolado. Atualizados modelo publico de configuracao, ignorados, guia Windows/Linux e docs/AUTENTICACAO.md. Inventario e proposta de separacao dos 43 arquivos institucionais em docs/REVISAO-AUTENTICACAO-PR.md; nenhum desses arquivos foi reorganizado ou alterado.
@@ -27,6 +34,13 @@ Auditoria final solicitada depois da publicacao: a suite existente passou novame
 - Entregue a implementacao no commit 5b22ad2, com 28 arquivos, e realizado push da branch gpt/gabriella-autenticacao-site-2026-11-15 para origin, com upstream configurado. Arquivos privados, dependencias instaladas, capturas de testes e stashes anteriores ficaram fora do commit.
 
 ## Verificado (e como)
+
+- Entrega 1, Windows local bibis, PHP 8.2.35, Python da .venv, Edge e MariaDB 10.11 descartavel: `.venv\Scripts\python -X utf8 site/dev/test_auth.py`, com Playwright temporario, aprovou 147 testes em 360,313 segundos, zero falhas e zero pulados. Inclui os quatro novos casos, autenticacao, permissoes, sessoes, consultas, planos, worker/WhatsApp simulado, provas, SMTP TLS local e navegador. Uma rodada anterior aprovou 164 execucoes por descobrir novamente 17 testes importados; corrigida somente a importacao no novo modulo e repetida a suite completa sem duplicacoes.
+- `php -l` nos cinco PHP alterados, `node --check` nos tres JavaScript alterados, validador do diario e `git diff --check` aprovados. Revisao dos 17 caminhos alterados nao encontrou credenciais reais nos padroes examinados nem arquivos privados/fora do escopo. Nao executados deploy, migracao em bancos existentes ou envio externo. Entrega 1 preparada para commit local autorizado; Google ainda nao iniciado.
+
+- Revisao estatica da autenticacao e dos testes, com consulta a documentacao oficial do Google: lock possui apenas PHPMailer como pacote de produto, sem validador JWT instalado; tokeninfo e indicado para desenvolvimento/depuracao. Google recomenda desafio adicional para enderecos externos sem dominio hospedado. `git fetch origin` sem integracao confirmou branch sincronizada; comparacao com origin/feat/portabilidade-windows-linux tem 33 arquivos e nenhum em site-institucional. Nao foram repetidos testes; os 143 aprovados pertencem a entrega anterior e nao validam Google nem os quatro ajustes propostos.
+
+- Atualizacao solicitada apos o push: `git pull --ff-only` no Windows retornou `Already up to date`; HEAD e origin/gpt/gabriella-autenticacao-site-2026-11-15 em 37e6396, diferenca 0/0. A main remota permanece em af43561 e nao acrescenta conteudo desde a base comum; nenhum merge necessario. Referencias das demais branches foram atualizadas, sem incorpora-las. Nenhum teste repetido, pois o codigo nao mudou. Apenas este registro local foi atualizado, sem novo commit/push.
 
 - Antes do envio autorizado, `git fetch origin` e `git rev-list --left-right --count HEAD...origin/gpt/gabriella-autenticacao-site-2026-11-15` no Windows confirmaram 0/0; nenhum merge necessario. Indice contem apenas os 15 arquivos revisados; `git diff --cached --check` aprovado.
 
@@ -56,6 +70,8 @@ Auditoria final solicitada depois da publicacao: a suite existente passou novame
 
 ## Não verificado
 
+- Novos fluxos de Google ainda nao implementados nem testados. Verificacao de conta antiga na pagina Minha conta validada por API e sintaxe, sem exercicio especifico desse botao em navegador. Configuracao de proxy e endereco corporativo nao homologados na hospedagem real.
+
 - Sem entrega de correio real, credenciais SMTP reais, cron em hospedagem, deploy Hostinger, banco remoto ou migracao sobre a base atual. Nao houve acesso autenticado ao site publicado, uso de modelo pago nem envio WhatsApp.
 - Sem homologacao em Linux, aparelho fisico ou leitor de tela. Empacotamento do deploy foi revisado e teve sintaxe conferida, sem execucao remota.
 - Pendencias herdadas abaixo nao foram revalidadas. O envio da branch ao Git nao executa merge nem deploy.
@@ -68,6 +84,8 @@ Auditoria final solicitada depois da publicacao: a suite existente passou novame
 - Isolar testes destrutivos da base compartilhada e preservar os stashes anteriores sem aplica-los. Nao modificar arquivos privados de configuracao. A publicacao da branch ao Git foi autorizada posteriormente; o deploy continua pendente.
 
 ## Em aberto (por prioridade)
+
+- [ ] Entrega 2: implementar Google somente depois do commit local verde da entrega 1. Seguir a regra expressa da tarefa para tokens validados, documentando a recomendacao do Google de desafio adicional para enderecos externos sem Workspace. Nao acrescentar restricoes de dominio ou novo fluxo fora do pedido. (origem: 2026-11-16-anagmenezes)
 
 - [ ] Auditoria, escopo: decidir tratamento dos 43 arquivos do portfolio antes de PR exclusivo da autenticacao; proposta documentada e comandos antigos do README e guia Windows/Linux atualizados. Se o portfolio permanecer no PR, revisar inclusao de componentes reais no tsconfig. Nao remover funcionalidades nem mudar historia sem aprovacao. (origem: 2026-11-16-anagmenezes)
 - [ ] Para ativar o login publico: configurar SMTP, origem HTTPS, chave privada da fila e cron; aplicar a migracao apos backup no ambiente escolhido e homologar entrega real e perfis. Nenhuma dessas configuracoes foi alterada nesta sessao. (origem: 2026-11-16-anagmenezes)
@@ -116,4 +134,4 @@ Pendencias herdadas dos diarios de 14/11:
 
 ## Próximo passo sugerido
 
-Abrir o Pull Request pelo GitHub e decidir a proposta dos 43 arquivos institucionais antes de um PR exclusivo da autenticacao. Depois, configuracoes privadas e homologacao de producao, sem deploy nesta etapa.
+Concluir a entrega 1 em commit local verde e seguir com Google conforme a tarefa autorizada. Para o futuro PR, sugerida a base feat/portabilidade-windows-linux, que ja inclui o site institucional; nao alterar essa base nem publicar sem autorizacao.

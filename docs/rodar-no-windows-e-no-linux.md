@@ -1071,8 +1071,8 @@ Depois, entre em `http://127.0.0.1:8080/chat.html` com uma das contas e abra **�
 
 O JSON privado de carga contém uma lista de objetos com `email`, `senha` e `nome` opcional. Guarde-o fora do
 repositório. O benchmark faz login antes da medição; não cria contas nem confirma endereços automaticamente.
-Cadastre as contas pelo fluxo público Gmail, confirme os links e só então rode a carga em ambiente autorizado.
-Sem `--contas`, tenta oito contas legadas já existentes; endereços `local.test` não são aceitos no cadastro público.
+Cadastre as contas pelo fluxo público de e-mail e senha, confirme os links e só então rode a carga em ambiente autorizado.
+Sem `--contas`, tenta oito contas legadas já existentes; para novas contas use endereços em que possa receber o link.
 
 **Adicionar outro modelo depois**, sem refazer os anteriores (o resultado acumula em `dados/bench/resultado.json`):
 

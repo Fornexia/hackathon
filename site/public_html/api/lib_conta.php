@@ -104,10 +104,15 @@ function registrar_falha(string $email, string $ip): void {
 function rota_me(): never {
     $u = usuario_atual();
     responder(200, [
-        'usuario' => $u ? ['id' => (int)$u['id'], 'nome' => $u['nome'], 'email' => $u['email'], 'papel' => $u['papel']] : null,
+        'usuario' => $u ? usuario_para_json($u) : null,
         'plano' => $u ? plano_ativo((int)$u['id']) : null,
         'csrf' => csrf_token(),
     ]);
+}
+
+function usuario_para_json(array $u): array {
+    return ['id' => (int)$u['id'], 'nome' => $u['nome'], 'email' => $u['email'],
+        'papel' => $u['papel'], 'email_verificado' => $u['email_verificado_em'] !== null];
 }
 
 function rota_planos(): never {
@@ -123,7 +128,7 @@ function rota_cadastro(): never {
     $senha = auth_validar_senha($c);
 
     if ($nome === '') erro(400, 'Informe seu nome.');
-    if (!filter_var($email, FILTER_VALIDATE_EMAIL) || !str_ends_with($email, '@gmail.com')) erro(400, 'Use um endereço @gmail.com válido.');
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) erro(400, 'Informe um e-mail válido.');
     auth_limitar('cadastro', $email);
     auth_exigir_email();
     $hash = auth_hash($senha);
@@ -203,7 +208,7 @@ function rota_login(): never {
     $logado = usuario_atual();
     if (!$logado) erro(401, 'Sua senha foi alterada. Entre novamente.');
     responder(200, [
-        'usuario' => ['id' => (int)$logado['id'], 'nome' => $logado['nome'], 'email' => $logado['email'], 'papel' => $logado['papel']],
+        'usuario' => usuario_para_json($logado),
         'plano' => plano_ativo((int)$logado['id']),
         'csrf' => csrf_token(),
     ]);

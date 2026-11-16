@@ -43,7 +43,7 @@ def executar_isolado():
         config = privado / "config.php"
         env.update(FORNEX_CONFIG=str(config), AUTH_MAIL_CAPTURE=str(privado / "emails.jsonl"),
                    AUTH_TEST_SESSION_PATH=str(privado / "sessions"), AUTH_SESSION_PATH=str(privado / "sessions"), MAIL_TRANSPORT="capture",
-                   AUTH_MAIL_KEY=base64.b64encode(secrets.token_bytes(32)).decode(), APP_URL="http://127.0.0.1")
+                   AUTH_MAIL_KEY=base64.b64encode(secrets.token_bytes(32)).decode(), APP_URL="http://127.0.0.1", TRUSTED_PROXIES="")
         def executar(args, **kw):
             return subprocess.run(args, env=env, check=True, capture_output=True, text=True, encoding="utf-8", **kw)
         iniciado = False
@@ -78,7 +78,7 @@ def executar_isolado():
             executar(["docker", "exec", "-e", "MYSQL_PWD", container, "mariadb", "-uroot", banco, "-e", sql])
             executar([php, str(raiz / "site/migrar-autenticacao.php")])
             executar([php, str(raiz / "site/setup.php")])
-            suites = sys.argv[1:] or ["test_auth", "test_api", "test_prova", "test_auth_regressoes"]
+            suites = sys.argv[1:] or ["test_auth", "test_api", "test_prova", "test_auth_regressoes", "test_auth_ajustes"]
             resultado = subprocess.run([sys.executable, "-X", "utf8", "-m", "unittest", "-v", *suites],
                                       cwd=raiz / "site/dev", env=env)
             return resultado.returncode
@@ -181,10 +181,10 @@ class TestAuthPublica(api.Base):
             self.assertEqual(r["usuario"]["papel"], papel)
             self.assertEqual(c.req("GET", "/api/admin/telefones").status, 200 if papel == "admin" else 403)
 
-    def test_validacao_gmail_confirmacao_senha_unicode_longa(self):
+    def test_validacao_email_confirmacao_senha_unicode_longa(self):
         c = api.Cliente(self.base)
         base = {"nome": "Nome", "email": "fornextest.valido@gmail.com", "senha": "minha senha exclusiva", "confirmacao": "minha senha exclusiva"}
-        for extra in [{"email": "x@example.invalid"}, {"email": "x@gmail.com.evil.invalid"}, {"email": "x@sub.gmail.com"},
+        for extra in [{"email": "sem-arroba"}, {"email": "x@@gmail.com"}, {"email": "x@"},
                       {"senha": "curta", "confirmacao": "curta"}, {"senha": "s" * 129, "confirmacao": "s" * 129},
                       {"confirmacao": "diferente"}, {"confirmacao": None}]:
             self.assertEqual(c.req("POST", "/api/cadastro", {**base, **extra}).status, 400)

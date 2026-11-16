@@ -7,7 +7,7 @@ da fonte, e cada perfil vê só o que está autorizado a ver.
 
 > **Estado:** extração, grafo, consultas com filtro de perfil, registro de consultas, catálogo de ataques, **o site com contas,
 > chat em fila e administração** e **o worker que liga o site e o WhatsApp ao agente** estão prontos. Testes: 65 de consulta (18 deles exigem o
-> Neo4j no ar e são pulados sem ele), 202 de chat (12 só rodam no Linux) e 143 de autenticação, API, provas e regressões. Ainda falta rodar os ataques de prompt com o modelo real
+> Neo4j no ar e são pulados sem ele), 202 de chat (12 só rodam no Linux) e 147 de autenticação, API, provas e regressões. Ainda falta rodar os ataques de prompt com o modelo real
 > e fazer o deploy na Hostinger. Veja
 > [Onde estamos no desafio](#onde-estamos-no-desafio), [Site e chat (Dev A)](#site-e-chat-dev-a) e [Pendências conhecidas](#pendências-conhecidas).
 > Detalhes do site e do chat: [spec](docs/specs/001-site-e-chat/spec.md), [plano técnico](docs/specs/001-site-e-chat/plan.md) e [tasks](docs/specs/001-site-e-chat/tasks.md).
@@ -126,7 +126,7 @@ liberar novamente.
 
 ### Segurança do site
 
-- Cadastro público com Gmail e senha própria do FORNEX, confirmação do e-mail antes do login e recuperação de senha.
+- Cadastro público com e-mail pessoal ou corporativo e senha própria do FORNEX, confirmação do e-mail antes do login e recuperação de senha.
   Contas anteriores, incluindo o administrador, são preservadas. [Configuração, migração e diagnóstico](docs/AUTENTICACAO.md).
 - Cookie de sessão `hsid` com `HttpOnly`, `SameSite=Lax` e `Secure` (exceto em dev/test); o id é trocado no login.
   Expiração por inatividade e prazo total; redefinir a senha invalida as sessões antigas.

@@ -23,7 +23,7 @@
     }
     const textos = {
       recuperar: ['Recuperar senha', 'Informe o e-mail da sua conta para receber as instruções.', 'Enviar instruções'],
-      reenviar: ['Verificar e-mail', 'Informe o Gmail usado no cadastro para receber um novo link.', 'Reenviar verificação'],
+      reenviar: ['Verificar e-mail', 'Informe o e-mail usado no cadastro para receber um novo link.', 'Reenviar verificação'],
       verificar: ['Confirmar e-mail', 'Confirme abaixo a verificação do seu endereço no FORNEX.', 'Verificar meu e-mail'],
       redefinir: ['Criar nova senha', 'Depois da alteração, todas as sessões anteriores serão encerradas.', 'Salvar nova senha'],
     }
