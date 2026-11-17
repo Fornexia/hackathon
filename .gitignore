@@ -41,3 +41,6 @@ site/painel.json
 
 # Modelos de voz baixados (Whisper, algumas centenas de MB): voltam a ser baixados na primeira transcrição
 inferencia/modelos/
+
+# Saída do playwright-cli (prints e snapshots de página, podem ter dado de sessão logada)
+.playwright-cli/
