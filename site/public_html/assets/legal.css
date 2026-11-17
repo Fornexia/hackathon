@@ -1,35 +1,4 @@
-/* Páginas legais (privacidade.html e termos.html): design do site novo, com modo claro e escuro.
-   O restante do site é só claro (decisão do time em 15/11/2026); aqui o tema escuro volta, só nestas duas páginas.
-   Sem escolha guardada vale o tema do sistema; o botão do topo troca e guarda a escolha (tema.js). */
-
-/* Botão de tema: o site.css o esconde; aqui ele aparece. */
-.topo .tema-botao { display: inline-grid !important; place-items: center; flex: none; width: 40px; height: 40px; padding: 0; margin-left: auto;
-  background: none; border: 1px solid var(--heroi-2); color: var(--heroi-texto); border-radius: 10px; cursor: pointer; transition: background .2s, border-color .2s; }
-
-/* Tema escuro: mesmos nomes de variável do site.css, valores do marinho do manual. */
-html[data-tema="escuro"] {
-  color-scheme: dark;
-  --papel: #07172F; --papel-2: #0B2142; --cartao: #0D2140; --cartao-solido: #0D2140;
-  --borda: #25395C; --regra: #25395C;
-  --tinta: #EAF1FA; --tinta-2: #B9C6DA; --tinta-3: #94A4BC; --titulo: #FFFFFF;
-  --verde: #5EE7D6; --verde-forte: #8CF0E3; --verde-fraco: rgba(0, 185, 167, .16);
-  --heroi: #07172F; --heroi-texto: #FFFFFF; --heroi-2: #B9C6DA; --heroi-regra: #25395C;
-  --foco: #5EE7D6; --sombra: 0 10px 30px rgba(0, 0, 0, .35);
-}
-@media (prefers-color-scheme: dark) {
-  html:not([data-tema="claro"]) {
-    color-scheme: dark;
-    --papel: #07172F; --papel-2: #0B2142; --cartao: #0D2140; --cartao-solido: #0D2140;
-    --borda: #25395C; --regra: #25395C;
-    --tinta: #EAF1FA; --tinta-2: #B9C6DA; --tinta-3: #94A4BC; --titulo: #FFFFFF;
-    --verde: #5EE7D6; --verde-forte: #8CF0E3; --verde-fraco: rgba(0, 185, 167, .16);
-    --heroi: #07172F; --heroi-texto: #FFFFFF; --heroi-2: #B9C6DA; --heroi-regra: #25395C;
-    --foco: #5EE7D6; --sombra: 0 10px 30px rgba(0, 0, 0, .35);
-  }
-}
-/* Logo em fundo escuro: versão reversa (texto branco). */
-html[data-tema="escuro"] .marca { background-image: url(marca/logo-reverso.png); }
-@media (prefers-color-scheme: dark) { html:not([data-tema="claro"]) .marca { background-image: url(marca/logo-reverso.png); } }
+/* Páginas legais (privacidade.html e termos.html): texto e rodapé. O tema claro/escuro vem do site.css (botão do topo, tema.js). */
 
 /* Texto */
 .legal { max-width: 780px; padding-block: 40px 72px; }

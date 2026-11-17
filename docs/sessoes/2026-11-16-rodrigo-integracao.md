@@ -12,13 +12,14 @@ O site publicado (`feat/site-novo`, Lucas) tem outro design, e o login da Gabi m
 
 - **Commitado:** merge de `feat/ajustes-login-google` (inclui a branch da Gabi) sobre o site novo. Conflitos: `.gitignore` (mantidas as duas entradas), `chat.html` e `conta.html` (cabeçalho e scripts do site novo, scripts com versão nova `20261117a`).
 - `acesso.html` (recuperar senha e reenviar verificação, da Gabi): cabeçalho do design novo (fontes Sora/Inter, ícones, tema claro) e a CSP passou a liberar as fontes do Google (`fonts.googleapis.com` e `fonts.gstatic.com`).
-- **Páginas legais no design novo, com modo claro e escuro:** `privacidade.html` e `termos.html` (texto da `feat/paginas-legais`), `assets/legal.css` (tema escuro e botão de tema só nessas duas páginas; o resto do site continua só claro, por decisão do time em 15/11), links no rodapé da `index.html` e na frase de aceite do `chat.html`.
+- **Páginas legais no design novo, com modo claro e escuro:** `privacidade.html` e `termos.html` (texto da `feat/paginas-legais`), `assets/legal.css` (texto e rodapé), links no rodapé da `index.html` e na frase de aceite do `chat.html`.
+- **Tema claro/escuro no site inteiro** (pedido do dono, revertendo "o tema escuro saiu" do time em 15/11): bloco `html[data-tema="escuro"]` e `prefers-color-scheme` no `site.css`; fundos fixos (`#FFFFFF`, `#E2E9F2`, rgba do mapa) viraram variáveis (`--cartao`, `--regra`, `--mapa-*`); novas `--fundo-escuro`, `--rodape`, `--linha-tracejada`; `--marinho` vira a cor da tinta no escuro; botão de tema visível em todas as páginas (e novo na `index.html`); `tema.js` com cores de `theme-color` novas; `<meta color-scheme>` = `light dark`. Claro continua idêntico ao do Lucas.
 - `assets/site.css`: espaço abaixo do bloco do botão Google (o link "Esqueci minha senha" ficava colado). `chat.html` com versão `20261117b`. **Só no disco até o próximo commit.**
 
 ## Verificado (e como)
 
 - `python -X utf8 site/dev/test_auth.py` (banco descartável): 164 testes, 163 passam, 2 pulados, 1 falha (SMTP com TLS, ver Armadilhas).
-- Servidor próprio na porta 8081 com banco clonado e Google simulado: cadastro com e-mail corporativo e verificação por link, conta antiga com "Verificar agora", login com Google, pré-sequestro de conta (senha do atacante anulada), admin recusado pelo Google, token inválido (401). Telas conferidas no Edge: entrar, conta e celular. Páginas legais: claro, escuro (pelo sistema e pelo botão, escolha guardada ao recarregar), celular de 390 px, sem rolagem lateral e sem erro de JavaScript.
+- Servidor próprio na porta 8081 com banco clonado e Google simulado: cadastro com e-mail corporativo e verificação por link, conta antiga com "Verificar agora", login com Google, pré-sequestro de conta (senha do atacante anulada), admin recusado pelo Google, token inválido (401). Telas conferidas no Edge: entrar, conta e celular. Tema escuro conferido na página principal, entrar, chat com mapa, conta, técnica e modelos (claro sem mudança visual, celular sem rolagem lateral, sem erro de JavaScript; `admin.html` e a resposta com fontes/prova no chat ainda não vistas no escuro). Páginas legais: claro, escuro (pelo sistema e pelo botão, escolha guardada ao recarregar), celular de 390 px, sem rolagem lateral e sem erro de JavaScript.
 
 ## Não verificado
 
@@ -35,7 +36,7 @@ O site publicado (`feat/site-novo`, Lucas) tem outro design, e o login da Gabi m
 ## Em aberto (por prioridade)
 
 1. [ ] Commitar este ajuste de CSS e decidir o destino da branch (PR para a `main` ou entregar à Gabi). (origem: 2026-11-16-rodrigo-integracao)
-2. [ ] Decidir se o tema escuro volta ao site inteiro (hoje só as páginas legais o têm) e subir as páginas legais para o Google (`gh-pages` ainda tem a versão antiga). (origem: 2026-11-16-rodrigo-integracao)
+2. [ ] Combinar o tema escuro com o Lucas (sem escolha guardada o site segue o tema do sistema; para abrir sempre no claro, trocar o padrão em `tema.js`) e subir as páginas legais para o Google (`gh-pages` ainda tem a versão antiga). (origem: 2026-11-16-rodrigo-integracao)
 3. [ ] Perguntar ao Lucas se o logo sumir no celular é de propósito. (origem: 2026-11-16-rodrigo-integracao)
 4. [ ] Corrigir ou pular o teste de SMTP com TLS no Windows. (origem: 2026-11-16-rodrigo-integracao)
 

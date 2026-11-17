@@ -5,7 +5,7 @@
    - turquesa é a luz: o caminho consultado no mapa e o botão principal, sempre com texto marinho (6,7:1).
      Turquesa nunca vira texto sobre branco (2,5:1);
    - verde só marca prova conferida (o hash bateu com a fonte); violeta só marca o que a IA escreveu.
-   O tema escuro saiu nesta versão. Os nomes --verde e --heroi-verde são antigos: --verde é a cor de texto de destaque
+   O tema escuro voltou em 16/11/2026 (botão no topo; sem escolha guardada vale o do sistema). Os nomes --verde e --heroi-verde são antigos: --verde é a cor de texto de destaque
    (marinho, que passa no contraste) e --turquesa é a luz. */
 :root {
   color-scheme: light;
@@ -33,10 +33,52 @@
   --bolha-bg: #FFFFFF; --bolha-texto: #07172F; --bolha-apoio: #3F4C66; --bolha-destaque: #0F1E3D; --bolha-eu: #E5F7F5;
   --grafo-halo: #FFFFFF;
   --dica-bg: #0F1E3D;
+  --fundo-escuro: #0F1E3D; --rodape: #07172F; --linha-tracejada: #B9C6D8;
+  --mapa-aresta: rgba(15, 30, 61, .14); --mapa-no: rgba(15, 30, 61, .3); --mapa-rot: rgba(15, 30, 61, .66); --mapa-rot-2: rgba(15, 30, 61, .74); --mapa-fora: rgba(15, 30, 61, .45);
   --serifa: "Sora", "Inter", Arial, sans-serif;
   --titulos: "Sora", "Inter", Arial, sans-serif;
   --texto: "Inter", Arial, sans-serif;
   --mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+}
+
+/* ---------- Tema escuro ----------
+   Mesmos nomes de variável do tema claro. --marinho vira a cor da tinta (texto, fios, ícones); quando o marinho é FUNDO
+   (balão do usuário, faixa escura, bloco de código) o CSS usa --fundo-escuro. */
+html[data-tema="escuro"] {
+  color-scheme: dark;
+  --marinho: #EAF1FA; --gelo: #0B2142; --divisoria: #25395C;
+  --papel: #07172F; --papel-2: #0B2142; --cartao: #0D2140; --cartao-solido: #0D2140;
+  --borda: #25395C; --regra: #25395C; --linha-forte: #EAF1FA;
+  --tinta: #EAF1FA; --tinta-2: #B9C6DA; --tinta-3: #94A4BC; --titulo: #FFFFFF;
+  --verde: #5EE7D6; --verde-forte: #8CF0E3; --verde-fraco: rgba(0, 185, 167, .16);
+  --ok: #4ADE9F; --ok-fraco: rgba(74, 222, 159, .14); --ambar: #F5B84B; --ambar-fraco: rgba(245, 184, 75, .14);
+  --vermelho: #FF8A80; --vermelho-fraco: rgba(255, 138, 128, .14);
+  --foco: #5EE7D6; --sombra: 0 10px 30px rgba(0, 0, 0, .35);
+  --heroi: #07172F; --heroi-texto: #FFFFFF; --heroi-2: #B9C6DA; --heroi-regra: #25395C;
+  --eu: #14305A; --eu-texto: #FFFFFF; --bolha-bg: #0D2140; --bolha-texto: #EAF1FA; --bolha-apoio: #B9C6DA; --bolha-destaque: #FFFFFF; --bolha-eu: rgba(0, 185, 167, .18);
+  --grafo-halo: #07172F; --dica-bg: #14305A; --codigo-bg: #040F20;
+  --fundo-escuro: #12294D; --rodape: #030C1A; --linha-tracejada: #3A5078;
+  --mapa-aresta: rgba(255, 255, 255, .16); --mapa-no: rgba(255, 255, 255, .42); --mapa-rot: rgba(234, 241, 250, .72); --mapa-rot-2: rgba(234, 241, 250, .88); --mapa-fora: rgba(255, 255, 255, .5);
+}
+html[data-tema="escuro"] .marca { background-image: url(marca/logo-reverso.png); }
+@media (prefers-color-scheme: dark) {
+  html:not([data-tema="claro"]) {
+    color-scheme: dark;
+    --marinho: #EAF1FA; --gelo: #0B2142; --divisoria: #25395C;
+    --papel: #07172F; --papel-2: #0B2142; --cartao: #0D2140; --cartao-solido: #0D2140;
+    --borda: #25395C; --regra: #25395C; --linha-forte: #EAF1FA;
+    --tinta: #EAF1FA; --tinta-2: #B9C6DA; --tinta-3: #94A4BC; --titulo: #FFFFFF;
+    --verde: #5EE7D6; --verde-forte: #8CF0E3; --verde-fraco: rgba(0, 185, 167, .16);
+    --ok: #4ADE9F; --ok-fraco: rgba(74, 222, 159, .14); --ambar: #F5B84B; --ambar-fraco: rgba(245, 184, 75, .14);
+    --vermelho: #FF8A80; --vermelho-fraco: rgba(255, 138, 128, .14);
+    --foco: #5EE7D6; --sombra: 0 10px 30px rgba(0, 0, 0, .35);
+    --heroi: #07172F; --heroi-texto: #FFFFFF; --heroi-2: #B9C6DA; --heroi-regra: #25395C;
+    --eu: #14305A; --eu-texto: #FFFFFF; --bolha-bg: #0D2140; --bolha-texto: #EAF1FA; --bolha-apoio: #B9C6DA; --bolha-destaque: #FFFFFF; --bolha-eu: rgba(0, 185, 167, .18);
+    --grafo-halo: #07172F; --dica-bg: #14305A; --codigo-bg: #040F20;
+    --fundo-escuro: #12294D; --rodape: #030C1A; --linha-tracejada: #3A5078;
+    --mapa-aresta: rgba(255, 255, 255, .16); --mapa-no: rgba(255, 255, 255, .42); --mapa-rot: rgba(234, 241, 250, .72); --mapa-rot-2: rgba(234, 241, 250, .88); --mapa-fora: rgba(255, 255, 255, .5);
+  }
+  html:not([data-tema="claro"]) .marca { background-image: url(marca/logo-reverso.png); }
 }
 
 * { box-sizing: border-box; }
@@ -66,8 +108,8 @@ p { margin: 0 0 12px; }
 .link-botao { background: none; border: 1px solid var(--heroi-2); color: var(--heroi-texto); border-radius: 10px; padding: 6px 12px; min-height: 36px; font: 600 14px var(--texto); cursor: pointer; transition: background .2s, border-color .2s; }
 .link-botao:hover { background: var(--verde-fraco); border-color: var(--verde); }
 @media (max-width: 560px) { .topo-acoes .quem { display: none; } }
-.tema-botao { display: none !important; }   /* o tema escuro saiu nesta versão; o botão fica no HTML sem aparecer */
-.tema-botao-antigo { flex: none; display: inline-grid; place-items: center; width: 40px; height: 40px; padding: 0; background: none; border: 1px solid var(--heroi-2); color: var(--heroi-texto); border-radius: 10px; cursor: pointer; transition: background .2s, border-color .2s; }
+.tema-botao { flex: none; display: inline-grid; place-items: center; width: 40px; height: 40px; padding: 0; background: none; border: 1px solid var(--heroi-2); color: var(--heroi-texto); border-radius: 10px; cursor: pointer; transition: background .2s, border-color .2s; }
+.topo .miolo > .tema-botao { margin-left: auto; }
 .tema-botao:hover { background: var(--verde-fraco); border-color: var(--verde); }
 .tema-botao svg { display: block; }
 html.embutido .tema-botao { display: none; }
@@ -311,7 +353,7 @@ html.embutido .planos { grid-template-columns: 1fr; }
    assistente embutido da página inicial, onde não há espaço para ele. */
 body.modo-chat main.miolo { max-width: 1440px; padding-left: max(24px, env(safe-area-inset-left, 0px)); padding-right: max(24px, env(safe-area-inset-right, 0px)); }
 .tela-chat { flex: 1; min-height: 0; display: flex; gap: 28px; align-items: stretch; }
-.tela-chat .chat { flex: 1 1 520px; min-width: 0; background: var(--gelo); border: 1px solid #E2E9F2; border-radius: 18px; }
+.tela-chat .chat { flex: 1 1 520px; min-width: 0; background: var(--gelo); border: 1px solid var(--regra); border-radius: 18px; }
 .chat-topo { flex: none; display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: nowrap; padding: 4px 6px 4px 16px; border-bottom: 1px solid var(--regra); }
 .chat-titulo { flex: 1 1 auto; display: flex; align-items: baseline; gap: 8px; min-width: 0; }
 .chat-titulo h1 { flex: none; }
@@ -320,7 +362,7 @@ body.modo-chat .topo .miolo { max-width: 1440px; padding-left: max(24px, env(saf
 .chat-titulo h1 { font-size: 15px; letter-spacing: 0; }
 .chat-titulo .plano-info { min-width: 0; font-size: 12px; color: var(--tinta-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .bt-mini { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 10px; border: 0; border-radius: 8px; background: transparent; color: var(--marinho); font: 600 13px var(--texto); cursor: pointer; transition: background .2s, transform .15s; }
-.bt-mini:hover { background: #FFFFFF; }
+.bt-mini:hover { background: var(--cartao); }
 .bt-mini:active { transform: scale(.97); }
 .tela-chat .conversa { padding: 18px 20px; gap: 18px; transition: padding .5s cubic-bezier(.2, .7, .2, 1); }
 .boas-vindas h2 { font-size: 22px; }
@@ -332,7 +374,7 @@ body.modo-chat .topo .miolo { max-width: 1440px; padding-left: max(24px, env(saf
 .progresso .pontos i { background: var(--turquesa); }
 .texto-resp { font-size: 15px; line-height: 1.6; color: var(--tinta); }
 .fontes { gap: 10px; margin-top: 2px; }
-.fonte-card { background: #FFFFFF; border: 1px solid var(--regra); border-radius: 12px; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; animation: surge .45s cubic-bezier(.2, .7, .2, 1) both; }
+.fonte-card { background: var(--cartao); border: 1px solid var(--regra); border-radius: 12px; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; animation: surge .45s cubic-bezier(.2, .7, .2, 1) both; }
 .fonte-cabeca { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; font: 600 12px var(--texto); color: var(--marinho); }
 .selo-hash { display: inline-flex; align-items: center; gap: 5px; font: 600 12px var(--texto); color: var(--marinho); background: var(--verde-prova); border-radius: 6px; padding: 3px 8px; }
 .selo-hash::before { content: ""; width: 9px; height: 5px; border-left: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: translateY(-2px) rotate(-45deg); }
@@ -349,9 +391,9 @@ a.exportar:hover { background-color: transparent; background-size: 100% 2px; }
 .trilho { display: flex; flex-wrap: nowrap; gap: 8px; overflow-x: auto; padding-right: 32px; scrollbar-width: none; -webkit-mask-image: linear-gradient(90deg, #000 90%, transparent); mask-image: linear-gradient(90deg, #000 90%, transparent); }
 .trilho::-webkit-scrollbar { display: none; }
 .trilho:empty { display: none; }
-.sugestao { flex: none; white-space: nowrap; min-height: 34px; padding: 0 12px; font: 500 13px/1.2 var(--texto); color: var(--marinho); background: #FFFFFF; border: 1px solid var(--regra); border-radius: 999px; }
-.sugestao:hover:not(:disabled) { border-color: var(--turquesa); background: #FFFFFF; transform: translateY(-1px); box-shadow: none; }
-.tela-chat .entrada { margin: 0; padding: 4px 4px 4px 14px; background: #FFFFFF; border: 1px solid var(--regra); border-radius: 12px; }
+.sugestao { flex: none; white-space: nowrap; min-height: 34px; padding: 0 12px; font: 500 13px/1.2 var(--texto); color: var(--marinho); background: var(--cartao); border: 1px solid var(--regra); border-radius: 999px; }
+.sugestao:hover:not(:disabled) { border-color: var(--turquesa); background: var(--cartao); transform: translateY(-1px); box-shadow: none; }
+.tela-chat .entrada { margin: 0; padding: 4px 4px 4px 14px; background: var(--cartao); border: 1px solid var(--regra); border-radius: 12px; }
 .tela-chat .entrada:focus-within { border-color: var(--marinho); outline: 0; }
 .tela-chat .entrada textarea { font-size: 15px; padding: 6px 0; }
 .tela-chat .entrada .enviar { width: 38px; height: 38px; border-radius: 10px; }
@@ -369,7 +411,7 @@ a.exportar:hover { background-color: transparent; background-size: 100% 2px; }
 .mapa-cabeca h2 { font-size: 20px; letter-spacing: -.01em; }
 .mapa-cabeca p { margin: 4px 0 0; font-size: 13px; line-height: 1.5; color: var(--tinta-3); }
 .mapa-contas { display: flex; flex-wrap: wrap; gap: 6px; font: 400 12px var(--mono); color: var(--marinho); }
-.mapa-contas span { border: 1px solid var(--regra); border-radius: 8px; padding: 6px 10px; background: #FFFFFF; }
+.mapa-contas span { border: 1px solid var(--regra); border-radius: 8px; padding: 6px 10px; background: var(--cartao); }
 .mapa-contas .prova { display: inline-flex; align-items: center; gap: 6px; border-color: var(--verde-prova); }
 .mapa-contas .prova::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--verde-prova); }
 .mapa-area { position: absolute; inset: 0; z-index: 0; }
@@ -381,9 +423,9 @@ a.exportar:hover { background-color: transparent; background-size: 100% 2px; }
 .pt.antes { width: 9px; height: 9px; border: 2px solid var(--turquesa); }
 .pt.ia { background: var(--violeta); }
 .pt.prova { width: 14px; height: 14px; margin: 0 -2px; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 14'%3E%3Ccircle cx='7' cy='7' r='6.2' fill='%2300D6A3' stroke='%230F1E3D' stroke-width='1.3'/%3E%3Cpath d='M4.4 7.1l1.8 1.8 3.4-3.6' fill='none' stroke='%230F1E3D' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / contain no-repeat; }
-.pt.fora { width: 10px; height: 10px; border: 1.5px dashed rgba(15, 30, 61, .45); }
+.pt.fora { width: 10px; height: 10px; border: 1.5px dashed var(--mapa-fora); }
 /* Nós e ligações do mapa */
-.mapa-svg .aresta { stroke: rgba(15, 30, 61, .14); stroke-width: 1.2; fill: none; transition: stroke .5s ease .55s, stroke-width .5s ease .55s; }
+.mapa-svg .aresta { stroke: var(--mapa-aresta); stroke-width: 1.2; fill: none; transition: stroke .5s ease .55s, stroke-width .5s ease .55s; }
 .mapa-svg .aresta.feito { stroke: var(--turquesa); stroke-width: 2.4; }
 .mapa-svg .aresta.antigo { stroke: rgba(0, 185, 167, .45); stroke-width: 1.6; transition: stroke .8s ease, stroke-width .8s ease; }
 .mapa-svg .aresta.fora { stroke-dasharray: 4 4; }
@@ -391,18 +433,18 @@ a.exportar:hover { background-color: transparent; background-size: 100% 2px; }
 .mapa-svg .luz.corre { opacity: 1; animation: corre .95s cubic-bezier(.45, .05, .25, 1) forwards; }
 .mapa-svg .luz.violeta { stroke: var(--violeta); filter: drop-shadow(0 0 6px rgba(122, 92, 255, .7)); }
 @keyframes corre { from { stroke-dashoffset: 16; } to { stroke-dashoffset: -100; } }
-.mapa-svg .no .miolo { fill: #FFFFFF; stroke: rgba(15, 30, 61, .3); stroke-width: 1.3; transition: fill .45s ease, stroke .45s ease; }
+.mapa-svg .no .miolo { fill: var(--cartao); stroke: var(--mapa-no); stroke-width: 1.3; transition: fill .45s ease, stroke .45s ease; }
 .mapa-svg .no.fora .miolo { stroke-dasharray: 3 3; }
 .mapa-svg .no .onda { fill: none; stroke: var(--turquesa); stroke-width: 2.2; opacity: 0; transform-box: fill-box; transform-origin: center; }
-.mapa-svg .no .rot { fill: rgba(15, 30, 61, .66); font: 500 12px var(--texto); text-anchor: middle; transition: fill .45s ease; }
+.mapa-svg .no .rot { fill: var(--mapa-rot); font: 500 12px var(--texto); text-anchor: middle; transition: fill .45s ease; }
 .mapa-svg .no .check { fill: none; stroke: var(--marinho); stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; opacity: 0; transition: opacity .3s ease .2s; }
 .mapa-svg .no.ativo .miolo { fill: var(--turquesa); stroke: var(--marinho); stroke-width: 1.6; }
 .mapa-svg .no.ativo .onda, .mapa-svg .no.prova .onda, .mapa-svg .no.ia .onda { animation: onda 1.3s ease-out; }
 .mapa-svg .no.ativo .rot, .mapa-svg .no.prova .rot, .mapa-svg .no.ia .rot { fill: var(--marinho); font-weight: 600; }
-.mapa-svg .no.visto .miolo { fill: #FFFFFF; stroke: var(--turquesa); stroke-width: 2.6; }
+.mapa-svg .no.visto .miolo { fill: var(--cartao); stroke: var(--turquesa); stroke-width: 2.6; }
 .mapa-svg .no.visto .rot { fill: var(--marinho); }
 .mapa-svg .no.antigo .miolo { fill: var(--gelo); stroke: rgba(0, 185, 167, .6); stroke-width: 1.8; }
-.mapa-svg .no.antigo .rot { fill: rgba(15, 30, 61, .74); }
+.mapa-svg .no.antigo .rot { fill: var(--mapa-rot-2); }
 .mapa-svg .no.prova .miolo { fill: var(--verde-prova); stroke: var(--marinho); stroke-width: 1.6; }
 .mapa-svg .no.prova .onda { stroke: var(--verde-prova); }
 .mapa-svg .no.prova .check { opacity: 1; }

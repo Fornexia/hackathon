@@ -3,7 +3,7 @@
 // para a tela não piscar no tema errado. Os botões são qualquer elemento com data-tema-botao.
 (() => {
   const CHAVE = 'fornexia-tema'
-  const COR_DO_NAVEGADOR = { escuro: '#03162d', claro: '#f2f7fb' }
+  const COR_DO_NAVEGADOR = { escuro: '#07172F', claro: '#FFFFFF' }
   const raiz = document.documentElement
 
   const guardado = () => {
