@@ -23,6 +23,7 @@ da fonte, e cada perfil vê só o que está autorizado a ver.
 | `fixtures/` | Dados fictícios para desenvolver sem a captura real (três entes, uma pessoa física, um texto malicioso) |
 | `bench/` | Benchmark (vários modelos, com gabarito congelado) e teste de carga do site. Passo a passo com dados fictícios e vários provedores de modelo (Claude, DeepSeek, Gemini): seção 18 de `docs/rodar-no-windows-e-no-linux.md` |
 | `esquema/`, `infra/` | Restrições do grafo e Docker Compose local |
+| `scripts/backup.py` | Backup cifrado (segredos, `dados/`, grafo do Neo4j, WhatsApp) e restauração em outro notebook: [`docs/backup-e-restauracao.md`](docs/backup-e-restauracao.md) |
 | `canal-whatsapp/` | Gateway Baileys, canal MCP e controle de acesso |
 | `site/` | Site PHP 8.2 + MariaDB: páginas, API (`public_html/api/`), `setup.php` e `deploy.sh` para a Hostinger |
 | `site/dev/` | Ambiente local do site: Docker do banco, roteador do servidor embutido do PHP, worker falso e os 80 testes da API |
