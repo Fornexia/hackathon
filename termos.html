@@ -3,37 +3,23 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="color-scheme" content="dark light">
-<meta name="theme-color" content="#03162d" media="(prefers-color-scheme: dark)">
-<meta name="theme-color" content="#f2f7fb" media="(prefers-color-scheme: light)">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#07172F" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
 <title>Termos de Serviço | FornexIA</title>
 <meta name="description" content="Regras de uso do FornexIA: o que o serviço é, o que as informações significam, o que é permitido e os limites de responsabilidade.">
-<link rel="icon" href="icone.svg" type="image/svg+xml">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap">
-<link rel="stylesheet" href="assets/site.css?v=20261115a">
-<style>
-  .legal { max-width: 780px; padding-block: 40px 72px; }
-  .legal h1 { font-size: clamp(30px, 4vw, 42px); font-weight: 800; color: var(--titulo); margin: 0 0 6px; }
-  .legal .data { color: var(--tinta-3); font-size: 15px; margin: 0 0 22px; }
-  .legal .lide { color: var(--tinta-2); font-size: 18px; margin: 0 0 8px; max-width: none; }
-  .legal section { margin-top: 30px; padding-top: 22px; border-top: 1px solid var(--regra); }
-  .legal h2 { font-size: 22px; font-weight: 800; color: var(--titulo); margin: 0 0 10px; }
-  .legal p, .legal li { color: var(--tinta-2); font-size: 16.5px; line-height: 1.65; }
-  .legal p { margin: 0 0 12px; }
-  .legal ul { margin: 0 0 12px; padding-left: 22px; }
-  .legal li { margin-bottom: 7px; }
-  .legal strong { color: var(--tinta); }
-  .legal a { color: var(--verde); text-underline-offset: 3px; }
-  .legal .destaque { border-left: 3px solid var(--verde); background: var(--verde-fraco); padding: 12px 14px; border-radius: 0 10px 10px 0; }
-  .legal .destaque p { margin: 0; color: var(--tinta); }
-</style>
-<script src="assets/tema.js?v=20261115a"></script>
+<link rel="icon" href="icone-32.png" type="image/png" sizes="32x32">
+<link rel="apple-touch-icon" href="icone-192.png">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="assets/site.css?v=20261117e">
+<link rel="stylesheet" href="assets/legal.css?v=20261117e">
+<script src="assets/tema.js?v=20261117e"></script>
 </head>
 <body>
 
 <header class="topo">
   <div class="miolo">
-    <a class="marca" href="https://fornexia.figueiredo.dev/">Fornex<span>IA</span></a>
+    <a class="marca" href="https://fornexia.figueiredo.dev/" aria-label="FornexIA, página inicial">Fornex<span>IA</span></a>
     <button type="button" class="tema-botao" data-tema-botao></button>
   </div>
 </header>
@@ -125,10 +111,15 @@
   </section>
 </main>
 
-<footer>
-  <div class="faixa-centro">
-    <p><b>FornexIA</b> é um protótipo da Equipe Nexus, criado no Hack Garanhuns Tech 2026. Sem vínculo oficial com empresas ou órgãos citados.</p>
-    <p><a href="privacidade.html">Política de Privacidade</a> · <a href="termos.html">Termos de Serviço</a> · <a href="https://fornexia.figueiredo.dev/">Início</a></p>
+<footer class="rodape-legal">
+  <div class="miolo">
+    <img src="assets/marca/logo-reverso.png" alt="FornexIA — Dados públicos. Decisões seguras.">
+    <nav aria-label="Rodapé">
+      <a href="privacidade.html">Política de Privacidade</a>
+      <a href="termos.html">Termos de Serviço</a>
+      <a href="https://fornexia.figueiredo.dev/">Início</a>
+    </nav>
+    <p>FornexIA é um protótipo da Equipe Nexus, criado no Hack Garanhuns Tech 2026. Sem vínculo oficial com empresas ou órgãos citados.</p>
   </div>
 </footer>
 
