@@ -22,7 +22,7 @@
     if (r.status !== 204) { try { dados = await r.json() } catch { /* corpo vazio ou não JSON */ } }
     if (dados && typeof dados === 'object' && dados.csrf) csrf = dados.csrf
     // Token vencido (sessão renovada em outra aba): busca um novo e repete uma vez.
-    if (r.status === 403 && metodo !== 'GET' && !jaTentou) {
+    if (r.status === 403 && dados?.codigo === 'csrf' && metodo !== 'GET' && !jaTentou) {
       csrf = null
       await me()
       return enviar(metodo, caminho, corpo, true)
@@ -42,8 +42,14 @@
     me,
     planos: () => enviar('GET', '/planos'),
     painel: () => enviar('GET', '/painel'),
-    cadastrar: (nome, email, senha) => enviar('POST', '/cadastro', { nome, email, senha }),
+    cadastrar: (nome, email, senha, confirmacao) => enviar('POST', '/cadastro', { nome, email, senha, confirmacao }),
+    reenviarVerificacao: email => enviar('POST', '/email/reenviar', { email }),
+    verificarEmail: token => enviar('POST', '/email/verificar', { token }),
+    verificarConta: () => enviar('POST', '/email/verificar-conta', {}),
+    recuperarSenha: email => enviar('POST', '/senha/recuperar', { email }),
+    redefinirSenha: (token, senha, confirmacao) => enviar('POST', '/senha/redefinir', { token, senha, confirmacao }),
     entrar: (email, senha) => enviar('POST', '/login', { email, senha }),
+    entrarGoogle: credential => enviar('POST', '/login/google', { credential }),
     sair: () => enviar('POST', '/logout', {}),
     ativarPlano: planoId => enviar('POST', '/assinatura', { plano_id: planoId }),
     perguntar: texto => enviar('POST', '/perguntas', { texto }),
@@ -67,4 +73,13 @@
       }
     },
   }
+  // Consultas automáticas do chat não prolongam a sessão. Apenas interação da pessoa.
+  let ultimaAtividade = 0
+  const atividade = e => {
+    if (!e.isTrusted || document.hidden || Date.now() - ultimaAtividade < 60000) return
+    ultimaAtividade = Date.now()
+    enviar('POST', '/sessao/atividade', {}).catch(() => {})
+  }
+  document.addEventListener('pointerdown', atividade, { passive: true })
+  document.addEventListener('keydown', atividade)
 })()

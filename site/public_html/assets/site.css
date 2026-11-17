@@ -200,6 +200,13 @@ html.embutido .topo-links { display: none; }
 .status.aprovado { background: var(--ok-fraco); color: var(--ok); }
 .status.revogado { background: var(--vermelho-fraco); color: var(--vermelho); }
 .vazio { padding: 22px; text-align: center; color: var(--tinta-3); border: 1px dashed var(--regra); border-radius: 12px; margin-top: 18px; }
+/* Entrar com Google: divisor "ou" e o botão do Google (iframe; só aceita tema, formato e largura). */
+.acesso-google { margin-top: 18px; }
+.acesso-google .divisor { display: flex; align-items: center; gap: 12px; color: var(--tinta-3); font: 600 13px var(--texto); }
+.acesso-google .divisor::before, .acesso-google .divisor::after { content: ""; flex: 1; height: 1px; background: var(--regra); }
+.acesso-google .botao-google { display: flex; justify-content: center; min-height: 40px; margin-top: 14px; }
+.acesso-google .botao-google.escuro { border-radius: 12px; overflow: hidden; }
+.acesso-google small { display: block; margin-top: 10px; text-align: center; color: var(--tinta-3); font-size: 13px; }
 .aviso-ok { margin: 0 0 14px; padding: 10px 12px; border-left: 3px solid var(--ok); background: var(--ok-fraco); color: var(--tinta); font-size: 15px; border-radius: 0 10px 10px 0; }
 .filtros { margin-bottom: 4px; flex-wrap: wrap; }
 .topo-da-lista { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px; }

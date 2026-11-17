@@ -10,8 +10,8 @@
 <link rel="icon" href="icone-32.png" type="image/png" sizes="32x32">
 <link rel="apple-touch-icon" href="icone-192.png">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
-<link rel="stylesheet" href="assets/site.css?v=20261116a">
-<script src="assets/tema.js?v=20261116a"></script>
+<link rel="stylesheet" href="assets/site.css?v=20261117a">
+<script src="assets/tema.js?v=20261117a"></script>
 </head>
 <body>
 
@@ -53,19 +53,25 @@
         <div class="campo"><label for="entrar-email">E-mail</label><input id="entrar-email" type="email" autocomplete="email" required></div>
         <div class="campo"><label for="entrar-senha">Senha</label><input id="entrar-senha" type="password" autocomplete="current-password" required></div>
         <button class="botao cheio" type="submit">Entrar</button>
+        <div class="acesso-google" hidden><div class="divisor"><span>ou</span></div><div class="botao-google"></div><small>Seu e-mail já vem verificado pelo Google</small></div>
+        <p class="apoio"><a href="acesso.html">Esqueci minha senha</a> · <a href="acesso.html#reenviar">Reenviar verificação</a></p>
       </form>
 
       <form id="form-cadastro" role="tabpanel" aria-labelledby="aba-cadastro" novalidate hidden>
         <p class="aviso-erro" id="erro-cadastro" role="alert" hidden></p>
         <div class="campo"><label for="cad-nome">Nome</label><input id="cad-nome" type="text" autocomplete="name" maxlength="120" required></div>
-        <div class="campo"><label for="cad-email">E-mail</label><input id="cad-email" type="email" autocomplete="email" maxlength="190" required></div>
+        <div class="campo"><label for="cad-email">E-mail</label><input id="cad-email" type="email" autocomplete="email" maxlength="190" required aria-describedby="cad-email-dica"><small id="cad-email-dica">Use seu e-mail pessoal ou corporativo. Enviaremos um link para verificá-lo.</small></div>
         <div class="campo">
           <label for="cad-senha">Senha</label>
-          <input id="cad-senha" type="password" autocomplete="new-password" minlength="8" maxlength="72" required aria-describedby="cad-senha-dica">
-          <small id="cad-senha-dica">Pelo menos 8 caracteres.</small>
+          <input id="cad-senha" type="password" autocomplete="new-password" minlength="15" maxlength="128" required aria-describedby="cad-senha-dica">
+          <small id="cad-senha-dica">De 15 a 128 caracteres. Crie uma senha exclusiva do FORNEX, diferente da senha do seu e-mail.</small>
         </div>
+        <div class="campo"><label for="cad-confirmacao">Confirme a senha</label><input id="cad-confirmacao" type="password" autocomplete="new-password" minlength="15" maxlength="128" required></div>
         <button class="botao cheio" type="submit">Criar conta</button>
+        <div class="acesso-google" hidden><div class="divisor"><span>ou</span></div><div class="botao-google"></div><small>Seu e-mail já vem verificado pelo Google</small></div>
       </form>
+      <p id="cadastro-status" class="aviso-ok" role="status" hidden></p>
+      <p id="cadastro-reenvio" class="apoio" hidden><a href="acesso.html#reenviar">Solicitar novo link de verificação</a></p>
     </div>
     <p class="apoio" style="margin-top:14px">Demonstração com dados fictícios. Não pedimos cartão nem cobramos nada.</p>
   </section>
@@ -124,8 +130,8 @@
 
 </main>
 
-<script src="assets/api.js?v=20261116a"></script>
-<script src="assets/grafo.js?v=20261116a"></script>
-<script src="assets/chat.js?v=20261116b"></script>
+<script src="assets/api.js?v=20261117a"></script>
+<script src="assets/grafo.js?v=20261117a"></script>
+<script src="assets/chat.js?v=20261117a"></script>
 </body>
 </html>

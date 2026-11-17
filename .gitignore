@@ -16,6 +16,7 @@ portal/dados/bruto/
 
 # Ambiente
 node_modules/
+site/vendor/
 .venv/
 __pycache__/
 
@@ -44,3 +45,7 @@ inferencia/modelos/
 
 # Saída do playwright-cli (prints e snapshots de página, podem ter dado de sessão logada)
 .playwright-cli/
+
+# Sessões privadas e arquivos locais de contas do teste de carga
+site/sessoes/
+bench/contas-carga*.json
