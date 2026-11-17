@@ -12,18 +12,19 @@ O site publicado (`feat/site-novo`, Lucas) tem outro design, e o login da Gabi m
 
 - **Commitado:** merge de `feat/ajustes-login-google` (inclui a branch da Gabi) sobre o site novo. Conflitos: `.gitignore` (mantidas as duas entradas), `chat.html` e `conta.html` (cabeçalho e scripts do site novo, scripts com versão nova `20261117a`).
 - `acesso.html` (recuperar senha e reenviar verificação, da Gabi): cabeçalho do design novo (fontes Sora/Inter, ícones, tema claro) e a CSP passou a liberar as fontes do Google (`fonts.googleapis.com` e `fonts.gstatic.com`).
+- **Páginas legais no design novo, com modo claro e escuro:** `privacidade.html` e `termos.html` (texto da `feat/paginas-legais`), `assets/legal.css` (tema escuro e botão de tema só nessas duas páginas; o resto do site continua só claro, por decisão do time em 15/11), links no rodapé da `index.html` e na frase de aceite do `chat.html`.
 - `assets/site.css`: espaço abaixo do bloco do botão Google (o link "Esqueci minha senha" ficava colado). `chat.html` com versão `20261117b`. **Só no disco até o próximo commit.**
 
 ## Verificado (e como)
 
 - `python -X utf8 site/dev/test_auth.py` (banco descartável): 164 testes, 163 passam, 2 pulados, 1 falha (SMTP com TLS, ver Armadilhas).
-- Servidor próprio na porta 8081 com banco clonado e Google simulado: cadastro com e-mail corporativo e verificação por link, conta antiga com "Verificar agora", login com Google, pré-sequestro de conta (senha do atacante anulada), admin recusado pelo Google, token inválido (401). Telas conferidas no Edge: entrar, conta e celular.
+- Servidor próprio na porta 8081 com banco clonado e Google simulado: cadastro com e-mail corporativo e verificação por link, conta antiga com "Verificar agora", login com Google, pré-sequestro de conta (senha do atacante anulada), admin recusado pelo Google, token inválido (401). Telas conferidas no Edge: entrar, conta e celular. Páginas legais: claro, escuro (pelo sistema e pelo botão, escolha guardada ao recarregar), celular de 390 px, sem rolagem lateral e sem erro de JavaScript.
 
 ## Não verificado
 
 - Clique no botão real do Google (precisa de `http://localhost:8080`, conta de teste e o Client ID no config).
 - Nenhuma página do site em produção; nada foi publicado.
-- `privacidade.html` e `termos.html` ainda estão no design antigo na `feat/paginas-legais`; não entraram aqui.
+- Revisão jurídica do texto das páginas legais (continua sendo rascunho).
 
 ## Decisões e motivo
 
@@ -34,7 +35,7 @@ O site publicado (`feat/site-novo`, Lucas) tem outro design, e o login da Gabi m
 ## Em aberto (por prioridade)
 
 1. [ ] Commitar este ajuste de CSS e decidir o destino da branch (PR para a `main` ou entregar à Gabi). (origem: 2026-11-16-rodrigo-integracao)
-2. [ ] Levar `privacidade.html` e `termos.html` ao design novo e juntá-las. (origem: 2026-11-16-rodrigo-integracao)
+2. [ ] Decidir se o tema escuro volta ao site inteiro (hoje só as páginas legais o têm) e subir as páginas legais para o Google (`gh-pages` ainda tem a versão antiga). (origem: 2026-11-16-rodrigo-integracao)
 3. [ ] Perguntar ao Lucas se o logo sumir no celular é de propósito. (origem: 2026-11-16-rodrigo-integracao)
 4. [ ] Corrigir ou pular o teste de SMTP com TLS no Windows. (origem: 2026-11-16-rodrigo-integracao)
 
@@ -50,4 +51,4 @@ O site publicado (`feat/site-novo`, Lucas) tem outro design, e o login da Gabi m
 
 ## Próximo passo sugerido
 
-Confirmar com o dono o destino da branch e levar as páginas legais ao design novo.
+Confirmar com o dono o destino da branch.
