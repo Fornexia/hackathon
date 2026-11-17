@@ -6,14 +6,20 @@
 
 ## Resumo
 
+Pedido posterior da usuaria: cancelar a inclusao dos PDFs na branch de autenticacao. Removidos os dois documentos em novo commit de desfazimento, com envio a mesma branch, preservando historico, codigo e arquivos originais em Downloads. O registro abaixo descreve a inclusao anterior, agora desfeita.
+
 A pedido da usuaria, adicionados dois PDFs comerciais fornecidos em Downloads, sem editar o conteudo. Preparado commit limitado aos dois documentos e a este diario obrigatorio, seguido de envio autorizado para a branch atual. Alteracoes locais anteriores permanecem fora deste envio.
 
 ## Feito
+
+- Desfeita a inclusao de docs/comercial/analise-de-rentabilidade-fornex.pdf e docs/comercial/proposta-preliminar-fornex.pdf feita em dbb788d. Nao criada outra branch ou PR. Este diario foi mantido para registrar a solicitacao e o cancelamento; nenhum commit anterior foi reescrito.
 
 - Incluidos docs/comercial/analise-de-rentabilidade-fornex.pdf e docs/comercial/proposta-preliminar-fornex.pdf, copias integrais dos originais. Este conjunto compoe o commit de documentos da tarefa.
 - Nenhuma alteracao em codigo, configuracao privada ou banco. Relatorio Markdown e diario do dia anterior, ja modificados antes desta tarefa, preservados sem incluir no commit.
 
 ## Verificado (e como)
+
+- Cancelamento, Windows local: branch/status/log e referencias remotas conferidos. A remocao abrange somente os dois PDFs; originais em Downloads preservados. Conteudo de autenticacao permanece identico a 09267ca. Diario validado e diff conferido antes do commit; alteracoes locais da analise anterior continuam fora do indice. Sem repetir testes de produto, pois nao houve mudanca em codigo.
 
 - Windows local, Python da .venv e Git: status e log conferidos; git fetch origin sem merge/rebase confirmou a branch atual sincronizada antes do envio. Lidos instrucoes e tres diarios recentes.
 - PDFs abertos com PyMuPDF temporario: 20 e 8 paginas, respectivamente, sem anexos. Varredura do texto nao encontrou padroes de chaves privadas, tokens de provedor, enderecos pessoais, documento pessoal formatado ou telefone. Metadados de autoria mantidos. Conferencia de SHA-256 comprovou copias identicas aos originais.
