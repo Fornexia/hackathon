@@ -9,15 +9,18 @@ const LOGIN_MAX_POR_IP = 20;
 const LOGIN_MAX_POR_EMAIL = 30;        // limite global do e-mail: segura ataque vindo de muitos IPs
 
 function usuario_atual(): ?array {
-    static $cache = false;
-    if ($cache !== false) return $cache;
     $id = (int)($_SESSION['uid'] ?? 0);
-    if ($id <= 0) return $cache = null;
-    $st = db()->prepare('SELECT id, nome, email, papel FROM usuarios WHERE id = ?');
+    if ($id <= 0) return null;
+    $st = db()->prepare('SELECT id, nome, email, papel, auth_versao, email_verificacao_exigida, email_verificado_em FROM usuarios WHERE id = ?');
     $st->execute([$id]);
     $u = $st->fetch() ?: null;
-    if ($u === null) unset($_SESSION['uid']);   // conta apagada: a sessão deixa de valer
-    return $cache = $u;
+    if ($u === null || (int)$u['auth_versao'] !== (int)($_SESSION['auth_versao'] ?? 0)
+        || ((int)$u['email_verificacao_exigida'] === 1 && $u['email_verificado_em'] === null)) {
+        $_SESSION = [];
+        session_regenerate_id(true);
+        return null;
+    }
+    return $u;
 }
 
 function exigir_login(): array {
@@ -63,9 +66,12 @@ function plano_ativo(int $usuarioId): ?array {
     return $p ? plano_para_json($p) : null;
 }
 
-function entrar(int $usuarioId): void {
+function entrar(int $usuarioId, int $versao = 0): void {
     session_regenerate_id(true);   // evita fixação de sessão
+    $_SESSION = [];
     $_SESSION['uid'] = $usuarioId;
+    $_SESSION['auth_versao'] = $versao;
+    $_SESSION['criada_em'] = $_SESSION['ativa_em'] = time();
     $_SESSION['csrf'] = bin2hex(random_bytes(32));
 }
 
@@ -98,10 +104,16 @@ function registrar_falha(string $email, string $ip): void {
 function rota_me(): never {
     $u = usuario_atual();
     responder(200, [
-        'usuario' => $u ? ['id' => (int)$u['id'], 'nome' => $u['nome'], 'email' => $u['email'], 'papel' => $u['papel']] : null,
+        'usuario' => $u ? usuario_para_json($u) : null,
         'plano' => $u ? plano_ativo((int)$u['id']) : null,
         'csrf' => csrf_token(),
+        'google_client_id' => google_client_id() ?: null,
     ]);
+}
+
+function usuario_para_json(array $u): array {
+    return ['id' => (int)$u['id'], 'nome' => $u['nome'], 'email' => $u['email'],
+        'papel' => $u['papel'], 'email_verificado' => $u['email_verificado_em'] !== null];
 }
 
 function rota_planos(): never {
@@ -113,24 +125,71 @@ function rota_cadastro(): never {
     exigir_csrf();
     $c = corpo(8192);
     $nome = texto_limpo($c['nome'] ?? '', 120);
-    $email = strtolower(texto_limpo($c['email'] ?? '', 190));
-    $senha = is_string($c['senha'] ?? null) ? $c['senha'] : '';
+    $email = auth_email($c['email'] ?? '');
+    $senha = auth_validar_senha($c);
 
     if ($nome === '') erro(400, 'Informe seu nome.');
-    if ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) erro(400, 'Informe um e-mail válido.');
-    if (mb_strlen($senha) < 8) erro(400, 'A senha precisa ter pelo menos 8 caracteres.');
-    if (strlen($senha) > 72) erro(400, 'A senha pode ter no máximo 72 caracteres.');   // limite do bcrypt
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) erro(400, 'Informe um e-mail válido.');
+    auth_limitar('cadastro', $email);
+    auth_exigir_email();
+    $hash = auth_hash($senha);
+    $pdo = db();
+    $pdo->beginTransaction();
 
     try {
-        $st = db()->prepare('INSERT INTO usuarios (nome, email, senha_hash) VALUES (?, ?, ?)');
-        $st->execute([$nome, $email, password_hash($senha, PASSWORD_DEFAULT)]);
+        $st = $pdo->prepare('INSERT INTO usuarios (nome, email, senha_hash, papel, email_verificacao_exigida) VALUES (?, ?, ?, "usuario", 1)');
+        $st->execute([$nome, $email, $hash]);
+        auth_emitir_token(['id' => (int)$pdo->lastInsertId(), 'email' => $email], 'verificar');
+        $pdo->commit();
     } catch (PDOException $e) {
-        if ((int)($e->errorInfo[1] ?? 0) === 1062) erro(409, 'Já existe uma conta com este e-mail.');
+        if ($pdo->inTransaction()) $pdo->rollBack();
+        if ((int)($e->errorInfo[1] ?? 0) === 1062) auth_resposta_envio();
+        throw $e;
+    } catch (Throwable $e) {
+        if ($pdo->inTransaction()) $pdo->rollBack();
         throw $e;
     }
-    entrar((int)db()->lastInsertId());
-    $u = usuario_atual();
-    responder(201, ['usuario' => ['id' => (int)$u['id'], 'nome' => $u['nome'], 'email' => $u['email'], 'papel' => $u['papel']], 'csrf' => csrf_token()]);
+    auth_resposta_envio();
+}
+
+/** Sem respostas/exit aqui: finally precisa liberar as duas travas, inclusive nas recusas. */
+function validar_login(string $email, string $senha, string $ip): array {
+    $chaves = array_map(fn($v) => 'login:' . substr(hash('sha256', DB_NAME . ':' . $v), 0, 58), ['ip:' . $ip, 'email:' . $email]);
+    sort($chaves, SORT_STRING);
+    $travadas = [];
+    try {
+        foreach ($chaves as $chave) {
+            $st = db()->prepare('SELECT GET_LOCK(?, 5)');
+            $st->execute([$chave]);
+            if ((int)$st->fetchColumn() !== 1) return [429, null];
+            $travadas[] = $chave;
+        }
+        return validar_login_travado($email, $senha, $ip);
+    } finally {
+        foreach (array_reverse($travadas) as $chave) {
+            db()->prepare('SELECT RELEASE_LOCK(?)')->execute([$chave]);
+        }
+    }
+}
+
+function validar_login_travado(string $email, string $senha, string $ip): array {
+    if (login_bloqueado($email, $ip)) return [429, null];
+    $st = db()->prepare('SELECT id, senha_hash, auth_versao, email_verificacao_exigida, email_verificado_em FROM usuarios WHERE email = ?');
+    $st->execute([$email]);
+    $u = $st->fetch();
+    // Mesmo sem conta, executa a verificação de hash. Hashes legados podem ter custo diferente.
+    $hash = $u['senha_hash'] ?? '$argon2id$v=19$m=65536,t=4,p=1$cGp5cm15eUdXWndCT2l1UQ$y45kMLx7UCtFPNkCnRDuI9V9aPwRkAhG14VI9JwEsNM';
+    $ok = password_verify($senha, $hash) && $u !== false && $u['senha_hash'] !== null;
+    if (!$ok) {
+        registrar_falha($email, $ip);
+        return [401, null];
+    }
+    if ((int)$u['email_verificacao_exigida'] === 1 && $u['email_verificado_em'] === null) {
+        registrar_falha($email, $ip);
+        return [403, null];
+    }
+    db()->prepare('DELETE FROM tentativas_login WHERE email = ? AND ip = ?')->execute([$email, $ip]);
+    return [200, $u];
 }
 
 function rota_login(): never {
@@ -138,28 +197,19 @@ function rota_login(): never {
     $c = corpo(8192);
     $email = strtolower(texto_limpo($c['email'] ?? '', 190));
     $senha = is_string($c['senha'] ?? null) ? $c['senha'] : '';
-    $ip = ip_do_cliente();
-
-    if (login_bloqueado($email, $ip)) {
+    if (strlen($senha) > 1024) erro(401, 'E-mail ou senha inválidos.');
+    [$status, $u] = validar_login($email, $senha, ip_do_cliente());
+    if ($status === 429) {
         header('Retry-After: 900');
         erro(429, 'Muitas tentativas. Aguarde alguns minutos e tente de novo.');
     }
-
-    $st = db()->prepare('SELECT id, senha_hash FROM usuarios WHERE email = ?');
-    $st->execute([$email]);
-    $u = $st->fetch();
-    // Mesmo sem conta, confere contra um hash de mentira: o tempo de resposta não revela se o e-mail existe.
-    $hash = $u['senha_hash'] ?? '$2y$10$wmfh6exi9fNUeu5iUDh6ze0dF4x4fCYrYPelIRkz4W/TUVyFZ/vr.';
-    $ok = password_verify($senha, $hash) && $u !== false;
-    if (!$ok) {
-        registrar_falha($email, $ip);
-        erro(401, 'E-mail ou senha inválidos.');   // não diz qual dos dois falhou
-    }
-    db()->prepare('DELETE FROM tentativas_login WHERE email = ? AND ip = ?')->execute([$email, $ip]);
-    entrar((int)$u['id']);
+    if ($status === 401) erro(401, 'E-mail ou senha inválidos.');
+    if ($status === 403) responder(403, ['erro' => 'Verifique seu e-mail antes de entrar. Você pode solicitar um novo link.', 'codigo' => 'email_nao_verificado']);
+    entrar((int)$u['id'], (int)$u['auth_versao']);
     $logado = usuario_atual();
+    if (!$logado) erro(401, 'Sua senha foi alterada. Entre novamente.');
     responder(200, [
-        'usuario' => ['id' => (int)$logado['id'], 'nome' => $logado['nome'], 'email' => $logado['email'], 'papel' => $logado['papel']],
+        'usuario' => usuario_para_json($logado),
         'plano' => plano_ativo((int)$logado['id']),
         'csrf' => csrf_token(),
     ]);
@@ -168,6 +218,8 @@ function rota_login(): never {
 function rota_logout(): never {
     exigir_csrf();
     $_SESSION = [];
+    $p = session_get_cookie_params();
+    setcookie(session_name(), '', ['expires' => time() - 3600, 'path' => $p['path'], 'secure' => $p['secure'], 'httponly' => true, 'samesite' => 'Lax']);
     session_destroy();
     responder(200, ['ok' => true]);
 }

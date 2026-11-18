@@ -1,10 +1,8 @@
 """Testes da API contra PHP e MariaDB de verdade. Cobrem os critérios de aceite de A01 a A07 da tasks.md.
 
-    docker compose -f site/dev/docker-compose.yml up -d
-    php site/setup.php                      # tabelas e planos
-    python site/dev/test_api.py             # PHP_BIN=/caminho/php.exe se o php não estiver no PATH
+    python site/dev/test_auth.py            # executor isolado, inclui esta suíte
 
-Os testes sobem os próprios servidores PHP (em portas livres) e limpam o que criam. Só usam a biblioteca padrão.
+O executor fornece banco, configuração e sessões descartáveis. Nunca execute contra a base compartilhada.
 """
 
 import http.cookiejar
@@ -26,9 +24,14 @@ from pathlib import Path
 
 RAIZ = Path(__file__).resolve().parents[2]
 PHP = os.environ.get("PHP_BIN") or shutil.which("php")
-CONTAINER = os.environ.get("DB_CONTAINER", "hackathon-site-db")
-CONFIG = (RAIZ / "site" / "hackathon-config.php").read_text(encoding="utf-8")
-WORKER_KEY = re.search(r"const WORKER_KEY = '([^']+)'", CONFIG).group(1)
+CONTAINER = os.environ.get("DB_CONTAINER", "")
+BANCO = os.environ.get("DB_TEST_DATABASE", "")
+if not BANCO.startswith("fornex_auth_test_") or not CONTAINER.startswith("fornex-auth-test-") or not os.environ.get("FORNEX_CONFIG"):
+    raise RuntimeError("Use python site/dev/test_auth.py: estes testes apagam dados e exigem o ambiente descartável.")
+CONFIG = Path(os.environ["FORNEX_CONFIG"]).read_text(encoding="utf-8")
+if not re.search(r"const\s+DB_NAME\s*=\s*'" + re.escape(BANCO) + "'", CONFIG):
+    raise RuntimeError("Configuração e banco de teste não correspondem.")
+WORKER_KEY = re.search(r"const\s+WORKER_KEY\s*=\s*'([^']+)'", CONFIG).group(1)
 SERVIDORES: list[tuple[subprocess.Popen, str]] = []
 
 
@@ -39,8 +42,8 @@ def porta_livre() -> int:
 
 
 def sql(consulta: str) -> str:
-    r = subprocess.run(["docker", "exec", CONTAINER, "mariadb", "-uroot", "-pdev-root", "hackathon", "-N", "-B", "-e", consulta],
-                       capture_output=True, text=True, encoding="utf-8")
+    r = subprocess.run(["docker", "exec", "-e", "MYSQL_PWD", CONTAINER, "mariadb", "-uroot", BANCO, "-N", "-B", "-e", consulta],
+                       capture_output=True, text=True, encoding="utf-8", env={**os.environ, "MYSQL_PWD": os.environ["DB_TEST_ROOT_PASSWORD"]})
     if r.returncode != 0:
         raise RuntimeError(f"SQL falhou: {r.stderr.strip()}")
     return r.stdout.strip()
@@ -80,7 +83,7 @@ def setUpModule():
     assert PHP, "php não encontrado: defina PHP_BIN"
     for _ in range(3):
         porta = porta_livre()
-        p = subprocess.Popen([PHP, "-S", f"127.0.0.1:{porta}", "-t", str(RAIZ / "site/public_html"), str(RAIZ / "site/dev/router.php")],
+        p = subprocess.Popen([PHP, "-d", "session.save_path=" + os.environ["AUTH_TEST_SESSION_PATH"], "-S", f"127.0.0.1:{porta}", "-t", str(RAIZ / "site/public_html"), str(RAIZ / "site/dev/router.php")],
                              stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         SERVIDORES.append((p, f"http://127.0.0.1:{porta}"))
     for _, base in SERVIDORES:
@@ -97,7 +100,9 @@ def setUpModule():
 def tearDownModule():
     for p, _ in SERVIDORES:
         p.terminate()
-    sql("DELETE FROM perguntas; DELETE FROM tentativas_login; DELETE FROM usuarios WHERE email LIKE '%@teste.local'")
+        p.wait(timeout=10)
+    SERVIDORES.clear()
+    sql("DELETE FROM perguntas; DELETE FROM tentativas_login; DELETE FROM usuarios WHERE email LIKE 'fornextest.%@gmail.com'")
     remover_planos_de_teste()
 
 
@@ -154,9 +159,14 @@ class Cliente:
         return next((c.value for c in self.jar if c.name == "hsid"), None)
 
     def cadastrar(self, email=None, senha="senha-segura-123", nome="Pessoa Teste"):
-        email = email or f"{uuid.uuid4().hex[:10]}@teste.local"
-        r = self.req("POST", "/api/cadastro", {"nome": nome, "email": email, "senha": senha})
-        assert r.status == 201, (r.status, r.corpo)
+        email = email or f"fornextest.{uuid.uuid4().hex[:12]}@gmail.com"
+        r = self.req("POST", "/api/cadastro", {"nome": nome, "email": email, "senha": senha, "confirmacao": senha})
+        assert r.status == 202, (r.status, r.corpo)
+        # Os testes de consultas/planos precisam de uma conta verificada. O fluxo real do link
+        # e do correio é exercitado em test_auth.py, sem atalhos no código da aplicação.
+        sql(f"UPDATE usuarios SET email_verificado_em=NOW() WHERE email='{email}'")
+        r = self.req("POST", "/api/login", {"email": email, "senha": senha})
+        assert r.status == 200, (r.status, r.corpo)
         self.email, self.senha = email, senha
         return r
 
@@ -187,7 +197,7 @@ class Base(unittest.TestCase):
         cls.base = SERVIDORES[0][1]
 
     def setUp(self):
-        sql("DELETE FROM perguntas; DELETE FROM tentativas_login; DELETE FROM telefones")
+        sql("DELETE FROM perguntas; DELETE FROM tentativas_login; DELETE FROM telefones; DELETE FROM auth_limites")
 
     def cliente_com_plano(self, plano_id=None):
         c = Cliente(self.base)
@@ -254,12 +264,12 @@ class TestA02Cadastro(Base):
         self.assertEqual(me["usuario"]["papel"], "usuario")
         self.assertIsNone(me["plano"])
 
-    def test_email_repetido_recebe_erro(self):
-        a = Cliente(self.base); a.cadastrar(email="repetido@teste.local")
+    def test_email_repetido_tem_resposta_generica(self):
+        a = Cliente(self.base); a.cadastrar(email="fornextest.repetido@gmail.com")
         b = Cliente(self.base)
-        r = b.req("POST", "/api/cadastro", {"nome": "Outra", "email": "REPETIDO@teste.local", "senha": "senha-segura-123"})
-        self.assertEqual(r.status, 409)
-        self.assertIn("e-mail", r["erro"])
+        r = b.req("POST", "/api/cadastro", {"nome": "Outra", "email": "FORNEXTEST.REPETIDO@gmail.com", "senha": "senha-segura-123", "confirmacao": "senha-segura-123"})
+        self.assertEqual(r.status, 202)
+        self.assertIn("mensagem", r.corpo)
 
     def test_dados_invalidos(self):
         c = Cliente(self.base)
@@ -277,7 +287,7 @@ class TestA02Cadastro(Base):
     def test_senha_nao_e_guardada_em_texto(self):
         c = Cliente(self.base); c.cadastrar(senha="segredo-bem-guardado")
         guardado = sql(f"SELECT senha_hash FROM usuarios WHERE email='{c.email}'")
-        self.assertTrue(guardado.startswith("$2y$"))
+        self.assertTrue(guardado.startswith("$argon2id$"))
         self.assertNotIn("segredo-bem-guardado", guardado)
 
     def test_json_invalido_recebe_400(self):
@@ -927,9 +937,12 @@ class TestA09Admin(Base):
 
     def test_papel_nao_pode_ser_alterado_pela_api(self):
         c = Cliente(self.base)
-        r = c.req("POST", "/api/cadastro", {"nome": "x", "email": f"{uuid.uuid4().hex[:8]}@teste.local", "senha": "senha-segura-123", "papel": "admin"})
-        self.assertEqual(r.status, 201)
-        self.assertEqual(r["usuario"]["papel"], "usuario")
+        email = f"fornextest.{uuid.uuid4().hex[:12]}@gmail.com"
+        r = c.req("POST", "/api/cadastro", {"nome": "x", "email": email, "senha": "senha-segura-123", "confirmacao": "senha-segura-123", "papel": "admin"})
+        self.assertEqual(r.status, 202)
+        self.assertEqual(sql(f"SELECT papel FROM usuarios WHERE email='{email}'"), "usuario")
+        sql(f"UPDATE usuarios SET email_verificado_em=NOW() WHERE email='{email}'")
+        self.assertEqual(c.req("POST", "/api/login", {"email": email, "senha": "senha-segura-123"}).status, 200)
         self.assertEqual(c.req("GET", "/api/admin/telefones", csrf=False).status, 403)
 
 

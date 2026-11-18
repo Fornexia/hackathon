@@ -1,8 +1,6 @@
 """Testes do pacote de prova exportável contra PHP e MariaDB de verdade (mesmo ambiente do test_api.py).
 
-    docker compose -f site/dev/docker-compose.yml up -d
-    php site/setup.php
-    python site/dev/test_prova.py
+    python site/dev/test_auth.py            # executor isolado, inclui esta suíte
 
 O worker é simulado: os testes mandam à API os mesmos eventos que o worker manda, e depois baixam o pacote como o navegador.
 O pacote é aberto fora do projeto (pasta temporária) e reconferido por cálculo próprio, sem usar código do sistema.
@@ -23,7 +21,7 @@ import zipfile
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from test_api import (Base, Cliente, PHP, RAIZ, WORKER_KEY, chamar, plano_unico, setUpModule, sql, tearDownModule, worker)  # noqa: E402,F401
+from test_api import (Base, Cliente, CONFIG, PHP, RAIZ, WORKER_KEY, chamar, plano_unico, setUpModule, sql, tearDownModule, worker)  # noqa: E402,F401
 
 HASH_BRUTO = hashlib.sha256(b"arquivo bruto de mentira").hexdigest()
 TRECHO = "Contrato 12/2024 | Empresa Alfa Ltda | R$ 120.000,00 | vigência 01/01/2024 a 31/12/2024"
@@ -311,7 +309,7 @@ class TestDossie(Prova):
 class TestSemSegredo(Prova):
     def test_arquivo_exportado_nao_tem_segredo_chave_nem_caminho_interno(self):
         c = self.cliente_com_plano()
-        config = (RAIZ / "site" / "hackathon-config.php").read_text(encoding="utf-8")
+        config = CONFIG  # Somente a configuração descartável validada pelo executor.
         segredos = [x for x in (WORKER_KEY, c.cookie_sessao(), c.csrf) if x]
         segredos += re.findall(r"const (?:DB_PASS|API_KEY) = '([^']{6,})'", config)
         # o worker (ou um dado malformado) tenta passar caminho do servidor, chave e campos desconhecidos

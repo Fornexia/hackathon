@@ -32,7 +32,7 @@ da fonte, e cada perfil vê só o que está autorizado a ver.
 
 > **Estado:** extração, grafo, consultas com filtro de perfil, registro de consultas, catálogo de ataques, **o site com contas,
 > chat em fila e administração** e **o worker que liga o site e o WhatsApp ao agente** estão prontos. Testes: 65 de consulta (18 deles exigem o
-> Neo4j no ar e são pulados sem ele), 202 de chat (12 só rodam no Linux), 80 da API e 33 do pacote de prova. Ainda falta rodar os ataques de prompt com o modelo real
+> Neo4j no ar e são pulados sem ele), 202 de chat (12 só rodam no Linux) e 164 de autenticação, API, provas e regressões. Ainda falta rodar os ataques de prompt com o modelo real
 > e fazer o deploy na Hostinger. Veja
 > [Onde estamos no desafio](#onde-estamos-no-desafio), [Site e chat (Dev A)](#site-e-chat-dev-a) e [Pendências conhecidas](#pendências-conhecidas).
 > Detalhes do site e do chat: [spec](docs/specs/001-site-e-chat/spec.md), [plano técnico](docs/specs/001-site-e-chat/plan.md) e [tasks](docs/specs/001-site-e-chat/tasks.md).
@@ -52,7 +52,7 @@ da fonte, e cada perfil vê só o que está autorizado a ver.
 | `api/` | **API para IAs de terceiros** (demonstração): REST, MCP e pergunta em português, com chave de API que define o perfil. [`api/README.md`](api/README.md) |
 | `alertas/` | **Alertas por e-mail** (demonstração): avisa o cliente quando muda sanção, contrato ou situação cadastral de um CNPJ acompanhado, pelo perfil dele. [`alertas/README.md`](alertas/README.md) |
 | `site/` | Site PHP 8.2 + MariaDB: páginas, API (`public_html/api/`), `setup.php` e `deploy.sh` para a Hostinger |
-| `site/dev/` | Ambiente local do site: Docker do banco, roteador do servidor embutido do PHP, worker falso e os 80 testes da API |
+| `site/dev/` | Ambiente local do site: Docker do banco, roteador PHP, worker falso e testes isolados de autenticação, API, provas e regressões |
 | `inferencia/`, `planilha/` | Ferramentas de visão, áudio e planilha, herdadas do modelo do hackathon |
 | `docs/seguranca/` | **Catálogo de ataques de prompt** e proteções |
 | `docs/apresentacao/` | Página de demonstração para o cliente e gerador da base de conhecimento |
@@ -138,6 +138,7 @@ Todas as rotas ficam em `/api/...`. O contrato completo (formatos, códigos de e
 | Grupo | Rotas |
 |---|---|
 | Conta | `GET /me`, `POST /cadastro`, `POST /login`, `POST /logout` |
+| Verificação e senha | `POST /email/reenviar`, `/email/verificar`, `/senha/recuperar`, `/senha/redefinir`, `/sessao/atividade` |
 | Planos | `GET /planos`, `POST /assinatura` |
 | Chat | `POST /perguntas`, `GET /perguntas/aberta`, `GET /perguntas/{id}/eventos` |
 | Telefones | `GET`/`POST /telefones`, `DELETE /telefones/{id}` |
@@ -152,10 +153,14 @@ liberar novamente.
 
 ### Segurança do site
 
-- Cookie de sessão `hsid` com `HttpOnly`, `SameSite=Lax` e `Secure` (menos com `AMBIENTE='dev'`); o id é trocado no login.
+- Cadastro público com e-mail pessoal ou corporativo e senha própria do FORNEX, confirmação do e-mail antes do login e recuperação de senha.
+  Contas anteriores, incluindo o administrador, são preservadas. [Configuração, migração e diagnóstico](docs/AUTENTICACAO.md).
+- Login alternativo com Google Identity Services, habilitado por `GOOGLE_CLIENT_ID`; contas novas recebem
+  perfil de usuário comum. Administradores continuam por senha. [Configuração e limites](docs/AUTENTICACAO.md#login-com-google).
+- Cookie de sessão `hsid` com `HttpOnly`, `SameSite=Lax` e `Secure` (exceto em dev/test); o id é trocado no login.
+  Expiração por inatividade e prazo total; redefinir a senha invalida as sessões antigas.
 - **CSRF:** toda escrita exige o cabeçalho `X-CSRF-Token`, obtido em `GET /api/me`.
-- **Limite de tentativas de login:** 429 com `Retry-After` de 900 s. O login leva o mesmo tempo para e-mail existente e inexistente
-  (não revela quais e-mails têm conta).
+- **Limite de tentativas de login:** 429 com `Retry-After` de 900 s e mensagens genéricas para credenciais incorretas.
 - Consultas SQL sempre parametrizadas. Senhas com hash. O worker se autentica com uma chave própria (`WORKER_KEY`, mínimo de 24
   caracteres), separada das sessões de usuário.
 - Telefones normalizados para `55` + DDD + `9` + 8 dígitos; caracteres fora de dígitos, espaço, parênteses, `+` e `-` são recusados.
@@ -167,10 +172,10 @@ liberar novamente.
 ### Como rodar o site localmente
 
 Passo a passo (PHP, banco em Docker, worker falso, usuário administrador de teste) em [`site/dev/README.md`](site/dev/README.md).
-Testes da API, com banco e servidor locais no ar:
+Testes de autenticação, API e provas, com banco e configuração descartáveis separados da base atual:
 
 ```bash
-python site/dev/test_api.py          # 80 testes
+python site/dev/test_auth.py
 ```
 
 Além do comportamento normal, eles cobrem concorrência (80 perguntas com 12 workers; 25 rodadas com 6 sessões) e foram validados por
@@ -225,7 +230,7 @@ python coleta/carregar_neo4j.py --zerar --exemplo
 python -m unittest discover -s consulta/testes -v                     # 65 testes (18 só com o Neo4j no ar)
 python -m unittest discover -s chat/testes -v                         # 202 testes (12 pulados no Windows), sem internet nem .env (2 exigem o pacote `mcp`; 26 simulam os scripts de shell e levam ~100 s)
 (cd canal-whatsapp && bun test testes)                                # 24 testes do gateway (números, acesso, fila de saída, log estruturado)
-python site/dev/test_prova.py                                         # 33 testes do pacote de prova (PHP e MariaDB)
+python site/dev/test_auth.py test_prova                               # provas em MariaDB descartável
 ```
 
 **Com a captura real:**

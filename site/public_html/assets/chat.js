@@ -120,6 +120,54 @@
   }
 
   // ---------- entrar e criar conta ----------
+  async function receberGoogle(resposta) {
+    try {
+      erroEm('#erro-entrar', ''); erroEm('#erro-cadastro', '')
+      aplicarConta(await Api.entrarGoogle(resposta.credential))
+      await decidirTela()
+    } catch (e) {
+      erroEm($('#form-entrar').hidden ? '#erro-cadastro' : '#erro-entrar', e.message)
+    }
+  }
+
+  // O botão é desenhado pelo Google dentro de um iframe: só aceita tema, formato e largura (máx. 400 px). Por isso ele é
+  // redesenhado no tema atual do site (claro/escuro), na largura do cartão e sempre que a aba ou a janela mudam.
+  let googlePronto = false
+  const temaEscuro = () => (document.documentElement.dataset.tema || (matchMedia('(prefers-color-scheme: light)').matches ? 'claro' : 'escuro')) === 'escuro'
+
+  function desenharGoogle() {
+    if (!googlePronto) return
+    for (const bloco of document.querySelectorAll('.acesso-google')) {
+      const alvo = bloco.querySelector('.botao-google')
+      const largura = Math.max(200, Math.min(400, Math.floor(alvo.clientWidth) || 320))   // formulário escondido mede 0: usa 320 e redesenha ao abrir a aba
+      alvo.replaceChildren()
+      alvo.classList.toggle('escuro', temaEscuro())      // o botão escuro não tem borda: pode ganhar o canto arredondado dos botões do site
+      google.accounts.id.renderButton(alvo, {
+        type: 'standard', theme: temaEscuro() ? 'filled_black' : 'outline', size: 'large', shape: 'rectangular',
+        text: 'continue_with', logo_alignment: 'center', locale: 'pt-BR', width: largura,
+      })
+    }
+  }
+
+  function prepararGoogle(clientId) {
+    if (!clientId) return
+    const script = document.createElement('script')
+    script.src = 'https://accounts.google.com/gsi/client'
+    script.async = true
+    script.onload = () => {
+      if (!window.google?.accounts?.id) return
+      google.accounts.id.initialize({ client_id: clientId, callback: receberGoogle, auto_select: false })
+      googlePronto = true
+      for (const bloco of document.querySelectorAll('.acesso-google')) bloco.hidden = false
+      desenharGoogle()
+      let espera
+      window.addEventListener('tema', desenharGoogle)
+      window.addEventListener('resize', () => { clearTimeout(espera); espera = setTimeout(desenharGoogle, 150) })
+    }
+    script.onerror = () => { /* acesso por e-mail e senha permanece disponível */ }
+    document.head.append(script)
+  }
+
   function trocarAba(qual) {
     const entrar = qual === 'entrar'
     $('#aba-entrar').setAttribute('aria-selected', String(entrar))
@@ -127,14 +175,25 @@
     mostrar('#form-entrar', entrar)
     mostrar('#form-cadastro', !entrar)
     erroEm('#erro-entrar', ''); erroEm('#erro-cadastro', '')
+    requestAnimationFrame(desenharGoogle)     // a aba que abriu agora passa a ter largura medida
   }
 
   async function enviarForm(form, botaoTexto, erroId, acao) {
+    if (!form.reportValidity()) return
     const botao = form.querySelector('button[type=submit]')
     erroEm(erroId, '')
     botao.disabled = true
     try {
-      aplicarConta(await acao())
+      const dados = await acao()
+      if (form.id === 'form-cadastro') {
+        form.reset()
+        $('#cadastro-status').textContent = dados.mensagem
+        mostrar('#cadastro-status', true)
+        mostrar('#cadastro-reenvio', true)
+        trocarAba('entrar')
+        return
+      }
+      aplicarConta(dados)
       form.reset()
       await decidirTela()
     } catch (e) {
@@ -447,7 +506,7 @@
   })
   $('#form-cadastro').addEventListener('submit', e => {
     e.preventDefault()
-    enviarForm(e.target, 'Criar conta', '#erro-cadastro', () => Api.cadastrar($('#cad-nome').value, $('#cad-email').value, $('#cad-senha').value))
+    enviarForm(e.target, 'Criar conta', '#erro-cadastro', () => Api.cadastrar($('#cad-nome').value, $('#cad-email').value, $('#cad-senha').value, $('#cad-confirmacao').value))
   })
 
   $('#sair').addEventListener('click', async () => {
@@ -468,7 +527,7 @@
   })
 
   // ---------- início ----------
-  Api.me().then(aplicarConta).then(decidirTela).catch(e => {
+  Api.me().then(dados => { prepararGoogle(dados.google_client_id); aplicarConta(dados) }).then(decidirTela).catch(e => {
     tela('entrar')
     erroEm('#erro-entrar', e.message)
   })

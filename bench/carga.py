@@ -2,11 +2,12 @@
 
     python bench/carga.py                                   # 8 pessoas em http://127.0.0.1:8080, todas no mesmo instante
     python bench/carga.py http://127.0.0.1:8080 --pessoas 8
-    python bench/carga.py https://fornexia.figueiredo.dev --pessoas 100 --janela 300 --limite 900
+    python bench/carga.py https://fornexia.figueiredo.dev --contas /caminho/privado/contas.json --pessoas 100 --janela 300 --limite 900
                                                             # 100 pessoas chegando ao longo de 5 min
 
-O worker precisa estar rodando (python chat/worker.py) e o Neo4j com os dados. Cada pessoa é uma conta de teste
-(carga01@local.test ...), criada na primeira vez; o e-mail é fixo para a rodada poder repetir.
+O worker precisa estar rodando (python chat/worker.py) e o Neo4j com os dados. Use contas de teste já verificadas.
+Passe --contas /caminho/privado/contas.json (lista de objetos com email, senha e nome opcional).
+Sem --contas, tenta as contas legadas carga01@local.test etc.; não cria contas nem contorna a verificação.
 --janela S espalha as chegadas por igual ao longo de S segundos (0 = todas juntas); --limite S é quanto cada pessoa
 espera a resposta antes de desistir. A leitura dos eventos segue o ritmo do chat do site (0,7 s).
 Mede, por pessoa: quando enviou, quando saiu da fila, quando veio o primeiro sinal e quando a resposta terminou, com o
@@ -17,6 +18,7 @@ Grava dados/bench/carga.json (fora do git), o que a aba "Teste de carga" da áre
 """
 
 import http.cookiejar
+import argparse
 import json
 import os
 import subprocess
@@ -71,12 +73,10 @@ class Sessao:
         except ValueError:
             return status, {}
 
-    def entrar(self, email: str, nome: str) -> bool:
+    def entrar(self, email: str, nome: str, senha: str = SENHA) -> bool:
         self.csrf = self.chamar("GET", "/me")[1].get("csrf", "")
-        status, resp = self.chamar("POST", "/cadastro", {"nome": nome, "email": email, "senha": SENHA})
-        if status == 409:   # já existe de uma rodada anterior
-            status, resp = self.chamar("POST", "/login", {"email": email, "senha": SENHA})
-        if status not in (200, 201):
+        status, resp = self.chamar("POST", "/login", {"email": email, "senha": senha})
+        if status != 200:
             return False
         self.csrf = resp.get("csrf", self.csrf)
         if not resp.get("plano"):   # a tela do site faz isto logo depois do login (Api.garantirPlano)
@@ -124,10 +124,27 @@ def perguntas(n: int) -> list[str]:
 
 
 def main() -> int:
-    base = next((a for a in sys.argv[1:] if a.startswith("http")), "http://127.0.0.1:8080").rstrip("/")
-    n = int(sys.argv[sys.argv.index("--pessoas") + 1]) if "--pessoas" in sys.argv else 8
-    janela = float(sys.argv[sys.argv.index("--janela") + 1]) if "--janela" in sys.argv else 0.0
-    limite = float(sys.argv[sys.argv.index("--limite") + 1]) if "--limite" in sys.argv else 300.0
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument("base", nargs="?", default="http://127.0.0.1:8080")
+    parser.add_argument("--pessoas", type=int)
+    parser.add_argument("--contas", type=Path, help="JSON privado de contas de teste já verificadas")
+    parser.add_argument("--janela", type=float, default=0.0, help="espalha as chegadas ao longo de S segundos (0 = todas juntas)")
+    parser.add_argument("--limite", type=float, default=300.0, help="segundos que cada pessoa espera a resposta antes de desistir")
+    args = parser.parse_args()
+    base = args.base.rstrip("/")
+    try:
+        contas = json.loads(args.contas.read_text(encoding="utf-8")) if args.contas else [
+            {"email": f"carga{i:02}@local.test", "senha": SENHA} for i in range(1, (args.pessoas or 8) + 1)]
+        if not isinstance(contas, list) or not contas or any(
+            not isinstance(c, dict) or not isinstance(c.get("email"), str) or not isinstance(c.get("senha"), str) for c in contas
+        ):
+            raise ValueError()
+    except (OSError, ValueError):
+        parser.error("Arquivo de contas inválido; use uma lista com email e senha. Não publique esse arquivo.")
+    n = args.pessoas if args.pessoas is not None else len(contas)
+    if not 1 <= n <= len(contas):
+        parser.error("--pessoas deve estar entre 1 e a quantidade de contas disponíveis.")
+    janela, limite = args.janela, args.limite
     intervalo = 0.7     # o mesmo INTERVALO_MS do chat.js
     est = {"requisicoes": 0, "erros_500": 0, "tempos": []}
     trava = threading.Lock()
@@ -136,8 +153,9 @@ def main() -> int:
     sessoes = []
     for i in range(1, n + 1):
         s = Sessao(base, est, trava)
-        if not s.entrar(f"carga{i:02}@local.test", f"Pessoa {i}"):
-            print(f"não consegui criar/entrar com carga{i:02}@local.test (o site está no ar? rodou o setup.php?)")
+        conta = contas[i - 1]
+        if not s.entrar(conta["email"], conta.get("nome", f"Pessoa {i}"), conta["senha"]):
+            print(f"Não consegui entrar com a conta de teste {i}. Confira credenciais, verificação e disponibilidade do site.")
             return 1
         sessoes.append(s)
     est.update(requisicoes=0, erros_500=0, tempos=[])

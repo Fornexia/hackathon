@@ -11,3 +11,20 @@ const DB_PASS = 'dev-senha';
 const WORKER_KEY = 'troque-por-uma-chave-longa-e-aleatoria';   // mínimo 24 caracteres
 const API_KEY = '';                  // legado do modelo antigo; não é mais usado
 const INFERENCIA_URL = '';           // legado do modelo antigo; não é mais usado
+
+// Login público: configurar antes de liberar o cadastro. Também aceita variáveis de ambiente.
+const APP_URL = 'https://seu-dominio.example'; // origem fixa dos links, nunca o Host da requisição
+const SMTP_HOST = '';
+const SMTP_PORT = 587;
+const SMTP_SECURITY = 'tls';          // 'tls' (STARTTLS) ou 'ssl' (TLS implícito)
+const SMTP_USER = '';
+const SMTP_PASS = '';
+const MAIL_FROM = '';                // remetente autorizado pelo provedor SMTP
+const MAIL_FROM_NAME = 'FORNEX';
+const AUTH_MAIL_KEY = '';            // base64 de 32 bytes aleatórios; guardar junto do backup privado
+const AUTH_IDLE_SECONDS = 1800;       // 30 minutos sem interação
+const AUTH_MAX_SECONDS = 43200;      // 12 horas desde o login
+const TRUSTED_PROXIES = [];          // IPs exatos confiáveis; ambiente: separados por vírgula. Vazio ignora X-Forwarded-For.
+const GOOGLE_CLIENT_ID = '';         // Client ID Web público; vazio oculta o botão e desativa /api/login/google.
+// AUTH_SESSION_PATH opcional (constante ou ambiente): diretório absoluto privado e gravável.
+// Padrão: site/sessoes, fora de public_html; nunca compartilhar com outro aplicativo.
