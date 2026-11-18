@@ -1,406 +1,130 @@
-# Histórico de fornecedor com prova
+# FornexIA · histórico de fornecedor com prova
 
-[![Testes](https://github.com/Luks108/hackathon/actions/workflows/testes.yml/badge.svg)](https://github.com/Luks108/hackathon/actions/workflows/testes.yml)
+[![Testes](https://github.com/Fornexia/hackathon/actions/workflows/testes.yml/badge.svg)](https://github.com/Fornexia/hackathon/actions/workflows/testes.yml)
 
-O workflow **Testes** executa as suítes de consulta, chat, API e pacote de prova a cada push e pull request,
-com Python 3.13, PHP 8.2, MariaDB e Neo4j descartáveis. Não inicia worker, WhatsApp ou chamadas pagas de modelos.
-O selo mostra o resultado publicado pelo GitHub Actions.
-Os logs de cada suíte e uma tabela de resultados ficam na página da execução.
+Projeto da equipe **Nexus** no **Desafio 1 (Portal Inteligente de Transparência com IA)** do Hack Garanhuns Tech 2026.
 
-**CI remoto verificado em 15/11/2026:** [primeira execução aprovada no Ubuntu 24.04](https://github.com/Luks108/hackathon/actions/runs/43714093909),
-em 4min22s: consulta 313/313, chat 261 aprovados e 1 pulado (canal opcional sem Bun), API 82/82 e pacote de prova 33/33.
+Você pergunta em português, pelo site ou pelo WhatsApp, sobre um fornecedor. O FornexIA consulta contratos, sanções e pagamentos em
+portais públicos e responde mostrando, para cada fato, **o trecho original da fonte, a data da captura e um hash** que qualquer pessoa
+pode reconferir. Cada cliente enxerga só os entes do seu plano, e a IA não consegue mudar isso.
 
-Para ensaiar os mesmos comandos localmente, com a `.venv`, os bancos e as tabelas preparados e o worker parado:
-
-```powershell
-.venv\Scripts\python scripts/testes_ci.py
-```
-
-No Linux: `.venv/bin/python scripts/testes_ci.py`. O script interrompe na primeira falha e devolve código diferente de zero.
-Testes exclusivos de Linux são pulados no Windows. A integração Neo4j exige a base pequena de `fixtures/exemplo`;
-o workflow confere sua disponibilidade antes dos testes. O teste opcional do canal requer Bun e suas dependências,
-que não são instalados neste workflow. O ensaio da API usa o banco local de desenvolvimento e limpa dados de teste.
-
-**Ensaio local verificado em 14/11/2026 (Windows, Python 3.13.3, PHP 8.2):**
-consulta 313/313, chat 250 aprovados e 12 pulados, API 82/82, pacote de prova 33/33.
-O comando acima terminou com código zero. O ensaio Windows é separado da validação remota Ubuntu registrada acima.
-
-Projeto do **Desafio 1 — Portal Inteligente de Transparência com IA** do Hack Garanhuns Tech 2026.
-
-Consulta em linguagem natural a dados públicos de contratação. Toda resposta aponta para o trecho literal
-da fonte, e cada perfil vê só o que está autorizado a ver.
-
-> **Estado:** extração, grafo, consultas com filtro de perfil, registro de consultas, catálogo de ataques, **o site com contas,
-> chat em fila e administração** e **o worker que liga o site e o WhatsApp ao agente** estão prontos. Testes: 65 de consulta (18 deles exigem o
-> Neo4j no ar e são pulados sem ele), 202 de chat (12 só rodam no Linux) e 164 de autenticação, API, provas e regressões. Ainda falta rodar os ataques de prompt com o modelo real
-> e fazer o deploy na Hostinger. Veja
-> [Onde estamos no desafio](#onde-estamos-no-desafio), [Site e chat (Dev A)](#site-e-chat-dev-a) e [Pendências conhecidas](#pendências-conhecidas).
-> Detalhes do site e do chat: [spec](docs/specs/001-site-e-chat/spec.md), [plano técnico](docs/specs/001-site-e-chat/plan.md) e [tasks](docs/specs/001-site-e-chat/tasks.md).
-
-## Estrutura
-
-| Pasta | O quê |
+| | |
 |---|---|
-| `coleta/` | Extrai fatos com evidência da captura bruta e carrega no Neo4j |
-| `chat/` | Agente e worker: `agente.py` (uma pergunta por vez, com fallback), `provedores.py` (Claude, DeepSeek, Gemini preparado) e `worker.py` (fila do site e WhatsApp) |
-| `consulta/` | Servidor MCP `transparencia`, perfis de acesso (`perfis.json`), testes e página do grafo |
-| `consulta/testes/` | Testes de segurança: código offline, isolamento no Neo4j real e verificador de respostas |
-| `fixtures/` | Dados fictícios para desenvolver sem a captura real (três entes, uma pessoa física, um texto malicioso) |
-| `bench/` | Benchmark (vários modelos, com gabarito congelado) e teste de carga do site. Passo a passo com dados fictícios e vários provedores de modelo (Claude, DeepSeek, Gemini): seção 18 de `docs/rodar-no-windows-e-no-linux.md` |
-| `esquema/`, `infra/` | Restrições do grafo e Docker Compose local |
-| `canal-whatsapp/` | Gateway Baileys, canal MCP e controle de acesso |
-| `api/` | **API para IAs de terceiros** (demonstração): REST, MCP e pergunta em português, com chave de API que define o perfil. [`api/README.md`](api/README.md) |
-| `alertas/` | **Alertas por e-mail** (demonstração): avisa o cliente quando muda sanção, contrato ou situação cadastral de um CNPJ acompanhado, pelo perfil dele. [`alertas/README.md`](alertas/README.md) |
-| `site/` | Site PHP 8.2 + MariaDB: páginas, API (`public_html/api/`), `setup.php` e `deploy.sh` para a Hostinger |
-| `site/dev/` | Ambiente local do site: Docker do banco, roteador PHP, worker falso e testes isolados de autenticação, API, provas e regressões |
-| `inferencia/`, `planilha/` | Ferramentas de visão, áudio e planilha, herdadas do modelo do hackathon |
-| `docs/seguranca/` | **Catálogo de ataques de prompt** e proteções |
-| `docs/apresentacao/` | Página de demonstração para o cliente e gerador da base de conhecimento |
-| `docs/` | Backlog, tarefas, resultados dos testes de segurança |
-| `logs/` | Registro de consultas (`consultas.jsonl`), não versionado |
+| **Produto** | [fornexia.figueiredo.dev](https://fornexia.figueiredo.dev) |
+| **Site institucional** | [nexus.figueiredo.dev](https://nexus.figueiredo.dev) |
+| **Relatório do teste de capacidade (18/11)** | [PDF](docs/relatorios/2026-11-18-capacidade/fornexia-teste-100-pessoas.pdf) · [dados](docs/relatorios/2026-11-18-capacidade/dados.json) |
+| **Manual técnico** | [docs/guia-tecnico.md](docs/guia-tecnico.md) |
 
-## Onde estamos no desafio
+## Em números
 
-| Requisito do desafio | Situação | Onde |
+| O que medimos | Resultado | Como |
 |---|---|---|
-| Captura de ao menos um portal estadual | **Parcial.** Garanhuns (municipal) capturado. Do Estado de PE, só o CSV de sanções. A coleta dos painéis estaduais não foi testada | `coleta/` |
-| Normalização e catalogação | **Pronto** | `coleta/extrair.py`, `esquema/neo4j.cypher` |
-| Controle de acesso por estado e perfil | **Pronto na camada de dados, testado.** Três perfis (Município, Estado de PE, outro estado fictício) | `consulta/perfis.json`, `consulta/testes/test_acesso_neo4j.py` |
-| LLM restrita aos dados autorizados | **Dados testados.** O agente isolado que roda o modelo ainda não existe | `docs/specs/001-site-e-chat/tasks.md` (B01 a B07) |
-| Registro de consultas e fontes | **Pronto** no servidor MCP. CPF digitado é mascarado no log | `logs/consultas.jsonl` |
-| RAG com citação de fonte | **Pronto no backend:** cada fato traz trecho, data e hash conferível. A busca em documentos existe só na página de demonstração | `conferir_evidencia`, `docs/apresentacao/` |
-| Multi-tenant | **Testado** com três entes: o mesmo CNPJ tem fatos em cada um, e cada perfil vê só os seus | `fixtures/gerar_exemplo.py` |
-| Proteção contra ataques de prompt | **20 ataques catalogados.** A camada de dados está testada. Os testes com o modelo real estão pendentes | [`docs/seguranca/ataques-de-prompt.md`](docs/seguranca/ataques-de-prompt.md) |
-| Site com contas, planos e chat | **Pronto e testado com worker falso.** Cadastro, login, assinatura, fila de perguntas, telefones do WhatsApp e tela de administração. O deploy real na Hostinger ainda não foi feito | [Site e chat (Dev A)](#site-e-chat-dev-a) |
+| **Acerto com prova** | **47 de 50** (94%) | Benchmark com gabarito congelado sobre a base real; o mesmo modelo sem acesso à base acertou **0 de 36** (06/11) |
+| **Modelos comparados** | 4 modelos entre **90,7% e 95,3%** | Benchmark de 150 perguntas sobre uma base fictícia; nenhum par se separou de forma estatisticamente significativa, então a escolha é por tempo e custo |
+| **Capacidade** | **100 pessoas em 5 minutos**: 100 de 100 respondidas, **0 s de fila**, resposta típica de **11,4 s** | Simulação com 10 agentes em duas máquinas (18/11) |
+| **Qualidade sob carga** | **90%** das respostas certas e com prova; **6 de 6** ataques barrados | Mesmo teste, corrigido automaticamente pelo gabarito |
+| **Resistência a ataques** | **164 de 165** execuções passaram, a outra foi barrada pelo código; **nenhum vazamento** | 46 ataques de prompt e 2 conversas longas contra o agente real, em até 4 perfis (14/11) |
+| **Busca de fornecedor** | **458 de 460** variações acham o fornecedor certo | Nome sem acento, com letra errada, em ordem trocada ou pelo nome fantasia (14/11) |
+| **Testes automáticos** | **739** a cada pull request | GitHub Actions: consulta (313), chat (262) e site (164, entre login, API e pacote de prova) |
 
-## Site e chat (Dev A)
+## O que avançou desde a apresentação de 06/11
 
-**Correção de 06/11/2026:** o chat do site usa Codex com a assinatura ChatGPT, sem fallback para Claude. A pergunta geral sobre sanções usa um resumo com evidências, sem varrer todos os fornecedores. O WhatsApp mantém o provedor anterior. Diagnóstico e validação: [incidente do chat](docs/incidentes/2026-11-06-chat-site.md).
-
-Parte do Dev A: tudo que o usuário vê no navegador e a API PHP que o worker do Dev B consome.
-
-### Páginas
-
-| Página | Para quê |
-|---|---|
-| `/` (`index.html`) | Apresentação, planos (lidos da API), modelo de negócios e o assistente flutuante |
-| `/chat.html` | Entrar ou criar conta e conversar com o assistente. O assistente flutuante da página inicial é este mesmo chat dentro de um `iframe` (`?embutido=1`) |
-| `/conta.html` | Dados da conta, plano e telefones de WhatsApp (até 3), com o estado de cada um |
-| `/admin.html` | Fila de telefones: aprovar, recusar, bloquear. Só para administradores |
-| `/modelos.html` | Os quatro modelos lado a lado (nota com intervalo de confiança, tempo, evidência, custo e pergunta a pergunta). Exige login, como a área técnica |
-
-### Como o chat funciona
-
-O site não fala com o modelo. Ele guarda a pergunta numa **fila** e o **worker** (Dev B), que roda no notebook, busca a próxima,
-conversa com o agente e devolve os eventos aos poucos. O navegador consulta os eventos a cada 0,7 s.
-
-- Uma pergunta aberta por conta (trava com `FOR UPDATE`). Pergunta parada na fila por mais de 120 s, ou em processamento por mais
-  de 180 s, é encerrada com uma mensagem legível. O navegador desiste após 130 s.
-- A reserva da pergunta pelo worker é atômica (`UPDATE` condicional), então dois workers nunca pegam a mesma.
-- Todo texto vindo do agente ou da fonte é desenhado com `textContent`, nunca como HTML. O worker falso inclui de propósito uma
-  fonte com URL `javascript:` para provar que ela não vira link.
-- **Demonstração livre:** na demonstração ao cliente não há etapa de escolha de plano. Os planos aparecem só como informação, e
-  quem se cadastra já conversa. A etapa existe no código, desligada pela constante `ESCOLHER_PLANO` em `assets/chat.js`. Quando o
-  produto for vendido, é só ligá-la. Com o plano único, o chat também não tem mais o seletor de plano.
-
-### Modelos, fallback e benchmark
-
-O agente fala com mais de um provedor. O nome do modelo é `[provedor:]modelo`: sem prefixo é Claude (pelo `claude` já logado);
-`deepseek:deepseek-flash` e `deepseek:deepseek-v4-pro` usam a API do DeepSeek; `gemini:` está **preparado, mas nunca foi chamado**
-(falta uma chave). A escolha do cliente fica num só lugar, `chat/provedores.py`. **Nenhuma chave é obrigatória**: sem a chave, o
-modelo some da lista e o resto roda como sempre. As chaves vêm do `.env` (modelo em `.env.exemplo`), nunca do código.
-
-- **Fallback.** Se o provedor falha (chave sem saldo, 429, 5xx, timeout, rede, resposta vazia), a pergunta passa para o próximo da
-  cadeia (`AGENTE_FALLBACK_ORDEM`, padrão `deepseek:deepseek-flash,claude-sonnet-5-5`). Nunca troca depois que o modelo começou a
-  escrever, nem por pergunta inválida, e a soma das tentativas nunca passa de `AGENTE_LIMITE_S` (110 s). O log do worker grava o
-  modelo pedido, o que respondeu e as trocas. **O benchmark nunca usa fallback**, para a nota ser de quem respondeu.
-- **Provado com clientes reais** (`chat/provas/fallback_real.py`): provedor morto (6,7 s no total), provedor pendurado (cortado em
-  35 s, resposta em 39 s) e todos mortos (erro tratado). A troca ainda não aparece na tela do site.
-- **Benchmark de 150 perguntas** (`bench/benchmark.py`, guia seção 18) com quatro modelos, rodado só sobre a **base fictícia**.
-  Nenhum par de modelos se separou de forma estatisticamente significativa (menor p = 0,062): Flash 95,3%, Sonnet 94,0%,
-  Opus 92,7%, V4 Pro 90,7%. A diferença real é de tempo e custo: o Opus é o mais lento e o mais caro, sem nota melhor. Uma rodada
-  só, e o custo do DeepSeek é estimado pela tabela de preços.
-
-### Pacote de prova
-
-Cada resposta tem o botão **Exportar prova**: baixa um ZIP com a pergunta, a resposta, o modelo que respondeu (e a troca de provedor, se
-houve), os trechos literais da fonte e os hashes SHA-256, para um auditor reconferir **sem acesso ao sistema** (`LEIA-ME.txt` no ZIP).
-Rotas: `GET /api/perguntas/{id}/prova` e `GET /api/provas[?ids=1,2,3]`. Resposta sem trecho sai marcada `sem_prova`, e o campo ausente sai
-`null` com o motivo, nunca preenchido. **Limites:** o arquivo bruto do portal não vai no pacote (o auditor o pede e confere o `documento_hash`),
-o hash do trecho é calculado na exportação, a versão do extrator não é registrada pela coleta, e o pacote não avalia se há dado pessoal
-(`dados_pessoais: null`). O pacote tem teto de 5 MB. Detalhes no fim do `CLAUDE.md`.
-
-### API
-
-Todas as rotas ficam em `/api/...`. O contrato completo (formatos, códigos de erro) está no
-[plano técnico](docs/specs/001-site-e-chat/plan.md).
-
-| Grupo | Rotas |
-|---|---|
-| Conta | `GET /me`, `POST /cadastro`, `POST /login`, `POST /logout` |
-| Verificação e senha | `POST /email/reenviar`, `/email/verificar`, `/senha/recuperar`, `/senha/redefinir`, `/sessao/atividade` |
-| Planos | `GET /planos`, `POST /assinatura` |
-| Chat | `POST /perguntas`, `GET /perguntas/aberta`, `GET /perguntas/{id}/eventos` |
-| Telefones | `GET`/`POST /telefones`, `DELETE /telefones/{id}` |
-| Administração | `GET /admin/telefones`, aprovar e revogar |
-| Worker (chave própria) | `GET /worker/proxima`, `POST /worker/perguntas/{id}/eventos`, `GET /worker/telefones` |
-
-Plano único de demonstração: **R$ 149 por mês** (valor ainda não validado), conforme o pitch de 06/11/2026. Acesso à
-amostra de `pe-estado`, `pe-garanhuns` e, desde 14/11/2026, `br-uniao` (sanções CEIS/CNEP e cadastro da Receita), sem
-cobrança real. Não há franquia ou excedente definidos. Planos antigos ficam no histórico; assinaturas ativas de Município
-e Estado são migradas pelo `setup.php`. Novos telefones são liberados no cadastro; o administrador pode bloquear ou
-liberar novamente.
-
-### Segurança do site
-
-- Cadastro público com e-mail pessoal ou corporativo e senha própria do FORNEX, confirmação do e-mail antes do login e recuperação de senha.
-  Contas anteriores, incluindo o administrador, são preservadas. [Configuração, migração e diagnóstico](docs/AUTENTICACAO.md).
-- Login alternativo com Google Identity Services, habilitado por `GOOGLE_CLIENT_ID`; contas novas recebem
-  perfil de usuário comum. Administradores continuam por senha. [Configuração e limites](docs/AUTENTICACAO.md#login-com-google).
-- Cookie de sessão `hsid` com `HttpOnly`, `SameSite=Lax` e `Secure` (exceto em dev/test); o id é trocado no login.
-  Expiração por inatividade e prazo total; redefinir a senha invalida as sessões antigas.
-- **CSRF:** toda escrita exige o cabeçalho `X-CSRF-Token`, obtido em `GET /api/me`.
-- **Limite de tentativas de login:** 429 com `Retry-After` de 900 s e mensagens genéricas para credenciais incorretas.
-- Consultas SQL sempre parametrizadas. Senhas com hash. O worker se autentica com uma chave própria (`WORKER_KEY`, mínimo de 24
-  caracteres), separada das sessões de usuário.
-- Telefones normalizados para `55` + DDD + `9` + 8 dígitos; caracteres fora de dígitos, espaço, parênteses, `+` e `-` são recusados.
-  Máximo de 3 por conta; aprovação registra quem aprovou e quando (`aprovado_por`, `atualizado_em`).
-- Sem administrador padrão com senha fixa em produção. `setup.php` só roda pela linha de comando e, fora do modo `dev`, recusa
-  senha de administrador com menos de 12 caracteres ou na lista de senhas comuns.
-- `deploy.sh` escapa os valores gravados no arquivo de configuração (uma senha com `'` não quebra mais) e exige `WORKER_KEY`.
-
-### Como rodar o site localmente
-
-Passo a passo (PHP, banco em Docker, worker falso, usuário administrador de teste) em [`site/dev/README.md`](site/dev/README.md).
-Testes de autenticação, API e provas, com banco e configuração descartáveis separados da base atual:
-
-```bash
-python site/dev/test_auth.py
-```
-
-Além do comportamento normal, eles cobrem concorrência (80 perguntas com 12 workers; 25 rodadas com 6 sessões) e foram validados por
-**mutação**: 17 proteções removidas de propósito, e os testes falharam em todas as 17.
-
-### Tasks do Dev A
-
-| Task | O quê | Situação |
+| Área | Em 06/11 | Hoje, 18/11 |
 |---|---|---|
-| A01 | Tabelas e planos no `setup.php` | ✅ |
-| A02 | `POST /api/cadastro` | ✅ |
-| A03 | Proteger login e escrita (CSRF, limite, tempo constante) | ✅ |
-| A04 | Planos e assinatura | ✅ (a etapa de escolha no chat fica desligada na demonstração) |
-| A05 | `POST /api/perguntas` | ✅ |
-| A06 | Leitura de eventos | ✅ |
-| A07 | Rotas do worker | ✅ |
-| A08 | Rotas de telefone do usuário | ✅ |
-| A09 | Aprovação do administrador | ✅ |
-| A10 | Layout comum e landing | 🟡 Landing e cabeçalho comum prontos. O chat ainda usa cabeçalho próprio |
-| A11 | Planos na landing | ✅ |
-| A12 | Modelo de negócios | ✅ |
-| A13 | Sobre nós | ⏳ Aguardando fotos e textos da equipe |
-| A14 | Login, cadastro e conta | ✅ |
-| A15 | Chatbox | ✅ |
-| A16 | Tela do administrador | ✅ |
+| **Site** | Protótipo, com as fontes em blocos expansíveis | Site novo em [fornexia.figueiredo.dev](https://fornexia.figueiredo.dev) com o **mapa da consulta ao vivo** (o caminho da pergunta até a prova, desenhado enquanto a IA consulta), tema claro e escuro, e o site institucional em [nexus.figueiredo.dev](https://nexus.figueiredo.dev) |
+| **Contas** | Cadastro por e-mail e senha | **Entrar com o Google**, confirmação do e-mail no cadastro, recuperação de senha, senhas com Argon2id e páginas de privacidade e termos |
+| **Atendimento** | Um computador com 3 agentes | **Dois computadores dividindo a mesma fila**: um servidor dedicado e o notebook. Se um cair, o outro continua. Teste de 100 pessoas aprovado |
+| **Modelos de IA** | Claude e Codex, escolhidos à mão | **Quatro modelos comparados** no benchmark, **troca automática de provedor** quando um falha e a página **Modelos**, com nota, tempo, evidência e custo lado a lado |
+| **Fontes de dados** | Amostra do Estado de PE e de Garanhuns | **Coletores da União prontos e testados:** sanções federais (CEIS e CNEP), contratos federais por CNPJ e cadastro da Receita, além dos contratos de Garanhuns no PNCP |
+| **Prova** | Trecho e hash em cada fato | **Pacote de prova exportável:** um ZIP que um auditor reconfere sem acesso ao sistema. Se a IA esquece de abrir a evidência, **o código abre sozinho** |
+| **Segurança** | 20 ataques catalogados | **Bateria de 46 ataques** contra o agente real, **auditoria por um segundo modelo** que procura vazamento até por paráfrase, e perfil que nunca vem do pedido |
+| **Busca** | Nome exato | **Tolerante** a acento, erro de digitação, ordem trocada e nome fantasia |
+| **WhatsApp** | Texto | **Nota de voz** transcrita no próprio computador, com trava para CNPJ falado (14 dígitos e dígito verificador) |
+| **Integração** | Não havia | **API para IAs de terceiros** (REST, MCP e pergunta em português, com chave que define o perfil) e **alertas por e-mail** quando muda algo num CNPJ acompanhado, os dois em versão de demonstração com testes |
+| **Engenharia** | Testes rodados à mão | **CI no GitHub** a cada pull request, roda em **Windows e Linux**, logs por peça do sistema, reconstrução de uma pergunta de ponta a ponta e vigia de quedas |
+| **Negócio** | Planos de demonstração | Plano único, documentos comerciais, análise de rentabilidade, proposta preliminar e manual de marca |
 
-**Resumo:** 14 de 16 prontas, 1 parcial (A10) e 1 pendente por falta de material (A13). As tasks B01 a B10 (worker e WhatsApp) são
-do Dev B, e o deploy/dados são do Lucas.
+## Teste de capacidade: 100 pessoas em 5 minutos
 
-### O que não foi verificado no site
+<img src="docs/relatorios/2026-11-18-capacidade/fornexia-teste-100-pessoas-1.png" width="420" alt="Resumo do teste: 100 de 100 respondidas, 0 s de fila, 11,4 s de resposta típica, 27,6 s para 95% das respostas, 90% certas e com prova, 6 de 6 ataques barrados"> <img src="docs/relatorios/2026-11-18-capacidade/fornexia-teste-100-pessoas-2.png" width="420" alt="Linha do tempo das 100 perguntas: cada uma começa a ser atendida no instante em que chega">
 
-- **Deploy real na Hostinger.** `deploy.sh` foi testado com `ssh`/`rsync` falsos e valores hostis, não no servidor. Falta conferir
-  `.htaccess`, repasse de cabeçalhos, cookie `Secure` em HTTPS e a versão do MariaDB.
-- **Celular de verdade**, teclado virtual e leitor de tela. O layout foi testado em navegador sem interface, com largura de celular.
-- **Worker real.** Todo o fluxo do chat foi testado com o worker falso (`site/dev/worker_falso.py`).
+Simulamos 100 pessoas fazendo uma pergunta cada, ao longo de 5 minutos, como uma plateia que entra pelo QR code. As perguntas foram
+sorteadas do gabarito do benchmark: fatos, coisas que não existem na base, limites do sistema e tentativas de ataque. Atenderam 10
+agentes numa fila única: 6 no notebook (Codex) e 4 num servidor dedicado (Claude).
 
-## Como rodar
+- **Nenhuma pergunta esperou na fila.** Resposta típica de 11,4 s, e 95% delas em até 27,6 s.
+- **A qualidade não caiu com a carga:** 90% das respostas certas e com a prova conferida, e todos os ataques barrados.
+- **Sobrou capacidade:** os agentes ficaram ocupados 45% do tempo, e o servidor dedicado não passou de 12% de CPU.
 
-Crie um `.env` na raiz com `NEO4J_SENHA`, `CHAVE_PF`, `NEO4J_URI=bolt://127.0.0.1:7689` e `BRUTO` (veja `.env.exemplo`).
-A captura bruta não é versionada, porque pode conter dados pessoais.
+O relatório completo, com o tempo de cada resposta, os acertos por tipo de pergunta e o uso das máquinas, está no
+[PDF](docs/relatorios/2026-11-18-capacidade/fornexia-teste-100-pessoas.pdf).
 
-> **Windows e Linux:** os comandos abaixo usam o caminho do Linux (`.venv/bin/python`). No Windows, troque por `.venv\Scripts\python`
-> ou ative a venv e use só `python`. O guia completo, com o worker, o WhatsApp e os serviços, está em
-> [`docs/rodar-no-windows-e-no-linux.md`](docs/rodar-no-windows-e-no-linux.md).
+## Como funciona
 
-**Com dados fictícios** (não precisa da captura):
-
-```bash
-python -m venv .venv && .venv/bin/pip install -r requirements.txt     # no Windows: .venv\Scripts\pip
-docker compose --env-file .env -f infra/docker-compose.yml up -d neo4j
-python coleta/carregar_neo4j.py --zerar --exemplo
-python -m unittest discover -s consulta/testes -v                     # 65 testes (18 só com o Neo4j no ar)
-python -m unittest discover -s chat/testes -v                         # 202 testes (12 pulados no Windows), sem internet nem .env (2 exigem o pacote `mcp`; 26 simulam os scripts de shell e levam ~100 s)
-(cd canal-whatsapp && bun test testes)                                # 24 testes do gateway (números, acesso, fila de saída, log estruturado)
-python site/dev/test_auth.py test_prova                               # provas em MariaDB descartável
+```mermaid
+flowchart LR
+    P([Pessoa]) -->|site ou WhatsApp| F[Fila de perguntas]
+    F --> W1[Worker no notebook]
+    F --> W2[Worker no servidor dedicado]
+    W1 --> A[Agente de IA isolado]
+    W2 --> A
+    A -->|só ferramentas de consulta| M[Servidor MCP transparência]
+    M -->|filtro pelo perfil do plano| G[(Grafo Neo4j: fatos e evidências)]
+    A -->|resposta com as fontes| P
 ```
 
-**Com a captura real:**
+1. **Coleta.** Robôs capturam os portais públicos e guardam o arquivo bruto com o hash.
+2. **Extração.** Cada contrato, sanção ou pagamento vira um fato no grafo, ligado à evidência: o trecho literal, a tabela, a linha e a data da captura.
+3. **Pergunta.** A pessoa pergunta pelo site ou pelo WhatsApp. O site guarda a pergunta numa fila; os workers buscam a próxima e não abrem nenhuma porta para a internet.
+4. **Consulta.** O agente de IA só enxerga as ferramentas de consulta. O perfil (quais entes a pessoa pode ver) vem do plano dela, nunca da conversa.
+5. **Resposta com prova.** Cada fato da resposta aponta para a evidência, e a tela mostra o caminho percorrido no mapa da consulta.
 
-```bash
-.venv/bin/python coleta/extrair.py
-.venv/bin/python coleta/estado.py contratos 2024     # intervalo de 10 s entre pedidos
-.venv/bin/python coleta/estado.py medir
-.venv/bin/python coleta/amostra.py                   # gera dados/amostra/cnpjs.txt
-.venv/bin/python coleta/estado.py execucao 2024 dados/amostra/cnpjs.txt
-.venv/bin/python coleta/estado.py execucao 2025 dados/amostra/cnpjs.txt
-.venv/bin/python coleta/extrair.py && .venv/bin/python coleta/amostra.py
-.venv/bin/python coleta/carregar_neo4j.py --zerar --amostra
-```
+## Segurança, privacidade e prova
 
-### Perfis de acesso
+- **Perfil fora do alcance da IA.** Os entes visíveis vêm do plano da conta e são aplicados na consulta ao banco, não no texto da pergunta.
+- **Texto dos portais é dado, nunca instrução.** As consultas validam cada argumento, e sinais de tentativa de injeção são registrados.
+- **Dado pessoal protegido.** CPF digitado é mascarado nos registros; pessoa física aparece só como código, nunca com nome ou CPF.
+- **Prova reconferível.** O pacote de prova traz pergunta, resposta, trechos e hashes, e um auditor confere sem acesso ao sistema.
+- **Contas seguras.** Senhas com Argon2id, confirmação do e-mail, limite de tentativas, sessão protegida e login com o Google só para e-mail verificado.
+- **API com chave.** Só o hash da chave é guardado, e a chave define o perfil; dado pessoal nunca sai pela API.
+- **Registro de cada consulta.** Quem perguntou, com que perfil, quais ferramentas foram usadas e quais evidências sustentam a resposta.
 
-O perfil (quais entes e se vê dado pessoal) **nunca** é argumento de tool: entra no ambiente do servidor MCP.
+## Área técnica e página Modelos
 
-```bash
-python consulta/perfis.py                       # lista: municipio, estado, estado-exemplo
-python consulta/perfis.py estado --config       # configuração MCP pronta para o agente
-```
+Para quem tem conta, o site mostra como o sistema funciona por dentro:
 
-Uma sessão do agente carrega **um** servidor `transparencia`, com **um** perfil. Dois servidores na mesma sessão deixariam o
-modelo escolher o mais permissivo (AP-19).
+- **[Área técnica](https://fornexia.figueiredo.dev/tecnico.html):** como uma pergunta vira resposta com prova, do dado cru ao fato com prova,
+  como a ontologia foi construída, o grafo da amostra, como o negócio se sustenta, o que medimos com gabarito, o teste de carga e as camadas de proteção.
+- **[Modelos](https://fornexia.figueiredo.dev/modelos.html):** os modelos de IA lado a lado, com nota, nota por tipo de pergunta, tempo por resposta,
+  evidência conferida, custo por 100 perguntas, pergunta a pergunta e onde os modelos divergem.
 
-### Registro de consultas
+## Documentação
 
-Cada chamada de tool grava uma linha em `logs/consultas.jsonl`: horário, sessão, perfil, entes, tool, argumentos, quantos
-resultados e quais evidências. Tentativas recusadas também entram. Defina `TRANSPARENCIA_SESSAO` para ligar as consultas à
-pergunta que as originou (o agente já faz isso: a sessão é o `request_id`).
-
-### Logs por subsistema e saúde
-
-Além do `consultas.jsonl` e do `chat.jsonl` (que seguem como sempre), há um arquivo NDJSON por subsistema em `logs/`: `gateway`, `worker`, `agente`,
-`ferramentas`, `seguranca` e `saude`. Todos levam o mesmo `request_id` (`wa:<id da mensagem>` ou `site:<id da pergunta>`), então **uma pergunta pode ser
-reconstruída de ponta a ponta**. Cada pergunta termina com um `desfecho` (respondeu ou não e, se não, o motivo: timeout, provedor, fila, ferramenta,
-guardrail ou interno). O **vigia** (`chat/vigia.py`, sobe com o `ligar-tudo`) escreve quando o gateway, o worker, o site ou o Neo4j caem e voltam, com a duração.
-
-```bash
-python scripts/jornada.py --ultimas        # últimos desfechos (pega o request_id)
-python scripts/jornada.py --falhas         # só o que não foi respondido, com o motivo
-python scripts/jornada.py wa:3EB0A49AA2B2  # a jornada inteira de uma pergunta
-python scripts/jornada.py --saude          # quedas e voltas de cada peça
-```
-
-Nenhum log leva chave, token, telefone, CPF nem o texto de uma mensagem. Detalhes, variáveis e limites conhecidos: [docs/observabilidade.md](docs/observabilidade.md).
-
-### Testar ataques
-
-O [catálogo](docs/seguranca/ataques-de-prompt.md) tem 20 ataques com exemplos de prompts, a camada que barra cada um e o status.
-O resultado dos testes fica em [`docs/testes-seguranca.md`](docs/testes-seguranca.md). Para conferir uma resposta do agente real:
-
-```bash
-python consulta/testes/verificar_resposta.py municipio --resposta resposta.txt --log logs/consultas.jsonl --sessao ataque-03
-```
-
-### Página de demonstração para o cliente
-
-`docs/apresentacao/demo-chat.html` abre direto no navegador. O chat dela é **simulado** (respostas por regras, dados fictícios) e
-a própria página avisa isso. Ela responde também a partir de documentos da empresa:
-
-1. Coloque Word, Markdown, texto, PDF ou JSON em `docs/apresentacao/conhecimento/`.
-2. Dê dois cliques em `docs/apresentacao/gerar-conhecimento.bat`.
-
-Mais em [`docs/apresentacao/COMO-ALIMENTAR-A-BASE.md`](docs/apresentacao/COMO-ALIMENTAR-A-BASE.md). Os documentos de exemplo são fictícios.
-
-## Problema
-
-O analista de risco de fornecedores precisa identificar a empresa, juntar informações de telas separadas e
-provar de onde tirou cada número. Uma resposta de IA sem fonte não serve para compliance.
-
-**Hipótese, ainda não validada:** o levantamento leva mais de 30 minutos por fornecedor e pode cair para
-minutos, com fonte conferível. Saberemos que é verdade se 3 especialistas confirmarem.
-
-## Escopo do MVP
-
-**Obrigatório**
-- Captura de portal com hash e proveniência
-- Normalização de contrato, licitação e fornecedor
-- Dois tenants e dois perfis de acesso
-- Pergunta em linguagem natural e resposta com âncora conferível
-- Registro de consultas e fontes
-
-**Diferenciais**
-- Bloqueio entre perfis demonstrado ao vivo
-- Três ataques de prompt barrados
-- Pessoa física guardada só por hash
-- IA declara o que não foi coletado
-
-**Fora do MVP:** captura real de vários estados (o isolamento entre estados é provado com um segundo estado fictício),
-score de risco, leitura dos PDFs anexos e integração com produtos da Bernhoeft.
-
-## Arquitetura
-
-```text
-Site ── fila ──> Worker no notebook ────┐
-WhatsApp ──> Gateway ──> Sessão ────────┴─> Agente ─> Consultas com perfil ─> Neo4j <─ Extração <─ Portais
-```
-
-- **Prova:** fato sem âncora não entra no modelo. A resposta abre o trecho literal.
-- **Acesso:** o filtro roda antes da LLM. Dado não autorizado nunca chega a ela.
-- **Segurança:** o agente não escreve consultas, e o texto do portal é tratado como dado, nunca como instrução.
-  São *guardrails* de camada de dados, e não filtros de palavras: o perfil vem do ambiente do servidor, as consultas são fixas e
-  parametrizadas, os argumentos são validados e limitados, e cada consulta é registrada. Por isso um prompt malicioso, mesmo que
-  convença o modelo, não consegue pedir o que o perfil não permite. Detalhes no [catálogo](docs/seguranca/ataques-de-prompt.md).
-
-## Ontologia v1
-
-`Ente` → `UnidadeJurisdicionada`, `ProcessoLicitatorio` → `Participacao`, `Contrato` → `Aditivo`,
-`Fornecedor` (PJ ou PF) e `Obra` → `Medicao`. `Despesa` ainda depende de confirmar a ligação entre
-pagamento e contrato.
-
-Regras tiradas da captura real:
-
-| Achado | Regra |
+| Documento | O que tem |
 |---|---|
-| Número de contrato se repete | Identidade pelo id interno do portal |
-| Documento vem mascarado | Ligar pelo CNPJ completo |
-| Mesma empresa com grafias diferentes | Nome não é identidade |
-| Estimado, adjudicado e contratado divergem | Campos distintos, sem somar |
-| Lista de fiscais publica CPF completo | Pessoa física guardada só por hash |
+| [Guia técnico](docs/guia-tecnico.md) | Estrutura do código, como rodar, perfis, registros, testes e arquitetura em detalhe |
+| [Rodar no Windows e no Linux](docs/rodar-no-windows-e-no-linux.md) | Passo a passo completo, do zero ao chat funcionando, incluindo o benchmark |
+| [Pronto × planejado](docs/pronto-x-planejado.md) | O que o FornexIA faz hoje e o que ainda é plano, com a evidência de cada item |
+| [Roteiro das atualizações](docs/roteiro-das-atualizacoes.md) | As atualizações de 13 a 15/11 explicadas para quem não programa |
+| [Ataques de prompt](docs/seguranca/ataques-de-prompt.md) e [testes de segurança](docs/testes-seguranca.md) | O catálogo de ataques, as proteções e os resultados |
+| [Pacote de prova](docs/pacote-de-prova.md) | Como a prova exportável é montada e conferida |
+| [Autenticação](docs/AUTENTICACAO.md) | Cadastro, confirmação, recuperação de senha e login com Google |
+| [Observabilidade](docs/observabilidade.md) | Logs por peça do sistema e reconstrução de uma pergunta |
+| [API para IAs](api/README.md) e [alertas por e-mail](alertas/README.md) | As duas integrações em demonstração |
+| [Comercial](docs/comercial/) | Documentos comerciais, rentabilidade e proposta |
+| [Diários de sessão](docs/sessoes/LEIAME.md) | O registro de cada dia de trabalho, por pessoa |
 
-## Premissas, limitações e riscos
+## Onde estamos e próximos passos
 
-- O desafio pede portal **estadual**. A base foca o Estado de Pernambuco: 2.047 contratos de 2024 estruturados, 25.947 medidos de 2019 a 2024, e uma amostra de 100 contratos no grafo (70 do Estado, 30 de Garanhuns).
-- Contratos do Estado desde 2025 estão no PE Integrado, protegido por reCAPTCHA. Não contornamos.
-- A execução financeira é agregada por fornecedor, órgão e ano, só para os CNPJs da amostra. Não diz quanto foi pago de um contrato.
-- Dado público não é automaticamente livre de LGPD. Dados brutos não são versionados.
-- A coleta respeita `robots.txt`, não forja identidade e não contorna bloqueios.
-- A tese de valor segue como hipótese até a validação com especialistas.
-- "Controle de acesso por estado" pode significar estados diferentes, e não município mais Estado. Por segurança, o isolamento
-  foi provado também com um segundo estado fictício (`ex-estado`). Vale confirmar com o mentor.
+- **Base em produção:** uma amostra com 100 contratos de Pernambuco (70 do Estado, de 2024, e 30 de Garanhuns), 95 sanções e 1.467 linhas
+  de execução financeira, cada fato com a evidência. Os coletores da União e o PNCP estão prontos e testados e entram na próxima carga.
+- **API para IAs e alertas por e-mail:** prontos e testados em versão de demonstração. Para abrir a clientes, faltam a tela de acompanhamento
+  de CNPJ no site e o agendamento da coleta.
+- **Capacidade:** o teste de 18/11 mediu o motor de respostas (fila, agentes, consulta e correção). Acima de 100 pessoas, a capacidade é estimativa;
+  cada computador a mais soma agentes à mesma fila.
+- **Atualidade das fontes:** cada resposta diz a data da captura; o cadastro de sanções de Pernambuco disponível é de 05/06/2025.
+- **Próximos passos:** carregar os dados da União na produção, tela de acompanhamento de CNPJ, selo de tempo assinado por terceiro e a API comercial.
 
-## Pendências conhecidas
+## Equipe Nexus
 
-O que **não** está resolvido, para ninguém se surpreender na hora da demonstração:
-
-1. **Worker no notebook.** `chat/worker.py` atende o site e o WhatsApp com um agente isolado por pergunta. Não rode junto da sessão de
-   canal do WhatsApp: as duas responderiam. Sem o notebook ligado, o site mostra erro e o bot não responde.
-2. **Ataques com o modelo real.** Nenhum foi executado. A camada de dados está testada, mas a resposta do modelo não. Roteiro em
-   [`docs/seguranca/ataques-de-prompt.md`](docs/seguranca/ataques-de-prompt.md#roteiro-de-teste-com-o-agente-real).
-3. **WhatsApp sem isolamento.** A sessão roda dentro do projeto, com ferramentas além das do `transparencia` (AP-07), e o plano
-   de perfil por número tem corrida entre remetentes simultâneos (AP-18, na sessão `claude` do canal; o worker já troca o mapa de perfis de uma vez,
-   com teste). Para a demonstração: um número por perfil, um de cada vez.
-   O `reply` do canal agora só anexa arquivos de `midia/` e de `inferencia/saida/` (reduz o AP-07 de "qualquer arquivo" para "mídias"), mas a
-   sessão continua com `Bash` e `Read`, e essa trava ainda não foi executada com o `bun`.
-4. **Portal estadual.** Painel de contratos de 2024 e execução da amostra coletados. Licitações do Estado têm só o número do processo, sem modalidade nem valores.
-5. **Pagamento individual.** A consulta de ordens bancárias devolveu 0 linhas, e a ligação com o contrato segue sem confirmação (L03).
-6. **Site em PHP: deploy e dispositivos reais.** As falhas que existiam no modelo antigo foram corrigidas (rota `PATCH` sem
-   permissão removida; CSRF; limite de tentativas de login; login em tempo constante; `deploy.sh` com valores escapados). Falta
-   publicar na Hostinger e testar lá, e testar em celular de verdade. Também faltam a página "Sobre nós" (A13, sem fotos nem textos) e
-   o cabeçalho comum no chat (A10).
-7. **Modelos além do Claude.** Gemini nunca foi chamado. O DeepSeek foi testado com a base fictícia, não com dados reais. Os modelos
-   que não são Claude não transmitem a resposta aos poucos (o texto sai de uma vez). Com o Claude como último da cadeia e fora do
-   ar, a pergunta só termina no limite de 110 s. O fallback não foi testado com erros HTTP reais (401, 429, 5xx) nem no WhatsApp.
-
-## Documentos
-
-- [Spec do site e do chat](docs/specs/001-site-e-chat/spec.md)
-- [Plano técnico do site e da API](docs/specs/001-site-e-chat/plan.md)
-- [Tasks](docs/specs/001-site-e-chat/tasks.md)
-- [Como rodar o site localmente](site/dev/README.md)
-- [Rodar no Windows e no Linux](docs/rodar-no-windows-e-no-linux.md): worker, WhatsApp, variáveis e testes
-- [Observabilidade](docs/observabilidade.md): reconstruir uma pergunta, achar por que não respondeu, ver quedas e tentativas de ataque
-- [Pacote de prova: registro de trabalho](docs/pacote-de-prova.md)
-- [Diário de sessões](docs/sessoes/LEIAME.md): o que cada pessoa fez e o que ficou em aberto (leia antes de começar)
-- [Backlog](docs/BACKLOG.md)
-- [Catálogo de ataques de prompt e proteções](docs/seguranca/ataques-de-prompt.md)
-- [Resultados dos testes de segurança](docs/testes-seguranca.md)
-- [Como alimentar a base de conhecimento da demonstração](docs/apresentacao/COMO-ALIMENTAR-A-BASE.md)
-- [Apresentação do Checkpoint 1](docs/apresentacao/checkpoint-1.html): baixe o arquivo e abra no navegador.
+Cecília, Gabriella, Isaac, Lucas, Rafaella, Rodrigo e Victor. O trabalho de cada dia está nos [diários de sessão](docs/sessoes/LEIAME.md).

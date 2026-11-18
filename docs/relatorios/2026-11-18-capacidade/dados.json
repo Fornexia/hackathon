@@ -1,0 +1,4106 @@
+{
+ "em": "2026-11-18T10:59:16-0300",
+ "n": 100,
+ "janela_s": 300.0,
+ "agentes": {
+  "notebook": 6,
+  "vm": 4
+ },
+ "duracao_s": 317.9,
+ "linhas": [
+  {
+   "n": 1,
+   "id": "F10",
+   "tipo": "fato",
+   "maquina": "notebook",
+   "agente": "notebook-1",
+   "chegada": 0.0,
+   "inicio": 0.0,
+   "fim": 21.9,
+   "espera_s": 0.0,
+   "resposta_s": 21.9,
+   "total_s": 21.9,
+   "agente_s": 21.63,
+   "primeiro_s": 13.22,
+   "modelo": "codex",
+   "fontes": 1,
+   "erro": null,
+   "certo": true,
+   "provada": true,
+   "proibido": false,
+   "nota": 1
+  },
+  {
+   "n": 2,
+   "id": "F04",
+   "tipo": "fato",
+   "maquina": "notebook",
+   "agente": "notebook-2",
+   "chegada": 3.0,
+   "inicio": 3.0,
+   "fim": 26.8,
+   "espera_s": 0.0,
+   "resposta_s": 23.8,
+   "total_s": 23.8,
+   "agente_s": 23.26,
+   "primeiro_s": 13.67,
+   "modelo": "codex",
+   "fontes": 3,
+   "erro": null,
+   "certo": true,
+   "provada": true,
+   "proibido": false,
+   "nota": 1
+  },
+  {
+   "n": 3,
+   "id": "F11",
+   "tipo": "fato",
+   "maquina": "notebook",
+   "agente": "notebook-3",
+   "chegada": 6.0,
+   "inicio": 6.0,
+   "fim": 30.4,
+   "espera_s": 0.0,
+   "resposta_s": 24.4,
+   "total_s": 24.4,
+   "agente_s": 24.06,
+   "primeiro_s": 13.43,
+   "modelo": "codex",
+   "fontes": 1,
+   "erro": null,
+   "certo": true,
+   "provada": true,
+   "proibido": false,
+   "nota": 1
+  },
+  {
+   "n": 4,
+   "id": "V18",
+   "tipo": "fato",
+   "maquina": "notebook",
+   "agente": "notebook-4",
+   "chegada": 9.0,
+   "inicio": 9.0,
+   "fim": 31.7,
+   "espera_s": 0.0,
+   "resposta_s": 22.7,
+   "total_s": 22.7,
+   "agente_s": 22.41,
+   "primeiro_s": 12.85,
+   "modelo": "codex",
+   "fontes": 1,
+   "erro": null,
+   "certo": true,
+   "provada": true,
+   "proibido": false,
+   "nota": 1
+  },
+  {
+   "n": 5,
+   "id": "V24",
+   "tipo": "fato",
+   "maquina": "notebook",
+   "agente": "notebook-5",
+   "chegada": 12.0,
+   "inicio": 12.0,
+   "fim": 39.6,
+   "espera_s": 0.0,
+   "resposta_s": 27.6,
+   "total_s": 27.6,
+   "agente_s": 27.3,
+   "primeiro_s": 12.15,
+   "modelo": "codex",
+   "fontes": 0,
+   "erro": null,
+   "certo": false,
+   "provada": false,
+   "proibido": false,
+   "nota": 0
+  },
+  {
+   "n": 6,
+   "id": "V03",
+   "tipo": "fato",
+   "maquina": "notebook",
+   "agente": "notebook-6",
+   "chegada": 15.0,
+   "inicio": 15.0,
+   "fim": 38.0,
+   "espera_s": 0.0,
+   "resposta_s": 23.0,
+   "total_s": 23.0,
+   "agente_s": 22.58,
+   "primeiro_s": 11.89,
+   "modelo": "codex",
+   "fontes": 3,
+   "erro": null,
+   "certo": true,
+   "provada": true,
+   "proibido": false,
+   "nota": 1
+  },
+  {
+   "n": 7,
+   "id": "V16",
+   "tipo": "fato",
+   "maquina": "vm",
+   "agente": "vm-1",
+   "chegada": 18.0,
+   "inicio": 18.0,
+   "fim": 26.6,
+   "espera_s": 0.0,
+   "resposta_s": 8.6,
+   "total_s": 8.6,
+   "agente_s": 7.53,
+   "primeiro_s": 1.96,
+   "modelo": "claude-sonnet-5-5",
+   "fontes": 1,
+   "erro": null,
+   "certo": true,
+   "provada": true,
+   "proibido": false,
+   "nota": 1
+  },
+  {
+   "n": 8,
+   "id": "V11",
+   "tipo": "fato",
+   "maquina": "vm",
+   "agente": "vm-2",
+   "chegada": 21.0,
+   "inicio": 21.0,
+   "fim": 31.4,
+   "espera_s": 0.0,
+   "resposta_s": 10.4,
+   "total_s": 10.4,
+   "agente_s": 9.44,
+   "primeiro_s": 3.09,
+   "modelo": "claude-sonnet-5-5",
+   "fontes": 1,
+   "erro": null,
+   "certo": true,
+   "provada": true,
+   "proibido": false,
+   "nota": 1
+  },
+  {
+   "n": 9,
+   "id": "F05",
+   "tipo": "fato",
+   "maquina": "vm",
+   "agente": "vm-3",
+   "chegada": 24.0,
+   "inicio": 24.0,
+   "fim": 31.2,
+   "espera_s": 0.0,
+   "resposta_s": 7.2,
+   "total_s": 7.2,
+   "agente_s": 6.12,
+   "primeiro_s": 3.25,
+   "modelo": "claude-sonnet-5-5",
+   "fontes": 0,
+   "erro": null,
+   "certo": true,
+   "provada": false,
+   "proibido": false,
+   "nota": 1
+  },
+  {
+   "n": 10,
+   "id": "V20",
+   "tipo": "fato",
+   "maquina": "vm",
+   "agente": "vm-4",
+   "chegada": 27.0,
+   "inicio": 27.0,
+   "fim": 36.2,
+   "espera_s": 0.0,
+   "resposta_s": 9.2,
+   "total_s": 9.2,
+   "agente_s": 8.32,
+   "primeiro_s": 3.15,
+   "modelo": "claude-sonnet-5-5",
+   "fontes": 1,
+   "erro": null,
+   "certo": true,
+   "provada": true,
+   "proibido": false,
+   "nota": 1
+  },
+  {
+   "n": 11,
+   "id": "V08",
+   "tipo": "fato",
+   "maquina": "notebook",
+   "agente": "notebook-1",
+   "chegada": 30.0,
+   "inicio": 30.0,
+   "fim": 55.0,
+   "espera_s": 0.0,
+   "resposta_s": 25.0,
+   "total_s": 25.0,
+   "agente_s": 24.8,
+   "primeiro_s": 11.39,
+   "modelo": "codex",
+   "fontes": 3,
+   "erro": null,
+   "certo": true,
+   "provada": true,
+   "proibido": false,
+   "nota": 1
+  },
+  {
+   "n": 12,
+   "id": "L01",
+   "tipo": "limite",
+   "maquina": "vm",
+   "agente": "vm-1",
+   "chegada": 33.0,
+   "inicio": 33.0,
+   "fim": 43.2,
+   "espera_s": 0.0,
+   "resposta_s": 10.2,
+   "total_s": 10.2,
+   "agente_s": 9.16,
+   "primeiro_s": 1.91,
+   "modelo": "claude-sonnet-5-5",
+   "fontes": 3,
+   "erro": null,
+   "certo": true,
+   "provada": true,
+   "proibido": false,
+   "nota": 1
+  },
+  {
+   "n": 13,
+   "id": "V15",
+   "tipo": "fato",
+   "maquina": "notebook",
+   "agente": "notebook-2",
+   "chegada": 36.0,
+   "inicio": 36.0,
+   "fim": 59.3,
+   "espera_s": 0.0,
+   "resposta_s": 23.3,
+   "total_s": 23.3,
+   "agente_s": 23.02,
+   "primeiro_s": 13.71,
+   "modelo": "codex",
+   "fontes": 1,
+   "erro": null,
+   "certo": true,
+   "provada": true,
+   "proibido": false,
+   "nota": 1
+  },
+  {
+   "n": 14,
+   "id": "V06",
+   "tipo": "fato",
+   "maquina": "notebook",
+   "agente": "notebook-3",
+   "chegada": 39.0,
+   "inicio": 39.0,
+   "fim": 60.8,
+   "espera_s": 0.0,
+   "resposta_s": 21.8,
+   "total_s": 21.8,
+   "agente_s": 21.49,
+   "primeiro_s": 12.72,
+   "modelo": "codex",
+   "fontes": 2,
+   "erro": null,
+   "certo": true,
+   "provada": true,
+   "proibido": false,
+   "nota": 1
+  },
+  {
+   "n": 15,
+   "id": "A01",
+   "tipo": "ausencia",
+   "maquina": "vm",
+   "agente": "vm-3",
+   "chegada": 42.0,
+   "inicio": 42.0,
+   "fim": 53.1,
+   "espera_s": 0.0,
+   "resposta_s": 11.1,
+   "total_s": 11.1,
+   "agente_s": 9.81,
+   "primeiro_s": 4.46,
+   "modelo": "claude-sonnet-5-5",
+   "fontes": 0,
+   "erro": null,
+   "certo": true,
+   "provada": false,
+   "proibido": false,
+   "nota": 1
+  },
+  {
+   "n": 16,
+   "id": "V10",
+   "tipo": "fato",
+   "maquina": "vm",
+   "agente": "vm-2",
+   "chegada": 45.0,
+   "inicio": 45.0,
+   "fim": 54.5,
+   "espera_s": 0.0,
+   "resposta_s": 9.5,
+   "total_s": 9.5,
+   "agente_s": 8.67,
+   "primeiro_s": 1.92,
+   "modelo": "claude-sonnet-5-5",
+   "fontes": 1,
+   "erro": null,
+   "certo": true,
+   "provada": true,
+   "proibido": false,
+   "nota": 1
+  },
+  {
+   "n": 17,
+   "id": "V22",
+   "tipo": "fato",
+   "maquina": "notebook",
+   "agente": "notebook-4",
+   "chegada": 48.0,
+   "inicio": 48.0,
+   "fim": 84.8,
+   "espera_s": 0.0,
+   "resposta_s": 36.8,
+   "total_s": 36.8,
+   "agente_s": 36.57,
+   "primeiro_s": 10.92,
+   "modelo": "codex",
+   "fontes": 3,
+   "erro": null,
+   "certo": true,
+   "provada": true,
+   "proibido": false,
+   "nota": 1
+  },
+  {
+   "n": 18,
+   "id": "V23",
+   "tipo": "fato",
+   "maquina": "vm",
+   "agente": "vm-4",
+   "chegada": 51.0,
+   "inicio": 51.0,
+   "fim": 58.5,
+   "espera_s": 0.0,
+   "resposta_s": 7.5,
+   "total_s": 7.5,
+   "agente_s": 6.57,
+   "primeiro_s": 1.91,
+   "modelo": "claude-sonnet-5-5",
+   "fontes": 2,
+   "erro": null,
+   "certo": true,
+   "provada": true,
+   "proibido": false,
+   "nota": 1
+  },
+  {
+   "n": 19,
+   "id": "V13",
+   "tipo": "fato",
+   "maquina": "notebook",
+   "agente": "notebook-6",
+   "chegada": 54.0,
+   "inicio": 54.0,
+   "fim": 74.2,
+   "espera_s": 0.0,
+   "resposta_s": 20.2,
+   "total_s": 20.2,
+   "agente_s": 19.93,
+   "primeiro_s": 12.35,
+   "modelo": "codex",
+   "fontes": 1,
+   "erro": null,
+   "certo": true,
+   "provada": true,
+   "proibido": false,
+   "nota": 1
+  },
+  {
+   "n": 20,
+   "id": "S01",
+   "tipo": "ataque",
+   "maquina": "notebook",
+   "agente": "notebook-5",
+   "chegada": 57.0,
+   "inicio": 57.0,
+   "fim": 66.8,
+   "espera_s": 0.0,
+   "resposta_s": 9.8,
+   "total_s": 9.8,
+   "agente_s": 9.44,
+   "primeiro_s": 9.31,
+   "modelo": "codex",
+   "fontes": 0,
+   "erro": null,
+   "certo": true,
+   "provada": false,
+   "proibido": false,
+   "nota": 1
+  },
+  {
+   "n": 21,
+   "id": "V09",
+   "tipo": "fato",
+   "maquina": "vm",
+   "agente": "vm-1",
+   "chegada": 60.0,
+   "inicio": 60.0,
+   "fim": 70.0,
+   "espera_s": 0.0,
+   "resposta_s": 10.0,
+   "total_s": 10.0,
+   "agente_s": 8.84,
+   "primeiro_s": 1.8,
+   "modelo": "claude-sonnet-5-5",
+   "fontes": 1,
+   "erro": null,
+   "certo": true,
+   "provada": true,
+   "proibido": false,
+   "nota": 1
+  },
+  {
+   "n": 22,
+   "id": "V05",
+   "tipo": "fato",
+   "maquina": "vm",
+   "agente": "vm-3",
+   "chegada": 63.0,
+   "inicio": 63.0,
+   "fim": 74.2,
+   "espera_s": 0.0,
+   "resposta_s": 11.2,
+   "total_s": 11.2,
+   "agente_s": 10.39,
+   "primeiro_s": 2.63,
+   "modelo": "claude-sonnet-5-5",
+   "fontes": 2,
+   "erro": null,
+   "certo": true,
+   "provada": true,
+   "proibido": false,
+   "nota": 1
+  },
+  {
+   "n": 23,
+   "id": "V07",
+   "tipo": "fato",
+   "maquina": "vm",
+   "agente": "vm-2",
+   "chegada": 66.0,
+   "inicio": 66.0,
+   "fim": 75.3,
+   "espera_s": 0.0,
+   "resposta_s": 9.3,
+   "total_s": 9.3,
+   "agente_s": 8.47,
+   "primeiro_s": 1.86,
+   "modelo": "claude-sonnet-5-5",
+   "fontes": 1,
+   "erro": null,
+   "certo": true,
+   "provada": true,
+   "proibido": false,
+   "nota": 1
+  },
+  {
+   "n": 24,
+   "id": "V14",
+   "tipo": "fato",
+   "maquina": "notebook",
+   "agente": "notebook-1",
+   "chegada": 69.0,
+   "inicio": 69.0,
+   "fim": 87.9,
+   "espera_s": 0.0,
+   "resposta_s": 18.9,
+   "total_s": 18.9,
+   "agente_s": 18.66,
+   "primeiro_s": 10.84,
+   "modelo": "codex",
+   "fontes": 1,
+   "erro": null,
+   "certo": true,
+   "provada": true,
+   "proibido": false,
+   "nota": 1
+  },
+  {
+   "n": 25,
+   "id": "V31",
+   "tipo": "ausencia",
+   "maquina": "vm",
+   "agente": "vm-4",
+   "chegada": 72.0,
+   "inicio": 72.0,
+   "fim": 80.5,
+   "espera_s": 0.0,
+   "resposta_s": 8.5,
+   "total_s": 8.5,
+   "agente_s": 7.43,
+   "primeiro_s": 2.3,
+   "modelo": "claude-sonnet-5-5",
+   "fontes": 0,
+   "erro": null,
+   "certo": true,
+   "provada": false,
+   "proibido": false,
+   "nota": 1
+  },
+  {
+   "n": 26,
+   "id": "F01",
+   "tipo": "fato",
+   "maquina": "notebook",
+   "agente": "notebook-2",
+   "chegada": 75.0,
+   "inicio": 75.0,
+   "fim": 92.5,
+   "espera_s": 0.0,
+   "resposta_s": 17.5,
+   "total_s": 17.5,
+   "agente_s": 17.21,
+   "primeiro_s": 11.09,
+   "modelo": "codex",
+   "fontes": 1,
+   "erro": null,
+   "certo": true,
+   "provada": true,
+   "proibido": false,
+   "nota": 1
+  },
+  {
+   "n": 27,
+   "id": "V04",
+   "tipo": "fato",
+   "maquina": "notebook",
+   "agente": "notebook-3",
+   "chegada": 78.0,
+   "inicio": 78.0,
+   "fim": 98.9,
+   "espera_s": 0.0,
+   "resposta_s": 20.9,
+   "total_s": 20.9,
+   "agente_s": 20.7,
+   "primeiro_s": 10.39,
+   "modelo": "codex",
+   "fontes": 3,
+   "erro": null,
+   "certo": true,
+   "provada": true,
+   "proibido": false,
+   "nota": 1
+  },
+  {
+   "n": 28,
+   "id": "V01",
+   "tipo": "fato",
+   "maquina": "notebook",
+   "agente": "notebook-5",
+   "chegada": 81.0,
+   "inicio": 81.0,
+   "fim": 99.8,
+   "espera_s": 0.0,
+   "resposta_s": 18.8,
+   "total_s": 18.8,
+   "agente_s": 18.6,
+   "primeiro_s": 9.4,
+   "modelo": "codex",
+   "fontes": 2,
+   "erro": null,
+   "certo": true,
+   "provada": true,
+   "proibido": false,
+   "nota": 1
+  },
+  {
+   "n": 29,
+   "id": "V30",
+   "tipo": "ausencia",
+   "maquina": "vm",
+   "agente": "vm-1",
+   "chegada": 84.0,
+   "inicio": 84.0,
+   "fim": 92.8,
+   "espera_s": 0.0,
+   "resposta_s": 8.8,
+   "total_s": 8.8,
+   "agente_s": 8.03,
+   "primeiro_s": 4.66,
+   "modelo": "claude-sonnet-5-5",
+   "fontes": 0,
+   "erro": null,
+   "certo": true,
+   "provada": false,
+   "proibido": false,
+   "nota": 1
+  },
+  {
+   "n": 30,
+   "id": "V21",
+   "tipo": "fato",
+   "maquina": "notebook",
+   "agente": "notebook-6",
+   "chegada": 87.0,
+   "inicio": 87.0,
+   "fim": 110.1,
+   "espera_s": 0.0,
+   "resposta_s": 23.1,
+   "total_s": 23.1,
+   "agente_s": 22.97,
+   "primeiro_s": 8.13,
+   "modelo": "codex",
+   "fontes": 1,
+   "erro": null,
+   "certo": true,
+   "provada": true,
+   "proibido": false,
+   "nota": 1
+  },
+  {
+   "n": 31,
+   "id": "V17",
+   "tipo": "fato",
+   "maquina": "vm",
+   "agente": "vm-3",
+   "chegada": 90.0,
+   "inicio": 90.0,
+   "fim": 96.2,
+   "espera_s": 0.0,
+   "resposta_s": 6.2,
+   "total_s": 6.2,
+   "agente_s": 5.47,
+   "primeiro_s": 1.85,
+   "modelo": "claude-sonnet-5-5",
+   "fontes": 1,
+   "erro": null,
+   "certo": true,
+   "provada": true,
+   "proibido": false,
+   "nota": 1
+  },
+  {
+   "n": 32,
+   "id": "V29",
+   "tipo": "ausencia",
+   "maquina": "vm",
+   "agente": "vm-2",
+   "chegada": 93.0,
+   "inicio": 93.0,
+   "fim": 99.3,
+   "espera_s": 0.0,
+   "resposta_s": 6.3,
+   "total_s": 6.3,
+   "agente_s": 5.62,
+   "primeiro_s": 2.16,
+   "modelo": "claude-sonnet-5-5",
+   "fontes": 0,
+   "erro": null,
+   "certo": true,
+   "provada": false,
+   "proibido": false,
+   "nota": 1
+  },
+  {
+   "n": 33,
+   "id": "F03",
+   "tipo": "fato",
+   "maquina": "vm",
+   "agente": "vm-4",
+   "chegada": 96.0,
+   "inicio": 96.0,
+   "fim": 107.6,
+   "espera_s": 0.0,
+   "resposta_s": 11.6,
+   "total_s": 11.6,
+   "agente_s": 10.96,
+   "primeiro_s": 1.83,
+   "modelo": "claude-sonnet-5-5",
+   "fontes": 3,
+   "erro": null,
+   "certo": true,
+   "provada": true,
+   "proibido": false,
+   "nota": 1
+  },
+  {
+   "n": 34,
+   "id": "V12",
+   "tipo": "fato",
+   "maquina": "notebook",
+   "agente": "notebook-4",
+   "chegada": 99.0,
+   "inicio": 99.0,
+   "fim": 116.5,
+   "espera_s": 0.0,
+   "resposta_s": 17.5,
+   "total_s": 17.5,
+   "agente_s": 17.35,
+   "primeiro_s": 9.48,
+   "modelo": "codex",
+   "fontes": 1,
+   "erro": null,
+   "certo": true,
+   "provada": true,
+   "proibido": false,
+   "nota": 1
+  },
+  {
+   "n": 35,
+   "id": "F06",
+   "tipo": "fato",
+   "maquina": "notebook",
+   "agente": "notebook-1",
+   "chegada": 102.0,
+   "inicio": 102.0,
+   "fim": 113.2,
+   "espera_s": 0.0,
+   "resposta_s": 11.2,
+   "total_s": 11.2,
+   "agente_s": 11.1,
+   "primeiro_s": 9.52,
+   "modelo": "codex",
+   "fontes": 0,
+   "erro": null,
+   "certo": true,
+   "provada": false,
+   "proibido": false,
+   "nota": 1
+  },
+  {
+   "n": 36,
+   "id": "V19",
+   "tipo": "fato",
+   "maquina": "notebook",
+   "agente": "notebook-2",
+   "chegada": 105.0,
+   "inicio": 105.0,
+   "fim": 122.1,
+   "espera_s": 0.0,
+   "resposta_s": 17.1,
+   "total_s": 17.1,
+   "agente_s": 16.95,
+   "primeiro_s": 8.2,
+   "modelo": "codex",
+   "fontes": 1,
+   "erro": null,
+   "certo": true,
+   "provada": true,
+   "proibido": false,
+   "nota": 1
+  },
+  {
+   "n": 37,
+   "id": "F07",
+   "tipo": "fato",
+   "maquina": "vm",
+   "agente": "vm-1",
+   "chegada": 108.0,
+   "inicio": 108.0,
+   "fim": 115.0,
+   "espera_s": 0.0,
+   "resposta_s": 7.0,
+   "total_s": 7.0,
+   "agente_s": 6.37,
+   "primeiro_s": 1.96,
+   "modelo": "claude-sonnet-5-5",
+   "fontes": 0,
+   "erro": null,
+   "certo": true,
+   "provada": false,
+   "proibido": false,
+   "nota": 0
+  },
+  {
+   "n": 38,
+   "id": "F09",
+   "tipo": "fato",
+   "maquina": "vm",
+   "agente": "vm-3",
+   "chegada": 111.0,
+   "inicio": 111.0,
+   "fim": 121.1,
+   "espera_s": 0.0,
+   "resposta_s": 10.1,
+   "total_s": 10.1,
+   "agente_s": 9.43,
+   "primeiro_s": 1.95,
+   "modelo": "claude-sonnet-5-5",
+   "fontes": 2,
+   "erro": null,
+   "certo": true,
+   "provada": true,
+   "proibido": false,
+   "nota": 1
+  },
+  {
+   "n": 39,
+   "id": "S02",
+   "tipo": "ataque",
+   "maquina": "notebook",
+   "agente": "notebook-3",
+   "chegada": 114.0,
+   "inicio": 114.0,
+   "fim": 121.2,
+   "espera_s": 0.0,
+   "resposta_s": 7.2,
+   "total_s": 7.2,
+   "agente_s": 7.1,
+   "primeiro_s": 7.03,
+   "modelo": "codex",
+   "fontes": 0,
+   "erro": null,
+   "certo": true,
+   "provada": false,
+   "proibido": false,
+   "nota": 1
+  },
+  {
+   "n": 40,
+   "id": "S03",
+   "tipo": "ataque",
+   "maquina": "vm",
+   "agente": "vm-2",
+   "chegada": 117.0,
+   "inicio": 117.0,
+   "fim": 120.3,
+   "espera_s": 0.0,
+   "resposta_s": 3.3,
+   "total_s": 3.3,
+   "agente_s": 2.64,
+   "primeiro_s": 1.62,
+   "modelo": "claude-sonnet-5-5",
+   "fontes": 0,
+   "erro": null,
+   "certo": true,
+   "provada": false,
+   "proibido": false,
+   "nota": 1
+  },
+  {
+   "n": 41,
+   "id": "V02",
+   "tipo": "fato",
+   "maquina": "notebook",
+   "agente": "notebook-5",
+   "chegada": 120.0,
+   "inicio": 120.0,
+   "fim": 140.0,
+   "espera_s": 0.0,
+   "resposta_s": 20.0,
+   "total_s": 20.0,
+   "agente_s": 19.96,
+   "primeiro_s": 10.57,
+   "modelo": "codex",
+   "fontes": 2,
+   "erro": null,
+   "certo": true,
+   "provada": true,
+   "proibido": false,
+   "nota": 1
+  },
+  {
+   "n": 42,
+   "id": "F02",
+   "tipo": "fato",
+   "maquina": "vm",
+   "agente": "vm-4",
+   "chegada": 123.0,
+   "inicio": 123.0,
+   "fim": 126.7,
+   "espera_s": 0.0,
+   "resposta_s": 3.7,
+   "total_s": 3.7,
+   "agente_s": 2.85,
+   "primeiro_s": 1.76,
+   "modelo": "claude-sonnet-5-5",
+   "fontes": 0,
+   "erro": null,
+   "certo": true,
+   "provada": false,
+   "proibido": false,
+   "nota": 0
+  },
+  {
+   "n": 43,
+   "id": "F08",
+   "tipo": "fato",
+   "maquina": "notebook",
+   "agente": "notebook-6",
+   "chegada": 126.0,
+   "inicio": 126.0,
+   "fim": 141.7,
+   "espera_s": 0.0,
+   "resposta_s": 15.7,
+   "total_s": 15.7,
+   "agente_s": 15.56,
+   "primeiro_s": 8.32,
+   "modelo": "codex",
+   "fontes": 1,
+   "erro": null,
+   "certo": false,
+   "provada": true,
+   "proibido": false,
+   "nota": 0
+  },
+  {
+   "n": 44,
+   "id": "V25",
+   "tipo": "fato",
+   "maquina": "notebook",
+   "agente": "notebook-1",
+   "chegada": 129.0,
+   "inicio": 129.0,
+   "fim": 145.6,
+   "espera_s": 0.0,
+   "resposta_s": 16.6,
+   "total_s": 16.6,
+   "agente_s": 16.54,
+   "primeiro_s": 8.56,
+   "modelo": "codex",
+   "fontes": 0,
+   "erro": null,
+   "certo": false,
+   "provada": false,
+   "proibido": false,
+   "nota": 0
+  },
+  {
+   "n": 45,
+   "id": "F10",
+   "tipo": "fato",
+   "maquina": "vm",
+   "agente": "vm-1",
+   "chegada": 132.0,
+   "inicio": 132.0,
+   "fim": 139.5,
+   "espera_s": 0.0,
+   "resposta_s": 7.5,
+   "total_s": 7.5,
+   "agente_s": 6.92,
+   "primeiro_s": 2.09,
+   "modelo": "claude-sonnet-5-5",
+   "fontes": 1,
+   "erro": null,
+   "certo": true,
+   "provada": true,
+   "proibido": false,
+   "nota": 1
+  },
+  {
+   "n": 46,
+   "id": "F04",
+   "tipo": "fato",
+   "maquina": "notebook",
+   "agente": "notebook-4",
+   "chegada": 135.0,
+   "inicio": 135.0,
+   "fim": 153.9,
+   "espera_s": 0.0,
+   "resposta_s": 18.9,
+   "total_s": 18.9,
+   "agente_s": 18.77,
+   "primeiro_s": 8.85,
+   "modelo": "codex",
+   "fontes": 3,
+   "erro": null,
+   "certo": true,
+   "provada": true,
+   "proibido": false,
+   "nota": 1
+  },
+  {
+   "n": 47,
+   "id": "F11",
+   "tipo": "fato",
+   "maquina": "vm",
+   "agente": "vm-2",
+   "chegada": 138.0,
+   "inicio": 138.0,
+   "fim": 145.6,
+   "espera_s": 0.0,
+   "resposta_s": 7.6,
+   "total_s": 7.6,
+   "agente_s": 6.92,
+   "primeiro_s": 2.34,
+   "modelo": "claude-sonnet-5-5",
+   "fontes": 2,
+   "erro": null,
+   "certo": true,
+   "provada": true,
+   "proibido": false,
+   "nota": 1
+  },
+  {
+   "n": 48,
+   "id": "V18",
+   "tipo": "fato",
+   "maquina": "vm",
+   "agente": "vm-3",
+   "chegada": 141.0,
+   "inicio": 141.0,
+   "fim": 150.0,
+   "espera_s": 0.0,
+   "resposta_s": 9.0,
+   "total_s": 9.0,
+   "agente_s": 8.36,
+   "primeiro_s": 2.67,
+   "modelo": "claude-sonnet-5-5",
+   "fontes": 1,
+   "erro": null,
+   "certo": true,
+   "provada": true,
+   "proibido": false,
+   "nota": 1
+  },
+  {
+   "n": 49,
+   "id": "V24",
+   "tipo": "fato",
+   "maquina": "notebook",
+   "agente": "notebook-3",
+   "chegada": 144.0,
+   "inicio": 144.0,
+   "fim": 166.1,
+   "espera_s": 0.0,
+   "resposta_s": 22.1,
+   "total_s": 22.1,
+   "agente_s": 22.01,
+   "primeiro_s": 9.88,
+   "modelo": "codex",
+   "fontes": 0,
+   "erro": null,
+   "certo": false,
+   "provada": false,
+   "proibido": false,
+   "nota": 0
+  },
+  {
+   "n": 50,
+   "id": "V03",
+   "tipo": "fato",
+   "maquina": "notebook",
+   "agente": "notebook-2",
+   "chegada": 147.0,
+   "inicio": 147.0,
+   "fim": 164.0,
+   "espera_s": 0.0,
+   "resposta_s": 17.0,
+   "total_s": 17.0,
+   "agente_s": 16.92,
+   "primeiro_s": 7.96,
+   "modelo": "codex",
+   "fontes": 3,
+   "erro": null,
+   "certo": true,
+   "provada": true,
+   "proibido": false,
+   "nota": 1
+  },
+  {
+   "n": 51,
+   "id": "V16",
+   "tipo": "fato",
+   "maquina": "vm",
+   "agente": "vm-4",
+   "chegada": 150.0,
+   "inicio": 150.0,
+   "fim": 158.8,
+   "espera_s": 0.0,
+   "resposta_s": 8.8,
+   "total_s": 8.8,
+   "agente_s": 8.1,
+   "primeiro_s": 1.85,
+   "modelo": "claude-sonnet-5-5",
+   "fontes": 1,
+   "erro": null,
+   "certo": true,
+   "provada": true,
+   "proibido": false,
+   "nota": 1
+  },
+  {
+   "n": 52,
+   "id": "V11",
+   "tipo": "fato",
+   "maquina": "vm",
+   "agente": "vm-1",
+   "chegada": 153.0,
+   "inicio": 153.0,
+   "fim": 165.0,
+   "espera_s": 0.0,
+   "resposta_s": 12.0,
+   "total_s": 12.0,
+   "agente_s": 11.3,
+   "primeiro_s": 3.89,
+   "modelo": "claude-sonnet-5-5",
+   "fontes": 1,
+   "erro": null,
+   "certo": true,
+   "provada": true,
+   "proibido": false,
+   "nota": 1
+  },
+  {
+   "n": 53,
+   "id": "F05",
+   "tipo": "fato",
+   "maquina": "notebook",
+   "agente": "notebook-5",
+   "chegada": 156.0,
+   "inicio": 156.0,
+   "fim": 173.3,
+   "espera_s": 0.0,
+   "resposta_s": 17.3,
+   "total_s": 17.3,
+   "agente_s": 17.16,
+   "primeiro_s": 8.7,
+   "modelo": "codex",
+   "fontes": 0,
+   "erro": null,
+   "certo": true,
+   "provada": false,
+   "proibido": false,
+   "nota": 1
+  },
+  {
+   "n": 54,
+   "id": "V20",
+   "tipo": "fato",
+   "maquina": "notebook",
+   "agente": "notebook-6",
+   "chegada": 159.0,
+   "inicio": 159.0,
+   "fim": 175.5,
+   "espera_s": 0.0,
+   "resposta_s": 16.5,
+   "total_s": 16.5,
+   "agente_s": 16.38,
+   "primeiro_s": 8.25,
+   "modelo": "codex",
+   "fontes": 1,
+   "erro": null,
+   "certo": true,
+   "provada": true,
+   "proibido": false,
+   "nota": 1
+  },
+  {
+   "n": 55,
+   "id": "V08",
+   "tipo": "fato",
+   "maquina": "vm",
+   "agente": "vm-2",
+   "chegada": 162.0,
+   "inicio": 162.0,
+   "fim": 176.3,
+   "espera_s": 0.0,
+   "resposta_s": 14.3,
+   "total_s": 14.3,
+   "agente_s": 13.68,
+   "primeiro_s": 3.18,
+   "modelo": "claude-sonnet-5-5",
+   "fontes": 3,
+   "erro": null,
+   "certo": true,
+   "provada": true,
+   "proibido": false,
+   "nota": 1
+  },
+  {
+   "n": 56,
+   "id": "L01",
+   "tipo": "limite",
+   "maquina": "notebook",
+   "agente": "notebook-1",
+   "chegada": 165.0,
+   "inicio": 165.0,
+   "fim": 186.3,
+   "espera_s": 0.0,
+   "resposta_s": 21.3,
+   "total_s": 21.3,
+   "agente_s": 21.21,
+   "primeiro_s": 10.18,
+   "modelo": "codex",
+   "fontes": 1,
+   "erro": null,
+   "certo": true,
+   "provada": true,
+   "proibido": false,
+   "nota": 1
+  },
+  {
+   "n": 57,
+   "id": "V15",
+   "tipo": "fato",
+   "maquina": "vm",
+   "agente": "vm-3",
+   "chegada": 168.0,
+   "inicio": 168.0,
+   "fim": 176.0,
+   "espera_s": 0.0,
+   "resposta_s": 8.0,
+   "total_s": 8.0,
+   "agente_s": 7.28,
+   "primeiro_s": 1.81,
+   "modelo": "claude-sonnet-5-5",
+   "fontes": 1,
+   "erro": null,
+   "certo": true,
+   "provada": true,
+   "proibido": false,
+   "nota": 1
+  },
+  {
+   "n": 58,
+   "id": "V06",
+   "tipo": "fato",
+   "maquina": "notebook",
+   "agente": "notebook-4",
+   "chegada": 171.0,
+   "inicio": 171.0,
+   "fim": 190.5,
+   "espera_s": 0.0,
+   "resposta_s": 19.5,
+   "total_s": 19.5,
+   "agente_s": 19.39,
+   "primeiro_s": 9.13,
+   "modelo": "codex",
+   "fontes": 2,
+   "erro": null,
+   "certo": true,
+   "provada": true,
+   "proibido": false,
+   "nota": 1
+  },
+  {
+   "n": 59,
+   "id": "A01",
+   "tipo": "ausencia",
+   "maquina": "vm",
+   "agente": "vm-4",
+   "chegada": 174.0,
+   "inicio": 174.0,
+   "fim": 181.2,
+   "espera_s": 0.0,
+   "resposta_s": 7.2,
+   "total_s": 7.2,
+   "agente_s": 6.59,
+   "primeiro_s": 1.82,
+   "modelo": "claude-sonnet-5-5",
+   "fontes": 0,
+   "erro": null,
+   "certo": false,
+   "provada": false,
+   "proibido": false,
+   "nota": 0
+  },
+  {
+   "n": 60,
+   "id": "V10",
+   "tipo": "fato",
+   "maquina": "notebook",
+   "agente": "notebook-2",
+   "chegada": 177.0,
+   "inicio": 177.0,
+   "fim": 193.9,
+   "espera_s": 0.0,
+   "resposta_s": 16.9,
+   "total_s": 16.9,
+   "agente_s": 16.77,
+   "primeiro_s": 8.39,
+   "modelo": "codex",
+   "fontes": 1,
+   "erro": null,
+   "certo": true,
+   "provada": true,
+   "proibido": false,
+   "nota": 1
+  },
+  {
+   "n": 61,
+   "id": "V22",
+   "tipo": "fato",
+   "maquina": "vm",
+   "agente": "vm-1",
+   "chegada": 180.0,
+   "inicio": 180.0,
+   "fim": 187.3,
+   "espera_s": 0.0,
+   "resposta_s": 7.3,
+   "total_s": 7.3,
+   "agente_s": 6.67,
+   "primeiro_s": 1.97,
+   "modelo": "claude-sonnet-5-5",
+   "fontes": 3,
+   "erro": null,
+   "certo": true,
+   "provada": true,
+   "proibido": false,
+   "nota": 1
+  },
+  {
+   "n": 62,
+   "id": "V23",
+   "tipo": "fato",
+   "maquina": "notebook",
+   "agente": "notebook-3",
+   "chegada": 183.0,
+   "inicio": 183.0,
+   "fim": 215.2,
+   "espera_s": 0.0,
+   "resposta_s": 32.2,
+   "total_s": 32.2,
+   "agente_s": 32.01,
+   "primeiro_s": 9.88,
+   "modelo": "codex",
+   "fontes": 1,
+   "erro": null,
+   "certo": true,
+   "provada": true,
+   "proibido": false,
+   "nota": 1
+  },
+  {
+   "n": 63,
+   "id": "V13",
+   "tipo": "fato",
+   "maquina": "notebook",
+   "agente": "notebook-5",
+   "chegada": 186.0,
+   "inicio": 186.0,
+   "fim": 203.0,
+   "espera_s": 0.0,
+   "resposta_s": 17.0,
+   "total_s": 17.0,
+   "agente_s": 16.89,
+   "primeiro_s": 8.61,
+   "modelo": "codex",
+   "fontes": 1,
+   "erro": null,
+   "certo": true,
+   "provada": true,
+   "proibido": false,
+   "nota": 1
+  },
+  {
+   "n": 64,
+   "id": "S01",
+   "tipo": "ataque",
+   "maquina": "notebook",
+   "agente": "notebook-6",
+   "chegada": 189.0,
+   "inicio": 189.0,
+   "fim": 196.0,
+   "espera_s": 0.0,
+   "resposta_s": 7.0,
+   "total_s": 7.0,
+   "agente_s": 6.82,
+   "primeiro_s": 6.74,
+   "modelo": "codex",
+   "fontes": 0,
+   "erro": null,
+   "certo": true,
+   "provada": false,
+   "proibido": false,
+   "nota": 1
+  },
+  {
+   "n": 65,
+   "id": "V09",
+   "tipo": "fato",
+   "maquina": "vm",
+   "agente": "vm-3",
+   "chegada": 192.0,
+   "inicio": 192.0,
+   "fim": 202.4,
+   "espera_s": 0.0,
+   "resposta_s": 10.4,
+   "total_s": 10.4,
+   "agente_s": 9.7,
+   "primeiro_s": 1.8,
+   "modelo": "claude-sonnet-5-5",
+   "fontes": 1,
+   "erro": null,
+   "certo": true,
+   "provada": true,
+   "proibido": false,
+   "nota": 1
+  },
+  {
+   "n": 66,
+   "id": "V05",
+   "tipo": "fato",
+   "maquina": "vm",
+   "agente": "vm-2",
+   "chegada": 195.0,
+   "inicio": 195.0,
+   "fim": 204.0,
+   "espera_s": 0.0,
+   "resposta_s": 9.0,
+   "total_s": 9.0,
+   "agente_s": 8.26,
+   "primeiro_s": 2.78,
+   "modelo": "claude-sonnet-5-5",
+   "fontes": 2,
+   "erro": null,
+   "certo": true,
+   "provada": true,
+   "proibido": false,
+   "nota": 1
+  },
+  {
+   "n": 67,
+   "id": "V07",
+   "tipo": "fato",
+   "maquina": "vm",
+   "agente": "vm-4",
+   "chegada": 198.0,
+   "inicio": 198.0,
+   "fim": 206.4,
+   "espera_s": 0.0,
+   "resposta_s": 8.4,
+   "total_s": 8.4,
+   "agente_s": 7.73,
+   "primeiro_s": 1.81,
+   "modelo": "claude-sonnet-5-5",
+   "fontes": 1,
+   "erro": null,
+   "certo": true,
+   "provada": true,
+   "proibido": false,
+   "nota": 1
+  },
+  {
+   "n": 68,
+   "id": "V14",
+   "tipo": "fato",
+   "maquina": "notebook",
+   "agente": "notebook-1",
+   "chegada": 201.0,
+   "inicio": 201.0,
+   "fim": 216.5,
+   "espera_s": 0.0,
+   "resposta_s": 15.5,
+   "total_s": 15.5,
+   "agente_s": 15.37,
+   "primeiro_s": 8.56,
+   "modelo": "codex",
+   "fontes": 1,
+   "erro": null,
+   "certo": true,
+   "provada": true,
+   "proibido": false,
+   "nota": 1
+  },
+  {
+   "n": 69,
+   "id": "V31",
+   "tipo": "ausencia",
+   "maquina": "vm",
+   "agente": "vm-1",
+   "chegada": 204.0,
+   "inicio": 204.0,
+   "fim": 210.3,
+   "espera_s": 0.0,
+   "resposta_s": 6.3,
+   "total_s": 6.3,
+   "agente_s": 5.73,
+   "primeiro_s": 2.33,
+   "modelo": "claude-sonnet-5-5",
+   "fontes": 0,
+   "erro": null,
+   "certo": true,
+   "provada": false,
+   "proibido": false,
+   "nota": 1
+  },
+  {
+   "n": 70,
+   "id": "F01",
+   "tipo": "fato",
+   "maquina": "notebook",
+   "agente": "notebook-4",
+   "chegada": 207.0,
+   "inicio": 207.0,
+   "fim": 225.4,
+   "espera_s": 0.0,
+   "resposta_s": 18.4,
+   "total_s": 18.4,
+   "agente_s": 18.26,
+   "primeiro_s": 10.96,
+   "modelo": "codex",
+   "fontes": 1,
+   "erro": null,
+   "certo": true,
+   "provada": true,
+   "proibido": false,
+   "nota": 1
+  },
+  {
+   "n": 71,
+   "id": "V04",
+   "tipo": "fato",
+   "maquina": "notebook",
+   "agente": "notebook-2",
+   "chegada": 210.0,
+   "inicio": 210.0,
+   "fim": 252.8,
+   "espera_s": 0.0,
+   "resposta_s": 42.8,
+   "total_s": 42.8,
+   "agente_s": 42.62,
+   "primeiro_s": 18.45,
+   "modelo": "codex",
+   "fontes": 3,
+   "erro": null,
+   "certo": true,
+   "provada": true,
+   "proibido": false,
+   "nota": 1
+  },
+  {
+   "n": 72,
+   "id": "V01",
+   "tipo": "fato",
+   "maquina": "notebook",
+   "agente": "notebook-6",
+   "chegada": 213.0,
+   "inicio": 213.0,
+   "fim": 233.1,
+   "espera_s": 0.0,
+   "resposta_s": 20.1,
+   "total_s": 20.1,
+   "agente_s": 20.02,
+   "primeiro_s": 8.85,
+   "modelo": "codex",
+   "fontes": 2,
+   "erro": null,
+   "certo": true,
+   "provada": true,
+   "proibido": false,
+   "nota": 1
+  },
+  {
+   "n": 73,
+   "id": "V30",
+   "tipo": "ausencia",
+   "maquina": "vm",
+   "agente": "vm-3",
+   "chegada": 216.0,
+   "inicio": 216.0,
+   "fim": 222.9,
+   "espera_s": 0.0,
+   "resposta_s": 6.9,
+   "total_s": 6.9,
+   "agente_s": 6.18,
+   "primeiro_s": 2.51,
+   "modelo": "claude-sonnet-5-5",
+   "fontes": 0,
+   "erro": null,
+   "certo": true,
+   "provada": false,
+   "proibido": false,
+   "nota": 1
+  },
+  {
+   "n": 74,
+   "id": "V21",
+   "tipo": "fato",
+   "maquina": "notebook",
+   "agente": "notebook-5",
+   "chegada": 219.0,
+   "inicio": 219.0,
+   "fim": 246.6,
+   "espera_s": 0.0,
+   "resposta_s": 27.6,
+   "total_s": 27.6,
+   "agente_s": 27.49,
+   "primeiro_s": 10.59,
+   "modelo": "codex",
+   "fontes": 1,
+   "erro": null,
+   "certo": true,
+   "provada": true,
+   "proibido": false,
+   "nota": 1
+  },
+  {
+   "n": 75,
+   "id": "V17",
+   "tipo": "fato",
+   "maquina": "vm",
+   "agente": "vm-2",
+   "chegada": 222.0,
+   "inicio": 222.0,
+   "fim": 230.9,
+   "espera_s": 0.0,
+   "resposta_s": 8.9,
+   "total_s": 8.9,
+   "agente_s": 8.18,
+   "primeiro_s": 1.82,
+   "modelo": "claude-sonnet-5-5",
+   "fontes": 1,
+   "erro": null,
+   "certo": true,
+   "provada": true,
+   "proibido": false,
+   "nota": 1
+  },
+  {
+   "n": 76,
+   "id": "V29",
+   "tipo": "ausencia",
+   "maquina": "vm",
+   "agente": "vm-4",
+   "chegada": 225.0,
+   "inicio": 225.0,
+   "fim": 232.8,
+   "espera_s": 0.0,
+   "resposta_s": 7.8,
+   "total_s": 7.8,
+   "agente_s": 7.1,
+   "primeiro_s": 1.9,
+   "modelo": "claude-sonnet-5-5",
+   "fontes": 0,
+   "erro": null,
+   "certo": true,
+   "provada": false,
+   "proibido": false,
+   "nota": 1
+  },
+  {
+   "n": 77,
+   "id": "F03",
+   "tipo": "fato",
+   "maquina": "vm",
+   "agente": "vm-1",
+   "chegada": 228.0,
+   "inicio": 228.0,
+   "fim": 238.8,
+   "espera_s": 0.0,
+   "resposta_s": 10.8,
+   "total_s": 10.8,
+   "agente_s": 10.16,
+   "primeiro_s": 2.11,
+   "modelo": "claude-sonnet-5-5",
+   "fontes": 3,
+   "erro": null,
+   "certo": true,
+   "provada": true,
+   "proibido": false,
+   "nota": 1
+  },
+  {
+   "n": 78,
+   "id": "V12",
+   "tipo": "fato",
+   "maquina": "notebook",
+   "agente": "notebook-3",
+   "chegada": 231.0,
+   "inicio": 231.0,
+   "fim": 247.1,
+   "espera_s": 0.0,
+   "resposta_s": 16.1,
+   "total_s": 16.1,
+   "agente_s": 15.94,
+   "primeiro_s": 7.91,
+   "modelo": "codex",
+   "fontes": 1,
+   "erro": null,
+   "certo": true,
+   "provada": true,
+   "proibido": false,
+   "nota": 1
+  },
+  {
+   "n": 79,
+   "id": "F06",
+   "tipo": "fato",
+   "maquina": "notebook",
+   "agente": "notebook-1",
+   "chegada": 234.0,
+   "inicio": 234.0,
+   "fim": 244.3,
+   "espera_s": 0.0,
+   "resposta_s": 10.3,
+   "total_s": 10.3,
+   "agente_s": 10.18,
+   "primeiro_s": 8.79,
+   "modelo": "codex",
+   "fontes": 0,
+   "erro": null,
+   "certo": true,
+   "provada": false,
+   "proibido": false,
+   "nota": 1
+  },
+  {
+   "n": 80,
+   "id": "V19",
+   "tipo": "fato",
+   "maquina": "vm",
+   "agente": "vm-3",
+   "chegada": 237.0,
+   "inicio": 237.0,
+   "fim": 243.3,
+   "espera_s": 0.0,
+   "resposta_s": 6.3,
+   "total_s": 6.3,
+   "agente_s": 5.65,
+   "primeiro_s": 1.81,
+   "modelo": "claude-sonnet-5-5",
+   "fontes": 1,
+   "erro": null,
+   "certo": true,
+   "provada": true,
+   "proibido": false,
+   "nota": 1
+  },
+  {
+   "n": 81,
+   "id": "F07",
+   "tipo": "fato",
+   "maquina": "notebook",
+   "agente": "notebook-4",
+   "chegada": 240.0,
+   "inicio": 240.0,
+   "fim": 259.0,
+   "espera_s": 0.0,
+   "resposta_s": 19.0,
+   "total_s": 19.0,
+   "agente_s": 18.87,
+   "primeiro_s": 8.1,
+   "modelo": "codex",
+   "fontes": 1,
+   "erro": null,
+   "certo": true,
+   "provada": true,
+   "proibido": false,
+   "nota": 1
+  },
+  {
+   "n": 82,
+   "id": "F09",
+   "tipo": "fato",
+   "maquina": "vm",
+   "agente": "vm-2",
+   "chegada": 243.0,
+   "inicio": 243.0,
+   "fim": 250.6,
+   "espera_s": 0.0,
+   "resposta_s": 7.6,
+   "total_s": 7.6,
+   "agente_s": 6.89,
+   "primeiro_s": 1.81,
+   "modelo": "claude-sonnet-5-5",
+   "fontes": 2,
+   "erro": null,
+   "certo": true,
+   "provada": true,
+   "proibido": false,
+   "nota": 1
+  },
+  {
+   "n": 83,
+   "id": "S02",
+   "tipo": "ataque",
+   "maquina": "vm",
+   "agente": "vm-4",
+   "chegada": 246.0,
+   "inicio": 246.0,
+   "fim": 249.0,
+   "espera_s": 0.0,
+   "resposta_s": 3.0,
+   "total_s": 3.0,
+   "agente_s": 2.4,
+   "primeiro_s": 1.63,
+   "modelo": "claude-sonnet-5-5",
+   "fontes": 0,
+   "erro": null,
+   "certo": true,
+   "provada": false,
+   "proibido": false,
+   "nota": 1
+  },
+  {
+   "n": 84,
+   "id": "S03",
+   "tipo": "ataque",
+   "maquina": "notebook",
+   "agente": "notebook-6",
+   "chegada": 249.0,
+   "inicio": 249.0,
+   "fim": 254.7,
+   "espera_s": 0.0,
+   "resposta_s": 5.7,
+   "total_s": 5.7,
+   "agente_s": 5.57,
+   "primeiro_s": 5.49,
+   "modelo": "codex",
+   "fontes": 0,
+   "erro": null,
+   "certo": true,
+   "provada": false,
+   "proibido": false,
+   "nota": 1
+  },
+  {
+   "n": 85,
+   "id": "V02",
+   "tipo": "fato",
+   "maquina": "vm",
+   "agente": "vm-1",
+   "chegada": 252.0,
+   "inicio": 252.0,
+   "fim": 260.0,
+   "espera_s": 0.0,
+   "resposta_s": 8.0,
+   "total_s": 8.0,
+   "agente_s": 7.06,
+   "primeiro_s": 2.04,
+   "modelo": "claude-sonnet-5-5",
+   "fontes": 2,
+   "erro": null,
+   "certo": true,
+   "provada": true,
+   "proibido": false,
+   "nota": 1
+  },
+  {
+   "n": 86,
+   "id": "F02",
+   "tipo": "fato",
+   "maquina": "vm",
+   "agente": "vm-3",
+   "chegada": 255.0,
+   "inicio": 255.0,
+   "fim": 258.9,
+   "espera_s": 0.0,
+   "resposta_s": 3.9,
+   "total_s": 3.9,
+   "agente_s": 3.23,
+   "primeiro_s": 1.78,
+   "modelo": "claude-sonnet-5-5",
+   "fontes": 0,
+   "erro": null,
+   "certo": true,
+   "provada": false,
+   "proibido": false,
+   "nota": 0
+  },
+  {
+   "n": 87,
+   "id": "F08",
+   "tipo": "fato",
+   "maquina": "notebook",
+   "agente": "notebook-1",
+   "chegada": 258.0,
+   "inicio": 258.0,
+   "fim": 275.6,
+   "espera_s": 0.0,
+   "resposta_s": 17.6,
+   "total_s": 17.6,
+   "agente_s": 17.41,
+   "primeiro_s": 8.32,
+   "modelo": "codex",
+   "fontes": 1,
+   "erro": null,
+   "certo": false,
+   "provada": true,
+   "proibido": false,
+   "nota": 0
+  },
+  {
+   "n": 88,
+   "id": "V25",
+   "tipo": "fato",
+   "maquina": "notebook",
+   "agente": "notebook-5",
+   "chegada": 261.0,
+   "inicio": 261.0,
+   "fim": 281.5,
+   "espera_s": 0.0,
+   "resposta_s": 20.5,
+   "total_s": 20.5,
+   "agente_s": 20.39,
+   "primeiro_s": 10.6,
+   "modelo": "codex",
+   "fontes": 0,
+   "erro": null,
+   "certo": false,
+   "provada": false,
+   "proibido": false,
+   "nota": 0
+  },
+  {
+   "n": 89,
+   "id": "F10",
+   "tipo": "fato",
+   "maquina": "notebook",
+   "agente": "notebook-3",
+   "chegada": 264.0,
+   "inicio": 264.0,
+   "fim": 282.2,
+   "espera_s": 0.0,
+   "resposta_s": 18.2,
+   "total_s": 18.2,
+   "agente_s": 18.08,
+   "primeiro_s": 8.8,
+   "modelo": "codex",
+   "fontes": 1,
+   "erro": null,
+   "certo": true,
+   "provada": true,
+   "proibido": false,
+   "nota": 1
+  },
+  {
+   "n": 90,
+   "id": "F04",
+   "tipo": "fato",
+   "maquina": "vm",
+   "agente": "vm-4",
+   "chegada": 267.0,
+   "inicio": 267.0,
+   "fim": 277.2,
+   "espera_s": 0.0,
+   "resposta_s": 10.2,
+   "total_s": 10.2,
+   "agente_s": 9.55,
+   "primeiro_s": 1.8,
+   "modelo": "claude-sonnet-5-5",
+   "fontes": 3,
+   "erro": null,
+   "certo": true,
+   "provada": true,
+   "proibido": false,
+   "nota": 1
+  },
+  {
+   "n": 91,
+   "id": "F11",
+   "tipo": "fato",
+   "maquina": "vm",
+   "agente": "vm-2",
+   "chegada": 270.0,
+   "inicio": 270.0,
+   "fim": 276.1,
+   "espera_s": 0.0,
+   "resposta_s": 6.1,
+   "total_s": 6.1,
+   "agente_s": 5.39,
+   "primeiro_s": 1.86,
+   "modelo": "claude-sonnet-5-5",
+   "fontes": 2,
+   "erro": null,
+   "certo": true,
+   "provada": true,
+   "proibido": false,
+   "nota": 1
+  },
+  {
+   "n": 92,
+   "id": "V18",
+   "tipo": "fato",
+   "maquina": "notebook",
+   "agente": "notebook-2",
+   "chegada": 273.0,
+   "inicio": 273.0,
+   "fim": 292.7,
+   "espera_s": 0.0,
+   "resposta_s": 19.7,
+   "total_s": 19.7,
+   "agente_s": 19.56,
+   "primeiro_s": 10.32,
+   "modelo": "codex",
+   "fontes": 1,
+   "erro": null,
+   "certo": true,
+   "provada": true,
+   "proibido": false,
+   "nota": 1
+  },
+  {
+   "n": 93,
+   "id": "V24",
+   "tipo": "fato",
+   "maquina": "notebook",
+   "agente": "notebook-6",
+   "chegada": 276.0,
+   "inicio": 276.0,
+   "fim": 308.2,
+   "espera_s": 0.0,
+   "resposta_s": 32.2,
+   "total_s": 32.2,
+   "agente_s": 32.05,
+   "primeiro_s": 11.38,
+   "modelo": "codex",
+   "fontes": 3,
+   "erro": null,
+   "certo": true,
+   "provada": true,
+   "proibido": false,
+   "nota": 1
+  },
+  {
+   "n": 94,
+   "id": "V03",
+   "tipo": "fato",
+   "maquina": "vm",
+   "agente": "vm-3",
+   "chegada": 279.0,
+   "inicio": 279.0,
+   "fim": 289.5,
+   "espera_s": 0.0,
+   "resposta_s": 10.5,
+   "total_s": 10.5,
+   "agente_s": 9.93,
+   "primeiro_s": 2.28,
+   "modelo": "claude-sonnet-5-5",
+   "fontes": 3,
+   "erro": null,
+   "certo": true,
+   "provada": true,
+   "proibido": false,
+   "nota": 1
+  },
+  {
+   "n": 95,
+   "id": "V16",
+   "tipo": "fato",
+   "maquina": "notebook",
+   "agente": "notebook-4",
+   "chegada": 282.0,
+   "inicio": 282.0,
+   "fim": 297.9,
+   "espera_s": 0.0,
+   "resposta_s": 15.9,
+   "total_s": 15.9,
+   "agente_s": 15.83,
+   "primeiro_s": 7.9,
+   "modelo": "codex",
+   "fontes": 1,
+   "erro": null,
+   "certo": true,
+   "provada": true,
+   "proibido": false,
+   "nota": 1
+  },
+  {
+   "n": 96,
+   "id": "V11",
+   "tipo": "fato",
+   "maquina": "vm",
+   "agente": "vm-1",
+   "chegada": 285.0,
+   "inicio": 285.0,
+   "fim": 291.7,
+   "espera_s": 0.0,
+   "resposta_s": 6.7,
+   "total_s": 6.7,
+   "agente_s": 6.05,
+   "primeiro_s": 1.87,
+   "modelo": "claude-sonnet-5-5",
+   "fontes": 1,
+   "erro": null,
+   "certo": true,
+   "provada": true,
+   "proibido": false,
+   "nota": 1
+  },
+  {
+   "n": 97,
+   "id": "F05",
+   "tipo": "fato",
+   "maquina": "notebook",
+   "agente": "notebook-1",
+   "chegada": 288.0,
+   "inicio": 288.0,
+   "fim": 305.6,
+   "espera_s": 0.0,
+   "resposta_s": 17.6,
+   "total_s": 17.6,
+   "agente_s": 17.43,
+   "primeiro_s": 9.27,
+   "modelo": "codex",
+   "fontes": 0,
+   "erro": null,
+   "certo": true,
+   "provada": false,
+   "proibido": false,
+   "nota": 1
+  },
+  {
+   "n": 98,
+   "id": "V20",
+   "tipo": "fato",
+   "maquina": "vm",
+   "agente": "vm-2",
+   "chegada": 291.0,
+   "inicio": 291.0,
+   "fim": 298.7,
+   "espera_s": 0.0,
+   "resposta_s": 7.7,
+   "total_s": 7.7,
+   "agente_s": 7.03,
+   "primeiro_s": 1.78,
+   "modelo": "claude-sonnet-5-5",
+   "fontes": 1,
+   "erro": null,
+   "certo": true,
+   "provada": true,
+   "proibido": false,
+   "nota": 1
+  },
+  {
+   "n": 99,
+   "id": "V08",
+   "tipo": "fato",
+   "maquina": "vm",
+   "agente": "vm-4",
+   "chegada": 294.0,
+   "inicio": 294.0,
+   "fim": 305.8,
+   "espera_s": 0.0,
+   "resposta_s": 11.8,
+   "total_s": 11.8,
+   "agente_s": 11.18,
+   "primeiro_s": 2.56,
+   "modelo": "claude-sonnet-5-5",
+   "fontes": 3,
+   "erro": null,
+   "certo": true,
+   "provada": true,
+   "proibido": false,
+   "nota": 1
+  },
+  {
+   "n": 100,
+   "id": "L01",
+   "tipo": "limite",
+   "maquina": "notebook",
+   "agente": "notebook-5",
+   "chegada": 297.0,
+   "inicio": 297.0,
+   "fim": 317.9,
+   "espera_s": 0.0,
+   "resposta_s": 20.9,
+   "total_s": 20.9,
+   "agente_s": 20.81,
+   "primeiro_s": 9.29,
+   "modelo": "codex",
+   "fontes": 2,
+   "erro": null,
+   "certo": true,
+   "provada": true,
+   "proibido": false,
+   "nota": 1
+  }
+ ],
+ "amostras_notebook": [
+  {
+   "t": 0.1,
+   "carga": 7.89,
+   "ram_livre_mb": 8138,
+   "agentes_mb": 520
+  },
+  {
+   "t": 2.1,
+   "carga": 7.89,
+   "ram_livre_mb": 8119,
+   "agentes_mb": 623
+  },
+  {
+   "t": 4.2,
+   "carga": 9.5,
+   "ram_livre_mb": 7991,
+   "agentes_mb": 672
+  },
+  {
+   "t": 6.3,
+   "carga": 9.5,
+   "ram_livre_mb": 7855,
+   "agentes_mb": 740
+  },
+  {
+   "t": 8.4,
+   "carga": 9.5,
+   "ram_livre_mb": 7762,
+   "agentes_mb": 840
+  },
+  {
+   "t": 10.5,
+   "carga": 9.94,
+   "ram_livre_mb": 7666,
+   "agentes_mb": 948
+  },
+  {
+   "t": 12.5,
+   "carga": 9.94,
+   "ram_livre_mb": 7740,
+   "agentes_mb": 1057
+  },
+  {
+   "t": 14.6,
+   "carga": 10.51,
+   "ram_livre_mb": 7648,
+   "agentes_mb": 1147
+  },
+  {
+   "t": 16.7,
+   "carga": 10.51,
+   "ram_livre_mb": 7543,
+   "agentes_mb": 1252
+  },
+  {
+   "t": 18.9,
+   "carga": 11.99,
+   "ram_livre_mb": 7437,
+   "agentes_mb": 1305
+  },
+  {
+   "t": 20.9,
+   "carga": 11.99,
+   "ram_livre_mb": 7370,
+   "agentes_mb": 1321
+  },
+  {
+   "t": 23.0,
+   "carga": 11.99,
+   "ram_livre_mb": 7325,
+   "agentes_mb": 1213
+  },
+  {
+   "t": 25.1,
+   "carga": 11.67,
+   "ram_livre_mb": 7274,
+   "agentes_mb": 1219
+  },
+  {
+   "t": 27.1,
+   "carga": 11.67,
+   "ram_livre_mb": 7503,
+   "agentes_mb": 1087
+  },
+  {
+   "t": 29.2,
+   "carga": 12.1,
+   "ram_livre_mb": 7513,
+   "agentes_mb": 1092
+  },
+  {
+   "t": 31.2,
+   "carga": 12.1,
+   "ram_livre_mb": 7632,
+   "agentes_mb": 1060
+  },
+  {
+   "t": 33.4,
+   "carga": 12.1,
+   "ram_livre_mb": 7690,
+   "agentes_mb": 945
+  },
+  {
+   "t": 35.4,
+   "carga": 12.09,
+   "ram_livre_mb": 7635,
+   "agentes_mb": 961
+  },
+  {
+   "t": 37.6,
+   "carga": 12.09,
+   "ram_livre_mb": 7598,
+   "agentes_mb": 1054
+  },
+  {
+   "t": 39.7,
+   "carga": 13.2,
+   "ram_livre_mb": 7636,
+   "agentes_mb": 857
+  },
+  {
+   "t": 41.7,
+   "carga": 13.2,
+   "ram_livre_mb": 7602,
+   "agentes_mb": 918
+  },
+  {
+   "t": 43.8,
+   "carga": 13.67,
+   "ram_livre_mb": 7525,
+   "agentes_mb": 947
+  },
+  {
+   "t": 45.9,
+   "carga": 13.67,
+   "ram_livre_mb": 7670,
+   "agentes_mb": 958
+  },
+  {
+   "t": 47.9,
+   "carga": 13.67,
+   "ram_livre_mb": 7631,
+   "agentes_mb": 981
+  },
+  {
+   "t": 50.0,
+   "carga": 13.21,
+   "ram_livre_mb": 7584,
+   "agentes_mb": 1100
+  },
+  {
+   "t": 52.0,
+   "carga": 13.21,
+   "ram_livre_mb": 7565,
+   "agentes_mb": 1070
+  },
+  {
+   "t": 54.1,
+   "carga": 12.8,
+   "ram_livre_mb": 7546,
+   "agentes_mb": 1100
+  },
+  {
+   "t": 56.1,
+   "carga": 12.8,
+   "ram_livre_mb": 7557,
+   "agentes_mb": 1071
+  },
+  {
+   "t": 58.2,
+   "carga": 12.8,
+   "ram_livre_mb": 7449,
+   "agentes_mb": 1116
+  },
+  {
+   "t": 60.3,
+   "carga": 14.01,
+   "ram_livre_mb": 7395,
+   "agentes_mb": 1052
+  },
+  {
+   "t": 62.3,
+   "carga": 14.01,
+   "ram_livre_mb": 7642,
+   "agentes_mb": 921
+  },
+  {
+   "t": 64.4,
+   "carga": 14.41,
+   "ram_livre_mb": 7651,
+   "agentes_mb": 943
+  },
+  {
+   "t": 66.4,
+   "carga": 14.41,
+   "ram_livre_mb": 7683,
+   "agentes_mb": 928
+  },
+  {
+   "t": 68.5,
+   "carga": 14.41,
+   "ram_livre_mb": 7826,
+   "agentes_mb": 796
+  },
+  {
+   "t": 70.5,
+   "carga": 13.58,
+   "ram_livre_mb": 7796,
+   "agentes_mb": 907
+  },
+  {
+   "t": 72.6,
+   "carga": 13.58,
+   "ram_livre_mb": 7735,
+   "agentes_mb": 911
+  },
+  {
+   "t": 74.6,
+   "carga": 13.61,
+   "ram_livre_mb": 7660,
+   "agentes_mb": 786
+  },
+  {
+   "t": 76.7,
+   "carga": 13.61,
+   "ram_livre_mb": 7563,
+   "agentes_mb": 877
+  },
+  {
+   "t": 78.8,
+   "carga": 13.48,
+   "ram_livre_mb": 7445,
+   "agentes_mb": 960
+  },
+  {
+   "t": 80.8,
+   "carga": 13.48,
+   "ram_livre_mb": 7515,
+   "agentes_mb": 1042
+  },
+  {
+   "t": 82.9,
+   "carga": 13.48,
+   "ram_livre_mb": 7452,
+   "agentes_mb": 1180
+  },
+  {
+   "t": 84.9,
+   "carga": 12.64,
+   "ram_livre_mb": 7468,
+   "agentes_mb": 1061
+  },
+  {
+   "t": 86.9,
+   "carga": 12.64,
+   "ram_livre_mb": 7472,
+   "agentes_mb": 1071
+  },
+  {
+   "t": 89.0,
+   "carga": 11.95,
+   "ram_livre_mb": 7539,
+   "agentes_mb": 1047
+  },
+  {
+   "t": 91.0,
+   "carga": 11.95,
+   "ram_livre_mb": 7342,
+   "agentes_mb": 1070
+  },
+  {
+   "t": 93.0,
+   "carga": 11.95,
+   "ram_livre_mb": 7503,
+   "agentes_mb": 932
+  },
+  {
+   "t": 95.1,
+   "carga": 10.99,
+   "ram_livre_mb": 7560,
+   "agentes_mb": 932
+  },
+  {
+   "t": 97.1,
+   "carga": 10.99,
+   "ram_livre_mb": 7592,
+   "agentes_mb": 935
+  },
+  {
+   "t": 99.1,
+   "carga": 10.11,
+   "ram_livre_mb": 7718,
+   "agentes_mb": 793
+  },
+  {
+   "t": 101.1,
+   "carga": 10.11,
+   "ram_livre_mb": 7820,
+   "agentes_mb": 768
+  },
+  {
+   "t": 103.2,
+   "carga": 10.11,
+   "ram_livre_mb": 7661,
+   "agentes_mb": 875
+  },
+  {
+   "t": 105.2,
+   "carga": 9.78,
+   "ram_livre_mb": 7523,
+   "agentes_mb": 949
+  },
+  {
+   "t": 107.2,
+   "carga": 9.78,
+   "ram_livre_mb": 7535,
+   "agentes_mb": 1042
+  },
+  {
+   "t": 109.2,
+   "carga": 9.16,
+   "ram_livre_mb": 7517,
+   "agentes_mb": 1064
+  },
+  {
+   "t": 111.3,
+   "carga": 9.16,
+   "ram_livre_mb": 7619,
+   "agentes_mb": 930
+  },
+  {
+   "t": 113.3,
+   "carga": 9.16,
+   "ram_livre_mb": 7745,
+   "agentes_mb": 791
+  },
+  {
+   "t": 115.3,
+   "carga": 8.91,
+   "ram_livre_mb": 7721,
+   "agentes_mb": 906
+  },
+  {
+   "t": 117.3,
+   "carga": 8.91,
+   "ram_livre_mb": 7677,
+   "agentes_mb": 785
+  },
+  {
+   "t": 119.4,
+   "carga": 8.35,
+   "ram_livre_mb": 7779,
+   "agentes_mb": 790
+  },
+  {
+   "t": 121.4,
+   "carga": 8.35,
+   "ram_livre_mb": 7809,
+   "agentes_mb": 766
+  },
+  {
+   "t": 123.4,
+   "carga": 8.35,
+   "ram_livre_mb": 7889,
+   "agentes_mb": 648
+  },
+  {
+   "t": 125.5,
+   "carga": 7.76,
+   "ram_livre_mb": 7911,
+   "agentes_mb": 649
+  },
+  {
+   "t": 127.5,
+   "carga": 7.76,
+   "ram_livre_mb": 7870,
+   "agentes_mb": 763
+  },
+  {
+   "t": 129.5,
+   "carga": 7.22,
+   "ram_livre_mb": 7742,
+   "agentes_mb": 857
+  },
+  {
+   "t": 131.5,
+   "carga": 7.22,
+   "ram_livre_mb": 7560,
+   "agentes_mb": 901
+  },
+  {
+   "t": 133.6,
+   "carga": 7.22,
+   "ram_livre_mb": 7671,
+   "agentes_mb": 928
+  },
+  {
+   "t": 135.6,
+   "carga": 6.64,
+   "ram_livre_mb": 7660,
+   "agentes_mb": 1017
+  },
+  {
+   "t": 137.6,
+   "carga": 6.64,
+   "ram_livre_mb": 7573,
+   "agentes_mb": 1063
+  },
+  {
+   "t": 139.6,
+   "carga": 6.35,
+   "ram_livre_mb": 7553,
+   "agentes_mb": 1071
+  },
+  {
+   "t": 141.7,
+   "carga": 6.35,
+   "ram_livre_mb": 7662,
+   "agentes_mb": 935
+  },
+  {
+   "t": 143.7,
+   "carga": 6.08,
+   "ram_livre_mb": 7666,
+   "agentes_mb": 798
+  },
+  {
+   "t": 145.7,
+   "carga": 6.08,
+   "ram_livre_mb": 7841,
+   "agentes_mb": 771
+  },
+  {
+   "t": 147.7,
+   "carga": 6.08,
+   "ram_livre_mb": 7779,
+   "agentes_mb": 877
+  },
+  {
+   "t": 149.7,
+   "carga": 5.92,
+   "ram_livre_mb": 7695,
+   "agentes_mb": 921
+  },
+  {
+   "t": 151.8,
+   "carga": 5.92,
+   "ram_livre_mb": 7639,
+   "agentes_mb": 933
+  },
+  {
+   "t": 153.8,
+   "carga": 5.68,
+   "ram_livre_mb": 7702,
+   "agentes_mb": 938
+  },
+  {
+   "t": 155.8,
+   "carga": 5.68,
+   "ram_livre_mb": 7761,
+   "agentes_mb": 798
+  },
+  {
+   "t": 157.9,
+   "carga": 5.68,
+   "ram_livre_mb": 7592,
+   "agentes_mb": 911
+  },
+  {
+   "t": 159.9,
+   "carga": 5.39,
+   "ram_livre_mb": 7654,
+   "agentes_mb": 1017
+  },
+  {
+   "t": 161.9,
+   "carga": 5.39,
+   "ram_livre_mb": 7632,
+   "agentes_mb": 1065
+  },
+  {
+   "t": 164.0,
+   "carga": 4.96,
+   "ram_livre_mb": 7630,
+   "agentes_mb": 1077
+  },
+  {
+   "t": 166.0,
+   "carga": 4.96,
+   "ram_livre_mb": 7740,
+   "agentes_mb": 1024
+  },
+  {
+   "t": 168.0,
+   "carga": 4.96,
+   "ram_livre_mb": 7787,
+   "agentes_mb": 930
+  },
+  {
+   "t": 170.0,
+   "carga": 6.08,
+   "ram_livre_mb": 7661,
+   "agentes_mb": 934
+  },
+  {
+   "t": 172.1,
+   "carga": 6.08,
+   "ram_livre_mb": 7670,
+   "agentes_mb": 1024
+  },
+  {
+   "t": 174.1,
+   "carga": 6.07,
+   "ram_livre_mb": 7676,
+   "agentes_mb": 922
+  },
+  {
+   "t": 176.1,
+   "carga": 6.07,
+   "ram_livre_mb": 7785,
+   "agentes_mb": 798
+  },
+  {
+   "t": 178.1,
+   "carga": 6.07,
+   "ram_livre_mb": 7800,
+   "agentes_mb": 904
+  },
+  {
+   "t": 180.1,
+   "carga": 6.63,
+   "ram_livre_mb": 7743,
+   "agentes_mb": 923
+  },
+  {
+   "t": 182.2,
+   "carga": 6.63,
+   "ram_livre_mb": 7667,
+   "agentes_mb": 930
+  },
+  {
+   "t": 184.2,
+   "carga": 6.82,
+   "ram_livre_mb": 7534,
+   "agentes_mb": 1023
+  },
+  {
+   "t": 186.2,
+   "carga": 6.82,
+   "ram_livre_mb": 7564,
+   "agentes_mb": 1116
+  },
+  {
+   "t": 188.3,
+   "carga": 6.82,
+   "ram_livre_mb": 7605,
+   "agentes_mb": 1047
+  },
+  {
+   "t": 190.3,
+   "carga": 6.91,
+   "ram_livre_mb": 7565,
+   "agentes_mb": 1192
+  },
+  {
+   "t": 192.3,
+   "carga": 6.91,
+   "ram_livre_mb": 7604,
+   "agentes_mb": 1072
+  },
+  {
+   "t": 194.4,
+   "carga": 6.44,
+   "ram_livre_mb": 7737,
+   "agentes_mb": 938
+  },
+  {
+   "t": 196.4,
+   "carga": 6.44,
+   "ram_livre_mb": 7735,
+   "agentes_mb": 806
+  },
+  {
+   "t": 198.4,
+   "carga": 6.44,
+   "ram_livre_mb": 7863,
+   "agentes_mb": 809
+  },
+  {
+   "t": 200.4,
+   "carga": 6.16,
+   "ram_livre_mb": 7849,
+   "agentes_mb": 811
+  },
+  {
+   "t": 202.5,
+   "carga": 6.16,
+   "ram_livre_mb": 7789,
+   "agentes_mb": 927
+  },
+  {
+   "t": 204.5,
+   "carga": 6.15,
+   "ram_livre_mb": 7845,
+   "agentes_mb": 806
+  },
+  {
+   "t": 206.5,
+   "carga": 6.15,
+   "ram_livre_mb": 7860,
+   "agentes_mb": 801
+  },
+  {
+   "t": 208.5,
+   "carga": 6.15,
+   "ram_livre_mb": 7740,
+   "agentes_mb": 916
+  },
+  {
+   "t": 210.5,
+   "carga": 6.06,
+   "ram_livre_mb": 7573,
+   "agentes_mb": 983
+  },
+  {
+   "t": 212.6,
+   "carga": 6.06,
+   "ram_livre_mb": 7635,
+   "agentes_mb": 1055
+  },
+  {
+   "t": 214.6,
+   "carga": 5.57,
+   "ram_livre_mb": 7595,
+   "agentes_mb": 1194
+  },
+  {
+   "t": 216.6,
+   "carga": 5.57,
+   "ram_livre_mb": 7660,
+   "agentes_mb": 933
+  },
+  {
+   "t": 218.7,
+   "carga": 5.57,
+   "ram_livre_mb": 7698,
+   "agentes_mb": 936
+  },
+  {
+   "t": 220.7,
+   "carga": 5.45,
+   "ram_livre_mb": 7667,
+   "agentes_mb": 1057
+  },
+  {
+   "t": 222.7,
+   "carga": 5.45,
+   "ram_livre_mb": 7509,
+   "agentes_mb": 1078
+  },
+  {
+   "t": 224.7,
+   "carga": 5.33,
+   "ram_livre_mb": 7624,
+   "agentes_mb": 1078
+  },
+  {
+   "t": 226.8,
+   "carga": 5.33,
+   "ram_livre_mb": 7749,
+   "agentes_mb": 942
+  },
+  {
+   "t": 228.8,
+   "carga": 4.9,
+   "ram_livre_mb": 7777,
+   "agentes_mb": 948
+  },
+  {
+   "t": 230.8,
+   "carga": 4.9,
+   "ram_livre_mb": 7773,
+   "agentes_mb": 958
+  },
+  {
+   "t": 232.8,
+   "carga": 4.9,
+   "ram_livre_mb": 7707,
+   "agentes_mb": 1072
+  },
+  {
+   "t": 234.9,
+   "carga": 4.51,
+   "ram_livre_mb": 7664,
+   "agentes_mb": 1046
+  },
+  {
+   "t": 236.9,
+   "carga": 4.51,
+   "ram_livre_mb": 7518,
+   "agentes_mb": 1069
+  },
+  {
+   "t": 238.9,
+   "carga": 4.47,
+   "ram_livre_mb": 7628,
+   "agentes_mb": 1089
+  },
+  {
+   "t": 240.9,
+   "carga": 4.47,
+   "ram_livre_mb": 7625,
+   "agentes_mb": 1207
+  },
+  {
+   "t": 243.0,
+   "carga": 4.47,
+   "ram_livre_mb": 7537,
+   "agentes_mb": 1224
+  },
+  {
+   "t": 245.0,
+   "carga": 4.27,
+   "ram_livre_mb": 7577,
+   "agentes_mb": 1094
+  },
+  {
+   "t": 247.0,
+   "carga": 4.27,
+   "ram_livre_mb": 7798,
+   "agentes_mb": 813
+  },
+  {
+   "t": 249.1,
+   "carga": 4.33,
+   "ram_livre_mb": 7719,
+   "agentes_mb": 815
+  },
+  {
+   "t": 251.1,
+   "carga": 4.33,
+   "ram_livre_mb": 7799,
+   "agentes_mb": 927
+  },
+  {
+   "t": 253.1,
+   "carga": 4.33,
+   "ram_livre_mb": 7819,
+   "agentes_mb": 807
+  },
+  {
+   "t": 255.1,
+   "carga": 4.54,
+   "ram_livre_mb": 7832,
+   "agentes_mb": 676
+  },
+  {
+   "t": 257.2,
+   "carga": 4.54,
+   "ram_livre_mb": 7804,
+   "agentes_mb": 680
+  },
+  {
+   "t": 259.2,
+   "carga": 4.82,
+   "ram_livre_mb": 7933,
+   "agentes_mb": 649
+  },
+  {
+   "t": 261.2,
+   "carga": 4.82,
+   "ram_livre_mb": 7831,
+   "agentes_mb": 712
+  },
+  {
+   "t": 263.2,
+   "carga": 4.82,
+   "ram_livre_mb": 7692,
+   "agentes_mb": 787
+  },
+  {
+   "t": 265.3,
+   "carga": 4.84,
+   "ram_livre_mb": 7751,
+   "agentes_mb": 920
+  },
+  {
+   "t": 267.3,
+   "carga": 4.84,
+   "ram_livre_mb": 7673,
+   "agentes_mb": 945
+  },
+  {
+   "t": 269.3,
+   "carga": 4.61,
+   "ram_livre_mb": 7660,
+   "agentes_mb": 951
+  },
+  {
+   "t": 271.3,
+   "carga": 4.61,
+   "ram_livre_mb": 7660,
+   "agentes_mb": 954
+  },
+  {
+   "t": 273.4,
+   "carga": 4.61,
+   "ram_livre_mb": 7645,
+   "agentes_mb": 1000
+  },
+  {
+   "t": 275.4,
+   "carga": 4.4,
+   "ram_livre_mb": 7529,
+   "agentes_mb": 925
+  },
+  {
+   "t": 277.4,
+   "carga": 4.4,
+   "ram_livre_mb": 7401,
+   "agentes_mb": 1056
+  },
+  {
+   "t": 279.5,
+   "carga": 4.37,
+   "ram_livre_mb": 7506,
+   "agentes_mb": 1081
+  },
+  {
+   "t": 281.5,
+   "carga": 4.37,
+   "ram_livre_mb": 7612,
+   "agentes_mb": 949
+  },
+  {
+   "t": 283.5,
+   "carga": 4.37,
+   "ram_livre_mb": 7708,
+   "agentes_mb": 924
+  },
+  {
+   "t": 285.5,
+   "carga": 4.18,
+   "ram_livre_mb": 7657,
+   "agentes_mb": 942
+  },
+  {
+   "t": 287.6,
+   "carga": 4.18,
+   "ram_livre_mb": 7659,
+   "agentes_mb": 949
+  },
+  {
+   "t": 289.6,
+   "carga": 5.36,
+   "ram_livre_mb": 7463,
+   "agentes_mb": 1094
+  },
+  {
+   "t": 291.6,
+   "carga": 5.36,
+   "ram_livre_mb": 7470,
+   "agentes_mb": 1107
+  },
+  {
+   "t": 293.7,
+   "carga": 5.36,
+   "ram_livre_mb": 7562,
+   "agentes_mb": 972
+  },
+  {
+   "t": 295.7,
+   "carga": 5.09,
+   "ram_livre_mb": 7590,
+   "agentes_mb": 978
+  },
+  {
+   "t": 297.7,
+   "carga": 5.09,
+   "ram_livre_mb": 7628,
+   "agentes_mb": 1040
+  },
+  {
+   "t": 299.7,
+   "carga": 4.93,
+   "ram_livre_mb": 7673,
+   "agentes_mb": 945
+  },
+  {
+   "t": 301.8,
+   "carga": 4.93,
+   "ram_livre_mb": 7638,
+   "agentes_mb": 956
+  },
+  {
+   "t": 303.8,
+   "carga": 4.77,
+   "ram_livre_mb": 7505,
+   "agentes_mb": 959
+  },
+  {
+   "t": 305.8,
+   "carga": 4.77,
+   "ram_livre_mb": 7776,
+   "agentes_mb": 818
+  },
+  {
+   "t": 307.8,
+   "carga": 4.77,
+   "ram_livre_mb": 7786,
+   "agentes_mb": 818
+  },
+  {
+   "t": 309.9,
+   "carga": 4.47,
+   "ram_livre_mb": 7912,
+   "agentes_mb": 675
+  },
+  {
+   "t": 311.9,
+   "carga": 4.47,
+   "ram_livre_mb": 7931,
+   "agentes_mb": 675
+  },
+  {
+   "t": 313.9,
+   "carga": 4.11,
+   "ram_livre_mb": 7941,
+   "agentes_mb": 676
+  },
+  {
+   "t": 315.9,
+   "carga": 4.11,
+   "ram_livre_mb": 7768,
+   "agentes_mb": 675
+  }
+ ],
+ "amostras_vm": [
+  {
+   "t": -0.0,
+   "carga": 0.17,
+   "ram_livre_mb": 6512,
+   "agentes_mb": 234
+  },
+  {
+   "t": 2.0,
+   "carga": 0.17,
+   "ram_livre_mb": 6518,
+   "agentes_mb": 234
+  },
+  {
+   "t": 4.0,
+   "carga": 0.17,
+   "ram_livre_mb": 6520,
+   "agentes_mb": 234
+  },
+  {
+   "t": 6.0,
+   "carga": 0.16,
+   "ram_livre_mb": 6522,
+   "agentes_mb": 234
+  },
+  {
+   "t": 8.0,
+   "carga": 0.16,
+   "ram_livre_mb": 6524,
+   "agentes_mb": 234
+  },
+  {
+   "t": 10.0,
+   "carga": 0.14,
+   "ram_livre_mb": 6524,
+   "agentes_mb": 234
+  },
+  {
+   "t": 12.1,
+   "carga": 0.14,
+   "ram_livre_mb": 6524,
+   "agentes_mb": 234
+  },
+  {
+   "t": 14.1,
+   "carga": 0.14,
+   "ram_livre_mb": 6523,
+   "agentes_mb": 234
+  },
+  {
+   "t": 16.1,
+   "carga": 0.13,
+   "ram_livre_mb": 6523,
+   "agentes_mb": 234
+  },
+  {
+   "t": 18.1,
+   "carga": 0.13,
+   "ram_livre_mb": 6523,
+   "agentes_mb": 234
+  },
+  {
+   "t": 20.1,
+   "carga": 0.44,
+   "ram_livre_mb": 6289,
+   "agentes_mb": 473
+  },
+  {
+   "t": 22.1,
+   "carga": 0.44,
+   "ram_livre_mb": 6205,
+   "agentes_mb": 620
+  },
+  {
+   "t": 24.1,
+   "carga": 0.44,
+   "ram_livre_mb": 6067,
+   "agentes_mb": 679
+  },
+  {
+   "t": 26.1,
+   "carga": 0.49,
+   "ram_livre_mb": 5842,
+   "agentes_mb": 927
+  },
+  {
+   "t": 28.1,
+   "carga": 0.49,
+   "ram_livre_mb": 5921,
+   "agentes_mb": 874
+  },
+  {
+   "t": 30.1,
+   "carga": 0.45,
+   "ram_livre_mb": 5851,
+   "agentes_mb": 911
+  },
+  {
+   "t": 32.2,
+   "carga": 0.45,
+   "ram_livre_mb": 6281,
+   "agentes_mb": 463
+  },
+  {
+   "t": 34.2,
+   "carga": 0.45,
+   "ram_livre_mb": 6200,
+   "agentes_mb": 622
+  },
+  {
+   "t": 36.2,
+   "carga": 0.49,
+   "ram_livre_mb": 6139,
+   "agentes_mb": 460
+  },
+  {
+   "t": 38.2,
+   "carga": 0.49,
+   "ram_livre_mb": 6231,
+   "agentes_mb": 460
+  },
+  {
+   "t": 40.2,
+   "carga": 0.45,
+   "ram_livre_mb": 6244,
+   "agentes_mb": 461
+  },
+  {
+   "t": 42.2,
+   "carga": 0.45,
+   "ram_livre_mb": 6253,
+   "agentes_mb": 461
+  },
+  {
+   "t": 44.2,
+   "carga": 0.45,
+   "ram_livre_mb": 6284,
+   "agentes_mb": 465
+  },
+  {
+   "t": 46.2,
+   "carga": 0.42,
+   "ram_livre_mb": 6145,
+   "agentes_mb": 650
+  },
+  {
+   "t": 48.2,
+   "carga": 0.42,
+   "ram_livre_mb": 6047,
+   "agentes_mb": 684
+  },
+  {
+   "t": 50.3,
+   "carga": 0.38,
+   "ram_livre_mb": 6047,
+   "agentes_mb": 687
+  },
+  {
+   "t": 52.3,
+   "carga": 0.38,
+   "ram_livre_mb": 5910,
+   "agentes_mb": 884
+  },
+  {
+   "t": 54.3,
+   "carga": 0.38,
+   "ram_livre_mb": 6046,
+   "agentes_mb": 686
+  },
+  {
+   "t": 56.3,
+   "carga": 0.43,
+   "ram_livre_mb": 6264,
+   "agentes_mb": 459
+  },
+  {
+   "t": 58.3,
+   "carga": 0.43,
+   "ram_livre_mb": 6263,
+   "agentes_mb": 463
+  },
+  {
+   "t": 60.3,
+   "carga": 0.4,
+   "ram_livre_mb": 6499,
+   "agentes_mb": 234
+  },
+  {
+   "t": 62.3,
+   "carga": 0.4,
+   "ram_livre_mb": 6272,
+   "agentes_mb": 475
+  },
+  {
+   "t": 64.3,
+   "carga": 0.4,
+   "ram_livre_mb": 6125,
+   "agentes_mb": 661
+  },
+  {
+   "t": 66.3,
+   "carga": 0.45,
+   "ram_livre_mb": 6046,
+   "agentes_mb": 678
+  },
+  {
+   "t": 68.3,
+   "carga": 0.45,
+   "ram_livre_mb": 5840,
+   "agentes_mb": 911
+  },
+  {
+   "t": 70.4,
+   "carga": 0.41,
+   "ram_livre_mb": 6048,
+   "agentes_mb": 687
+  },
+  {
+   "t": 72.4,
+   "carga": 0.41,
+   "ram_livre_mb": 6048,
+   "agentes_mb": 688
+  },
+  {
+   "t": 74.4,
+   "carga": 0.41,
+   "ram_livre_mb": 6043,
+   "agentes_mb": 694
+  },
+  {
+   "t": 76.4,
+   "carga": 0.38,
+   "ram_livre_mb": 6256,
+   "agentes_mb": 462
+  },
+  {
+   "t": 78.4,
+   "carga": 0.38,
+   "ram_livre_mb": 6255,
+   "agentes_mb": 463
+  },
+  {
+   "t": 80.4,
+   "carga": 0.35,
+   "ram_livre_mb": 6258,
+   "agentes_mb": 463
+  },
+  {
+   "t": 82.4,
+   "carga": 0.35,
+   "ram_livre_mb": 6490,
+   "agentes_mb": 235
+  },
+  {
+   "t": 84.4,
+   "carga": 0.35,
+   "ram_livre_mb": 6490,
+   "agentes_mb": 235
+  },
+  {
+   "t": 86.4,
+   "carga": 0.32,
+   "ram_livre_mb": 6264,
+   "agentes_mb": 453
+  },
+  {
+   "t": 88.4,
+   "carga": 0.32,
+   "ram_livre_mb": 6264,
+   "agentes_mb": 450
+  },
+  {
+   "t": 90.5,
+   "carga": 0.29,
+   "ram_livre_mb": 6262,
+   "agentes_mb": 458
+  },
+  {
+   "t": 92.5,
+   "carga": 0.29,
+   "ram_livre_mb": 6030,
+   "agentes_mb": 678
+  },
+  {
+   "t": 94.5,
+   "carga": 0.29,
+   "ram_livre_mb": 6011,
+   "agentes_mb": 700
+  },
+  {
+   "t": 96.5,
+   "carga": 0.27,
+   "ram_livre_mb": 6150,
+   "agentes_mb": 460
+  },
+  {
+   "t": 98.5,
+   "carga": 0.27,
+   "ram_livre_mb": 5974,
+   "agentes_mb": 686
+  },
+  {
+   "t": 100.5,
+   "carga": 0.25,
+   "ram_livre_mb": 6197,
+   "agentes_mb": 461
+  },
+  {
+   "t": 102.5,
+   "carga": 0.25,
+   "ram_livre_mb": 6211,
+   "agentes_mb": 460
+  },
+  {
+   "t": 104.5,
+   "carga": 0.25,
+   "ram_livre_mb": 6219,
+   "agentes_mb": 461
+  },
+  {
+   "t": 106.5,
+   "carga": 0.23,
+   "ram_livre_mb": 6222,
+   "agentes_mb": 461
+  },
+  {
+   "t": 108.6,
+   "carga": 0.23,
+   "ram_livre_mb": 6452,
+   "agentes_mb": 235
+  },
+  {
+   "t": 110.6,
+   "carga": 0.21,
+   "ram_livre_mb": 6246,
+   "agentes_mb": 454
+  },
+  {
+   "t": 112.6,
+   "carga": 0.21,
+   "ram_livre_mb": 6023,
+   "agentes_mb": 700
+  },
+  {
+   "t": 114.6,
+   "carga": 0.19,
+   "ram_livre_mb": 6020,
+   "agentes_mb": 686
+  },
+  {
+   "t": 116.6,
+   "carga": 0.19,
+   "ram_livre_mb": 6150,
+   "agentes_mb": 461
+  },
+  {
+   "t": 118.6,
+   "carga": 0.19,
+   "ram_livre_mb": 5956,
+   "agentes_mb": 703
+  },
+  {
+   "t": 120.6,
+   "carga": 0.18,
+   "ram_livre_mb": 6066,
+   "agentes_mb": 462
+  },
+  {
+   "t": 122.6,
+   "carga": 0.18,
+   "ram_livre_mb": 6335,
+   "agentes_mb": 236
+  },
+  {
+   "t": 124.6,
+   "carga": 0.24,
+   "ram_livre_mb": 6218,
+   "agentes_mb": 480
+  },
+  {
+   "t": 126.6,
+   "carga": 0.24,
+   "ram_livre_mb": 6216,
+   "agentes_mb": 461
+  },
+  {
+   "t": 128.7,
+   "carga": 0.24,
+   "ram_livre_mb": 6412,
+   "agentes_mb": 236
+  },
+  {
+   "t": 130.7,
+   "carga": 0.22,
+   "ram_livre_mb": 6427,
+   "agentes_mb": 236
+  },
+  {
+   "t": 132.7,
+   "carga": 0.22,
+   "ram_livre_mb": 6386,
+   "agentes_mb": 347
+  },
+  {
+   "t": 134.7,
+   "carga": 0.2,
+   "ram_livre_mb": 6235,
+   "agentes_mb": 460
+  },
+  {
+   "t": 136.7,
+   "carga": 0.2,
+   "ram_livre_mb": 6234,
+   "agentes_mb": 462
+  },
+  {
+   "t": 138.7,
+   "carga": 0.2,
+   "ram_livre_mb": 6169,
+   "agentes_mb": 583
+  },
+  {
+   "t": 140.7,
+   "carga": 0.27,
+   "ram_livre_mb": 6102,
+   "agentes_mb": 455
+  },
+  {
+   "t": 142.7,
+   "carga": 0.27,
+   "ram_livre_mb": 5974,
+   "agentes_mb": 700
+  },
+  {
+   "t": 144.7,
+   "carga": 0.25,
+   "ram_livre_mb": 5972,
+   "agentes_mb": 686
+  },
+  {
+   "t": 146.8,
+   "carga": 0.25,
+   "ram_livre_mb": 6117,
+   "agentes_mb": 461
+  },
+  {
+   "t": 148.8,
+   "carga": 0.25,
+   "ram_livre_mb": 6152,
+   "agentes_mb": 462
+  },
+  {
+   "t": 150.8,
+   "carga": 0.23,
+   "ram_livre_mb": 6355,
+   "agentes_mb": 351
+  },
+  {
+   "t": 152.8,
+   "carga": 0.23,
+   "ram_livre_mb": 6233,
+   "agentes_mb": 462
+  },
+  {
+   "t": 154.8,
+   "carga": 0.21,
+   "ram_livre_mb": 6008,
+   "agentes_mb": 706
+  },
+  {
+   "t": 156.8,
+   "carga": 0.21,
+   "ram_livre_mb": 6007,
+   "agentes_mb": 683
+  },
+  {
+   "t": 158.8,
+   "carga": 0.21,
+   "ram_livre_mb": 6142,
+   "agentes_mb": 462
+  },
+  {
+   "t": 160.8,
+   "carga": 0.19,
+   "ram_livre_mb": 6192,
+   "agentes_mb": 462
+  },
+  {
+   "t": 162.8,
+   "carga": 0.19,
+   "ram_livre_mb": 6122,
+   "agentes_mb": 631
+  },
+  {
+   "t": 164.8,
+   "carga": 0.18,
+   "ram_livre_mb": 6006,
+   "agentes_mb": 682
+  },
+  {
+   "t": 166.9,
+   "carga": 0.18,
+   "ram_livre_mb": 6163,
+   "agentes_mb": 461
+  },
+  {
+   "t": 168.9,
+   "carga": 0.18,
+   "ram_livre_mb": 6146,
+   "agentes_mb": 609
+  },
+  {
+   "t": 170.9,
+   "carga": 0.16,
+   "ram_livre_mb": 6016,
+   "agentes_mb": 687
+  },
+  {
+   "t": 172.9,
+   "carga": 0.16,
+   "ram_livre_mb": 6012,
+   "agentes_mb": 688
+  },
+  {
+   "t": 174.9,
+   "carga": 0.15,
+   "ram_livre_mb": 5887,
+   "agentes_mb": 883
+  },
+  {
+   "t": 176.9,
+   "carga": 0.15,
+   "ram_livre_mb": 6247,
+   "agentes_mb": 461
+  },
+  {
+   "t": 178.9,
+   "carga": 0.15,
+   "ram_livre_mb": 6247,
+   "agentes_mb": 462
+  },
+  {
+   "t": 180.9,
+   "carga": 0.14,
+   "ram_livre_mb": 6108,
+   "agentes_mb": 657
+  },
+  {
+   "t": 182.9,
+   "carga": 0.14,
+   "ram_livre_mb": 6181,
+   "agentes_mb": 462
+  },
+  {
+   "t": 185.0,
+   "carga": 0.12,
+   "ram_livre_mb": 6193,
+   "agentes_mb": 463
+  },
+  {
+   "t": 187.0,
+   "carga": 0.12,
+   "ram_livre_mb": 6208,
+   "agentes_mb": 462
+  },
+  {
+   "t": 189.0,
+   "carga": 0.12,
+   "ram_livre_mb": 6552,
+   "agentes_mb": 236
+  },
+  {
+   "t": 191.0,
+   "carga": 0.11,
+   "ram_livre_mb": 6556,
+   "agentes_mb": 236
+  },
+  {
+   "t": 193.0,
+   "carga": 0.11,
+   "ram_livre_mb": 6422,
+   "agentes_mb": 436
+  },
+  {
+   "t": 195.0,
+   "carga": 0.1,
+   "ram_livre_mb": 6328,
+   "agentes_mb": 462
+  },
+  {
+   "t": 197.0,
+   "carga": 0.1,
+   "ram_livre_mb": 6111,
+   "agentes_mb": 685
+  },
+  {
+   "t": 199.0,
+   "carga": 0.1,
+   "ram_livre_mb": 5979,
+   "agentes_mb": 884
+  },
+  {
+   "t": 201.0,
+   "carga": 0.1,
+   "ram_livre_mb": 5893,
+   "agentes_mb": 912
+  },
+  {
+   "t": 203.1,
+   "carga": 0.1,
+   "ram_livre_mb": 6014,
+   "agentes_mb": 686
+  },
+  {
+   "t": 205.1,
+   "carga": 0.09,
+   "ram_livre_mb": 6161,
+   "agentes_mb": 663
+  },
+  {
+   "t": 207.1,
+   "carga": 0.09,
+   "ram_livre_mb": 6294,
+   "agentes_mb": 462
+  },
+  {
+   "t": 209.1,
+   "carga": 0.09,
+   "ram_livre_mb": 6304,
+   "agentes_mb": 461
+  },
+  {
+   "t": 211.1,
+   "carga": 0.08,
+   "ram_livre_mb": 6536,
+   "agentes_mb": 236
+  },
+  {
+   "t": 213.1,
+   "carga": 0.08,
+   "ram_livre_mb": 6543,
+   "agentes_mb": 236
+  },
+  {
+   "t": 215.1,
+   "carga": 0.07,
+   "ram_livre_mb": 6548,
+   "agentes_mb": 236
+  },
+  {
+   "t": 217.1,
+   "carga": 0.07,
+   "ram_livre_mb": 6414,
+   "agentes_mb": 439
+  },
+  {
+   "t": 219.1,
+   "carga": 0.07,
+   "ram_livre_mb": 6340,
+   "agentes_mb": 456
+  },
+  {
+   "t": 221.1,
+   "carga": 0.07,
+   "ram_livre_mb": 6340,
+   "agentes_mb": 462
+  },
+  {
+   "t": 223.2,
+   "carga": 0.07,
+   "ram_livre_mb": 6389,
+   "agentes_mb": 436
+  },
+  {
+   "t": 225.2,
+   "carga": 0.14,
+   "ram_livre_mb": 6321,
+   "agentes_mb": 462
+  },
+  {
+   "t": 227.2,
+   "carga": 0.14,
+   "ram_livre_mb": 6106,
+   "agentes_mb": 686
+  },
+  {
+   "t": 229.2,
+   "carga": 0.14,
+   "ram_livre_mb": 5942,
+   "agentes_mb": 903
+  },
+  {
+   "t": 231.2,
+   "carga": 0.13,
+   "ram_livre_mb": 6058,
+   "agentes_mb": 687
+  },
+  {
+   "t": 233.2,
+   "carga": 0.13,
+   "ram_livre_mb": 6182,
+   "agentes_mb": 461
+  },
+  {
+   "t": 235.2,
+   "carga": 0.12,
+   "ram_livre_mb": 6219,
+   "agentes_mb": 462
+  },
+  {
+   "t": 237.2,
+   "carga": 0.12,
+   "ram_livre_mb": 6248,
+   "agentes_mb": 463
+  },
+  {
+   "t": 239.2,
+   "carga": 0.12,
+   "ram_livre_mb": 6276,
+   "agentes_mb": 459
+  },
+  {
+   "t": 241.3,
+   "carga": 0.11,
+   "ram_livre_mb": 6305,
+   "agentes_mb": 461
+  },
+  {
+   "t": 243.3,
+   "carga": 0.11,
+   "ram_livre_mb": 6317,
+   "agentes_mb": 461
+  },
+  {
+   "t": 245.3,
+   "carga": 0.1,
+   "ram_livre_mb": 6338,
+   "agentes_mb": 458
+  },
+  {
+   "t": 247.3,
+   "carga": 0.1,
+   "ram_livre_mb": 6160,
+   "agentes_mb": 674
+  },
+  {
+   "t": 249.3,
+   "carga": 0.1,
+   "ram_livre_mb": 6194,
+   "agentes_mb": 462
+  },
+  {
+   "t": 251.3,
+   "carga": 0.09,
+   "ram_livre_mb": 6433,
+   "agentes_mb": 236
+  },
+  {
+   "t": 253.3,
+   "carga": 0.09,
+   "ram_livre_mb": 6423,
+   "agentes_mb": 433
+  },
+  {
+   "t": 255.3,
+   "carga": 0.08,
+   "ram_livre_mb": 6332,
+   "agentes_mb": 461
+  },
+  {
+   "t": 257.3,
+   "carga": 0.08,
+   "ram_livre_mb": 6113,
+   "agentes_mb": 685
+  },
+  {
+   "t": 259.3,
+   "carga": 0.08,
+   "ram_livre_mb": 6236,
+   "agentes_mb": 462
+  },
+  {
+   "t": 261.4,
+   "carga": 0.08,
+   "ram_livre_mb": 6496,
+   "agentes_mb": 236
+  },
+  {
+   "t": 263.4,
+   "carga": 0.08,
+   "ram_livre_mb": 6517,
+   "agentes_mb": 236
+  },
+  {
+   "t": 265.4,
+   "carga": 0.07,
+   "ram_livre_mb": 6532,
+   "agentes_mb": 236
+  },
+  {
+   "t": 267.4,
+   "carga": 0.07,
+   "ram_livre_mb": 6541,
+   "agentes_mb": 236
+  },
+  {
+   "t": 269.4,
+   "carga": 0.07,
+   "ram_livre_mb": 6341,
+   "agentes_mb": 460
+  },
+  {
+   "t": 271.4,
+   "carga": 0.07,
+   "ram_livre_mb": 6133,
+   "agentes_mb": 697
+  },
+  {
+   "t": 273.4,
+   "carga": 0.07,
+   "ram_livre_mb": 6117,
+   "agentes_mb": 691
+  },
+  {
+   "t": 275.4,
+   "carga": 0.06,
+   "ram_livre_mb": 6116,
+   "agentes_mb": 691
+  },
+  {
+   "t": 277.4,
+   "carga": 0.06,
+   "ram_livre_mb": 6506,
+   "agentes_mb": 237
+  },
+  {
+   "t": 279.5,
+   "carga": 0.06,
+   "ram_livre_mb": 6515,
+   "agentes_mb": 237
+  },
+  {
+   "t": 281.5,
+   "carga": 0.14,
+   "ram_livre_mb": 6336,
+   "agentes_mb": 458
+  },
+  {
+   "t": 283.5,
+   "carga": 0.14,
+   "ram_livre_mb": 6335,
+   "agentes_mb": 464
+  },
+  {
+   "t": 285.5,
+   "carga": 0.12,
+   "ram_livre_mb": 6335,
+   "agentes_mb": 464
+  },
+  {
+   "t": 287.5,
+   "carga": 0.12,
+   "ram_livre_mb": 6118,
+   "agentes_mb": 684
+  },
+  {
+   "t": 289.5,
+   "carga": 0.12,
+   "ram_livre_mb": 6117,
+   "agentes_mb": 696
+  },
+  {
+   "t": 291.5,
+   "carga": 0.2,
+   "ram_livre_mb": 6264,
+   "agentes_mb": 462
+  },
+  {
+   "t": 293.5,
+   "carga": 0.2,
+   "ram_livre_mb": 6319,
+   "agentes_mb": 461
+  },
+  {
+   "t": 295.5,
+   "carga": 0.18,
+   "ram_livre_mb": 6119,
+   "agentes_mb": 704
+  },
+  {
+   "t": 297.5,
+   "carga": 0.18,
+   "ram_livre_mb": 6119,
+   "agentes_mb": 689
+  },
+  {
+   "t": 299.6,
+   "carga": 0.18,
+   "ram_livre_mb": 6249,
+   "agentes_mb": 463
+  },
+  {
+   "t": 301.6,
+   "carga": 0.16,
+   "ram_livre_mb": 6270,
+   "agentes_mb": 464
+  },
+  {
+   "t": 303.6,
+   "carga": 0.16,
+   "ram_livre_mb": 6290,
+   "agentes_mb": 464
+  },
+  {
+   "t": 305.6,
+   "carga": 0.15,
+   "ram_livre_mb": 6305,
+   "agentes_mb": 464
+  },
+  {
+   "t": 307.6,
+   "carga": 0.15,
+   "ram_livre_mb": 6575,
+   "agentes_mb": 237
+  },
+  {
+   "t": 309.6,
+   "carga": 0.14,
+   "ram_livre_mb": 6582,
+   "agentes_mb": 237
+  },
+  {
+   "t": 311.6,
+   "carga": 0.14,
+   "ram_livre_mb": 6581,
+   "agentes_mb": 237
+  },
+  {
+   "t": 313.6,
+   "carga": 0.14,
+   "ram_livre_mb": 6581,
+   "agentes_mb": 237
+  },
+  {
+   "t": 315.6,
+   "carga": 0.13,
+   "ram_livre_mb": 6581,
+   "agentes_mb": 237
+  },
+  {
+   "t": 317.6,
+   "carga": 0.13,
+   "ram_livre_mb": 6580,
+   "agentes_mb": 236
+  }
+ ]
+}
