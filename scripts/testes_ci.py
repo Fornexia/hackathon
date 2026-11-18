@@ -12,6 +12,7 @@ from pathlib import Path
 
 RAIZ = Path(__file__).resolve().parents[1]
 SUITES = (
+    ("Alertas e ponte do site", ("-m", "unittest", "discover", "-s", "alertas/testes")),
     ("Consulta", ("-m", "unittest", "discover", "-s", "consulta/testes")),
     ("Chat", ("-m", "unittest", "discover", "-s", "chat/testes")),
     # test_auth.py sobe o próprio MariaDB descartável (Docker) e roda autenticação, API do site, pacote de prova,

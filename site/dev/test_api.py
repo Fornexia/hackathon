@@ -1070,5 +1070,125 @@ class TestTokensMcp(Base):
             self.assertEqual(worker(self.base, "GET", "/api/worker/tokens", chave=chave).status, 401)
 
 
+class TestAcompanhamentos(Base):
+    CNPJ = "76535764000143"
+
+    def setUp(self):
+        super().setUp()
+        sql("DELETE FROM acompanhamentos")
+
+    def contas_worker(self):
+        r = worker(self.base, "GET", "/api/worker/acompanhamentos")
+        self.assertEqual(r.status, 200, r.corpo)
+        return {c["usuario_id"]: c for c in r.corpo}
+
+    def test_listar_criar_remover_e_isolar_contas(self):
+        dono, outro = self.cliente_com_plano(), self.cliente_com_plano()
+        r = dono.req("POST", "/api/acompanhamentos", {"cnpj": "76.535.764/0001-43"})
+        self.assertEqual(r.status, 201, r.corpo)
+        self.assertEqual(r["cnpj"], self.CNPJ)
+        lista = dono.req("GET", "/api/acompanhamentos", csrf=False)
+        self.assertEqual(lista["itens"][0]["id"], r["id"])
+        self.assertTrue(lista["email_verificado"])
+        self.assertEqual(outro.req("GET", "/api/acompanhamentos", csrf=False)["itens"], [])
+        self.assertEqual(outro.req("DELETE", f"/api/acompanhamentos/{r['id']}").status, 404)
+        uid = dono.me()["usuario"]["id"]
+        conta = self.contas_worker()[uid]
+        self.assertEqual(conta["email"], dono.email)
+        self.assertEqual(conta["acompanhamentos"], [{"id": r["id"], "cnpj": self.CNPJ}])
+        self.assertEqual(dono.req("DELETE", f"/api/acompanhamentos/{r['id']}").status, 204)
+        self.assertNotIn(uid, self.contas_worker())
+        novo = dono.req("POST", "/api/acompanhamentos", {"cnpj": self.CNPJ})
+        self.assertEqual(novo.status, 201)
+        self.assertNotEqual(novo["id"], r["id"])
+
+    def test_verificacao_plano_csrf_e_worker(self):
+        anonimo = Cliente(self.base)
+        self.assertEqual(anonimo.req("GET", "/api/acompanhamentos").status, 401)
+        self.assertEqual(anonimo.req("POST", "/api/acompanhamentos", {"cnpj": self.CNPJ}).status, 401)
+        c = Cliente(self.base)
+        c.cadastrar()
+        self.assertEqual(c.req("POST", "/api/acompanhamentos", {"cnpj": self.CNPJ}).status, 403)
+        c.assinar()
+        self.assertEqual(c.req("POST", "/api/acompanhamentos", {"cnpj": self.CNPJ}, token="errado").status, 403)
+        uid = c.me()["usuario"]["id"]
+        sql(f"UPDATE usuarios SET email_verificado_em=NULL, email_verificacao_exigida=0 WHERE id={uid}")
+        r = c.req("POST", "/api/acompanhamentos", {"cnpj": self.CNPJ})
+        self.assertEqual(r.status, 403, r.corpo)
+        self.assertEqual(r["codigo"], "email_nao_verificado")
+        for chave in (None, "errada"):
+            self.assertEqual(worker(self.base, "GET", "/api/worker/acompanhamentos", chave=chave).status, 401)
+
+    def test_worker_segue_plano_atual_e_verificacao(self):
+        c = self.cliente_com_plano(plano_garanhuns())
+        uid = c.me()["usuario"]["id"]
+        self.assertEqual(c.req("POST", "/api/acompanhamentos", {"cnpj": self.CNPJ}).status, 201)
+        self.assertEqual(self.contas_worker()[uid]["tenants"], ["pe-garanhuns"])
+        sql(f"UPDATE usuarios SET email_verificado_em=NULL WHERE id={uid}")
+        self.assertNotIn(uid, self.contas_worker())
+        sql(f"UPDATE usuarios SET email_verificado_em=NOW() WHERE id={uid}")
+        c.assinar()
+        self.assertIn("pe-estado", self.contas_worker()[uid]["tenants"])
+        sql(f"UPDATE assinaturas SET status='cancelada' WHERE usuario_id={uid}")
+        self.assertNotIn(uid, self.contas_worker())
+        # Ainda consegue cancelar, mesmo depois de perder o plano.
+        id_ = c.req("GET", "/api/acompanhamentos")["itens"][0]["id"]
+        self.assertEqual(c.req("DELETE", f"/api/acompanhamentos/{id_}").status, 204)
+
+    def test_cnpj_invalido_e_duplicado(self):
+        c = self.cliente_com_plano()
+        for valor in (None, [], "11111111111111", "76535764000144", "12345678901", "76535764000143<script>"):
+            self.assertEqual(c.req("POST", "/api/acompanhamentos", {"cnpj": valor}).status, 400)
+        self.assertEqual(c.req("POST", "/api/acompanhamentos", {"cnpj": self.CNPJ}).status, 201)
+        self.assertEqual(c.req("POST", "/api/acompanhamentos", {"cnpj": self.CNPJ}).status, 409)
+
+    def test_ponte_consulta_rota_real_e_respeita_cancelamento(self):
+        import tempfile
+        sys.path.insert(0, str(RAIZ / "alertas"))
+        import ponte_site
+        c = self.cliente_com_plano()
+        criado = c.req("POST", "/api/acompanhamentos", {"cnpj": self.CNPJ})
+        self.assertEqual(criado.status, 201, criado.corpo)
+        enviados = []
+        class FonteVazia:
+            def ler(self, cnpj): return None
+        with tempfile.TemporaryDirectory() as pasta:
+            arquivo = Path(pasta) / "estado.json"
+            def rodada():
+                return ponte_site.rodada(arquivo, self.base + "/api", WORKER_KEY,
+                    fabricar_fonte=lambda p: FonteVazia(),
+                    enviar=lambda a, eventos, data: enviados.append((a, eventos)) or "capturado")
+            rodada()
+            self.assertEqual(len(enviados), 1)
+            self.assertEqual(enviados[0][0]["email"], c.email)
+            self.assertEqual(enviados[0][1][0]["tipo"], "retrato_inicial")
+            rodada()
+            self.assertEqual(len(enviados), 1)
+            self.assertEqual(c.req("DELETE", f"/api/acompanhamentos/{criado['id']}").status, 204)
+            rodada()
+            self.assertEqual(len(enviados), 1)
+            self.assertEqual(json.loads(arquivo.read_text()), {})
+
+    def test_limite_dez_e_inclusao_simultanea(self):
+        c = self.cliente_com_plano()
+        uid = c.me()["usuario"]["id"]
+        # Nove linhas válidas para testar a última vaga com duas sessões independentes da mesma conta.
+        sql("INSERT INTO acompanhamentos (usuario_id,cnpj) VALUES " +
+            ",".join(f"({uid},'{n:014d}')" for n in range(1, 10)))
+        outro = Cliente(SERVIDORES[1][1])
+        self.assertEqual(outro.req("POST", "/api/login", {"email": c.email, "senha": c.senha}).status, 200)
+        barreira = threading.Barrier(2)
+        resultados = []
+        def incluir(cliente, cnpj):
+            barreira.wait()
+            resultados.append(cliente.req("POST", "/api/acompanhamentos", {"cnpj": cnpj}).status)
+        threads = [threading.Thread(target=incluir, args=(c, self.CNPJ)),
+                   threading.Thread(target=incluir, args=(outro, "00.000.000/0001-91"))]
+        for t in threads: t.start()
+        for t in threads: t.join(timeout=20)
+        self.assertEqual(sorted(resultados), [201, 400])
+        self.assertEqual(sql(f"SELECT COUNT(*) FROM acompanhamentos WHERE usuario_id={uid} AND cancelado_em IS NULL"), "10")
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=1)

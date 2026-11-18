@@ -75,13 +75,13 @@ $( [[ -n "${TRUSTED_PROXIES:-}" ]] && echo "const TRUSTED_PROXIES = '$(php_str "
 PHP
 
 # Dependências e migração antes de trocar a API pública. O setup completo não é necessário para atualizar contas.
-rsync -az -e "$SSH" "$RAIZ/site/config.php" "$RAIZ/site/migrar-autenticacao.php" "$RAIZ/site/migrar-tokens.php" "$RAIZ/site/enviar-emails.php" "$RAIZ/site/setup.php" "$RAIZ/site/composer.json" "$RAIZ/site/composer.lock" "$ALVO:$DOMINIO_DIR/"
+rsync -az -e "$SSH" "$RAIZ/site/config.php" "$RAIZ/site/migrar-autenticacao.php" "$RAIZ/site/migrar-tokens.php" "$RAIZ/site/migrar-acompanhamentos.php" "$RAIZ/site/enviar-emails.php" "$RAIZ/site/setup.php" "$RAIZ/site/composer.json" "$RAIZ/site/composer.lock" "$ALVO:$DOMINIO_DIR/"
 rsync -az --exclude=.git -e "$SSH" "$RAIZ/site/vendor/" "$ALVO:$DOMINIO_DIR/vendor/"
 if [[ "${1:-}" == "--setup" ]]; then
   # Somente instalação/provisionamento explícito; a migração comum não redefine o admin.
   $SSH "$ALVO" "php $DOMINIO_DIR/setup.php $(printf '%q' "$ADMIN_EMAIL") Admin $(printf '%q' "$ADMIN_SENHA")"
 fi
-$SSH "$ALVO" "php $DOMINIO_DIR/migrar-autenticacao.php && php $DOMINIO_DIR/migrar-tokens.php"
+$SSH "$ALVO" "php $DOMINIO_DIR/migrar-autenticacao.php && php $DOMINIO_DIR/migrar-tokens.php && php $DOMINIO_DIR/migrar-acompanhamentos.php"
 rsync -az --delete -e "$SSH" "$RAIZ/site/public_html/" "$ALVO:$DOMINIO_DIR/public_html/"
 [[ -f "$RAIZ/dados/painel.json" ]] && rsync -az --chmod=F600 -e "$SSH" "$RAIZ/dados/painel.json" "$ALVO:$DOMINIO_DIR/painel.json"
 $SSH "$ALVO" "rm -f $DOMINIO_DIR/public_html/default.php"

@@ -63,6 +63,26 @@
       <p class="vazio" id="vazio-tel" hidden>Você ainda não cadastrou nenhum telefone.</p>
     </section>
 
+    <section class="cartao secao" aria-labelledby="t-alertas">
+      <h2 id="t-alertas">Acompanhar fornecedores</h2>
+      <p class="apoio">Receba um e-mail quando aparecer uma sanção, um contrato novo ou uma mudança na situação cadastral dos CNPJs que você
+        acompanha, dentro do seu plano e com a fonte de cada fato. Cada conta pode acompanhar até 10 CNPJs. Ao clicar em Acompanhar, você autoriza esses avisos para o e-mail da sua conta; pode cancelar abaixo quando quiser.</p>
+      <p class="aviso-erro" id="erro-alerta" role="alert" hidden></p>
+      <p class="aviso-ok" id="ok-alerta" role="status" hidden></p>
+      <p class="apoio" id="alerta-verificar" hidden><strong>Confirme o seu e-mail para receber os alertas:</strong> use o botão “Verificar agora” em Seus dados.</p>
+      <form class="linha-form" id="form-alerta" novalidate>
+        <div class="campo">
+          <label for="alerta-cnpj">CNPJ do fornecedor</label>
+          <input id="alerta-cnpj" inputmode="numeric" autocomplete="off" placeholder="00.000.000/0000-00" maxlength="20" required>
+        </div>
+        <button class="botao" type="submit" id="alerta-enviar">Acompanhar</button>
+      </form>
+      <ul class="lista" id="lista-alerta" aria-live="polite"></ul>
+      <p class="vazio" id="vazio-alerta" hidden>Você ainda não acompanha nenhum fornecedor.</p>
+      <p class="detalhe">Na próxima verificação chega um e-mail com o que a base tem hoje de cada CNPJ incluído. Depois, só quando algo mudar.
+        Uma ocorrência num cadastro não prova irregularidade.</p>
+    </section>
+
     <section class="cartao secao" aria-labelledby="t-mcp">
       <h2 id="t-mcp">Conectar sua IA (MCP)</h2>
       <p class="apoio">Use as consultas do FornexIA dentro do Claude ou do Codex. A sua IA chama as mesmas ferramentas do nosso assistente,
@@ -110,8 +130,8 @@
 </main>
 
 <script src="assets/util.js?v=20261117e"></script>
-<script src="assets/api.js?v=20261118c"></script>
+<script src="assets/api.js?v=20261118e"></script>
 <script src="assets/topo.js?v=20261117e"></script>
-<script src="assets/conta.js?v=20261118d"></script>
+<script src="assets/conta.js?v=20261118e"></script>
 </body>
 </html>

@@ -30,9 +30,12 @@ pode reconferir. Cada cliente enxerga só os entes do seu plano, e a IA não con
    assistente: [**(87) 99678-7754**](https://wa.me/5587996787754).
 3. **A sua IA.** Em **Minha conta → Conectar sua IA (MCP)**, gere um token e rode o comando do Claude Code ou do Codex
    (passo a passo em [Conecte sua IA ao FornexIA](#conecte-sua-ia-ao-fornexia-mcp)).
-4. **Por dentro.** Com a conta aberta, veja a [área técnica](https://fornexia.figueiredo.dev/tecnico.html) e a página
+4. **Alertas por e-mail.** Em **Minha conta → Acompanhar fornecedores**, confirme o seu e-mail e inclua um CNPJ.
+   O monitor envia o retrato inicial da base e, depois, as mudanças dentro do plano. A disponibilidade depende do monitor ativo;
+   as fontes são uma amostra com data de captura, e a recoleta automática ainda está pendente.
+5. **Por dentro.** Com a conta aberta, veja a [área técnica](https://fornexia.figueiredo.dev/tecnico.html) e a página
    [Modelos](https://fornexia.figueiredo.dev/modelos.html).
-5. **Código e testes.** O selo acima mostra o CI de cada pull request; o [relatório de capacidade](docs/relatorios/2026-11-18-capacidade/fornexia-teste-100-pessoas.pdf)
+6. **Código e testes.** O selo acima mostra o CI de cada pull request; o [relatório de capacidade](docs/relatorios/2026-11-18-capacidade/fornexia-teste-100-pessoas.pdf)
    e o [guia técnico](docs/guia-tecnico.md) trazem o resto.
 
 ## Em números
@@ -45,7 +48,7 @@ pode reconferir. Cada cliente enxerga só os entes do seu plano, e a IA não con
 | **Qualidade sob carga** | **90%** das respostas certas e com prova; **6 de 6** ataques barrados | Mesmo teste, corrigido automaticamente pelo gabarito |
 | **Resistência a ataques** | **164 de 165** execuções passaram, a outra foi barrada pelo código; **nenhum vazamento** | 46 ataques de prompt e 2 conversas longas contra o agente real, em até 4 perfis (14/11) |
 | **Busca de fornecedor** | **458 de 460** variações acham o fornecedor certo | Nome sem acento, com letra errada, em ordem trocada ou pelo nome fantasia (14/11) |
-| **Testes automáticos** | **739** a cada pull request | GitHub Actions: consulta (313), chat (262) e site (164, entre login, API e pacote de prova) |
+| **Testes automáticos** | **810 casos**, com **804 aprovados e 6 pulados** no CI desta atualização | GitHub Actions: alertas e ponte (60), consulta (313), chat (262) e site (175, entre login, API e pacote de prova) |
 
 ## O que avançou desde a apresentação de 06/11
 
@@ -164,12 +167,12 @@ Para quem tem conta, o site mostra como o sistema funciona por dentro:
 - **Base em produção:** uma amostra com 100 contratos de Pernambuco (70 do Estado, de 2024, e 30 de Garanhuns), 95 sanções e 1.467 linhas
   de execução financeira, cada fato com a evidência. Os coletores da União e o PNCP estão prontos e testados e entram na próxima carga.
 - **MCP e API:** abertos pela página da conta, com token. A pergunta em português, que usa o modelo de IA, tem teto diário por token.
-- **Alertas por e-mail:** prontos e testados em versão de demonstração. Para abrir a clientes, faltam a tela de acompanhamento de CNPJ no site
-  e o agendamento da coleta.
+- **Alertas por e-mail:** tela de acompanhamento e ponte de envio implementadas, com publicação e ativação do monitor pendentes.
+  A recoleta automática das fontes ainda precisa ser agendada.
 - **Capacidade:** o teste de 18/11 mediu o motor de respostas (fila, agentes, consulta e correção). Acima de 100 pessoas, a capacidade é estimativa;
   cada computador a mais soma agentes à mesma fila.
 - **Atualidade das fontes:** cada resposta diz a data da captura; o cadastro de sanções de Pernambuco disponível é de 05/06/2025.
-- **Próximos passos:** carregar os dados da União na produção, tela de acompanhamento de CNPJ, selo de tempo assinado por terceiro e a API comercial.
+- **Próximos passos:** carregar os dados da União na produção, agendamento da recoleta, selo de tempo assinado por terceiro e a API comercial.
 
 ## Equipe Nexus
 

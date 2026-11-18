@@ -4,7 +4,7 @@ Roda depois da coleta (cron diário: recaptura, extrai, carrega no Neo4j, `pytho
 lê o grafo, pelas mesmas consultas do agente e COM O PERFIL DA ASSINATURA. Um cliente nunca é avisado de algo que o plano dele não enxerga.
 
 Regras que importam:
-- A primeira verificação de um CNPJ só tira a foto ("linha de base"): não avisa nada, senão tudo o que já existia viraria novidade.
+- A primeira verificação tira a linha de base. Assinaturas do site com `avisar_inicial` recebem um retrato identificado como inicial; no CLI não há envio inicial.
 - A foto só é gravada depois que o e-mail saiu. Se o envio falha, a próxima rodada tenta de novo, sem perder aviso.
 - CNPJ que tinha dados e agora não tem nenhum (recarga ou queda da base) não vira "tudo foi removido": fica sem aviso e sem trocar a foto.
 - O aviso diz o que a fonte registra, nunca que há irregularidade.
@@ -221,6 +221,21 @@ def verificar(loja, fabricar_fonte, enviar, ensaio: bool = False, agora: datetim
             if antes is None:
                 base.append(cnpj)
                 depois_tudo[cnpj] = foto if foto is not None else {"nome": None, "sancoes": {}, "contratos": {}, "cadastro": None}
+                if a.get("avisar_inicial"):
+                    f = depois_tudo[cnpj]
+                    detalhe = (f"A base registra {len(f['sancoes'])} sanção(ões) e {len(f['contratos'])} contrato(s) na janela de consulta deste plano. "
+                               "Retrato da amostra disponível; ausência de registros não prova ausência de ocorrências.")
+                    eventos.append(_evento("retrato_inicial", cnpj, f.get("nome"), "Acompanhamento iniciado", detalhe, {}))
+                    for item in f["sancoes"].values():
+                        eventos.append(_evento("retrato_inicial", cnpj, f.get("nome"), "Sanção registrada na base",
+                                               f"{item.get('tipo') or 'Tipo não informado'}. Situação: {item.get('situacao') or 'não informada'}.", item))
+                    for item in f["contratos"].values():
+                        eventos.append(_evento("retrato_inicial", cnpj, f.get("nome"), "Contrato registrado na base",
+                                               f"{item.get('numero') or 'Sem número'}. {item.get('objeto') or ''}. Valor contratado: {_dinheiro(item.get('valor_contratado'))}.", item))
+                    if f.get("cadastro"):
+                        item = f["cadastro"]
+                        eventos.append(_evento("retrato_inicial", cnpj, f.get("nome"), "Situação cadastral registrada na base",
+                                               str(item.get("situacao") or "Não informada"), item))
                 continue
             if _vazia(foto) and not _vazia(antes):
                 avisos.append(f"{cnpj}: tinha dados e agora não tem nenhum (recarga ou queda da base?). Sem aviso; a foto anterior foi mantida")

@@ -57,10 +57,17 @@ def montar(assinatura: dict, eventos: list[dict], agora: datetime, de: str | Non
     msg["Date"] = formatdate(agora.timestamp(), localtime=True)
     msg["Message-ID"] = make_msgid(domain="fornexia.local")
     msg["Auto-Submitted"] = "auto-generated"
-    cancelar = f"python alertas/cli.py cancelar {assinatura['token']}"
+    inicial = any(e.get("tipo") == "retrato_inicial" for e in eventos)
+    if inicial:
+        msg.replace_header("Subject", "FornexIA: acompanhamento iniciado e retrato da base")
 
     linhas = [f"Houve {len(eventos)} mudança(s) nos fornecedores que você acompanha (verificado em {agora:%d/%m/%Y %H:%M}).", ""]
     partes = ["<p>Houve <strong>%d</strong> mudança(s) nos fornecedores que você acompanha (verificado em %s).</p>" % (len(eventos), agora.strftime("%d/%m/%Y %H:%M"))]
+    if inicial:
+        intro = ("O acompanhamento começou. Abaixo está o retrato do que a base registra hoje, dentro do seu plano. "
+                 "Os itens marcados como retrato inicial já existiam na base; não são novidades. Os demais itens indicam mudanças desde a última verificação. Depois, avisaremos quando a base mudar.")
+        linhas = [intro, ""]
+        partes = [f"<p>{intro}</p>"]
     for cnpj, lista in _agrupar(eventos).items():
         nome = lista[0].get("nome") or "fornecedor"
         cab = f"{nome}, CNPJ {_cnpj_formatado(cnpj)}"
@@ -74,14 +81,23 @@ def montar(assinatura: dict, eventos: list[dict], agora: datetime, de: str | Non
                 prova.append(f"capturada em {e['capturado_em']}")
             if e.get("evidencia"):
                 prova.append(f"prova: evidência {e['evidencia']}")
-            linhas += [f"* {e['titulo']}", f"  {e['detalhe']}"] + ([f"  {'; '.join(prova)}"] if prova else []) + [""]
-            partes.append(f"<li><strong>{html.escape(e['titulo'])}</strong><br>{html.escape(e['detalhe'])}"
+            titulo = ("Retrato inicial: " if e.get("tipo") == "retrato_inicial" else "") + e["titulo"]
+            linhas += [f"* {titulo}", f"  {e['detalhe']}"] + ([f"  {'; '.join(prova)}"] if prova else []) + [""]
+            partes.append(f"<li><strong>{html.escape(titulo)}</strong><br>{html.escape(e['detalhe'])}"
                           + (f"<br><small>{html.escape('; '.join(prova))}</small>" if prova else "") + "</li>")
         partes.append("</ul>")
-    linhas += [AVISO, "", "Você recebe este e-mail porque pediu para acompanhar estes CNPJs. Para parar de receber, peça o cancelamento",
-               f"com o código: {assinatura['token']}  (ou rode: {cancelar})."]
-    partes.append(f"<p><small>{html.escape(AVISO)}</small></p><p><small>Você recebe este e-mail porque pediu para acompanhar estes CNPJs. "
-                  f"Para parar de receber, peça o cancelamento com o código <code>{html.escape(assinatura['token'])}</code>.</small></p>")
+    if assinatura.get("origem") == "site":
+        conta = (os.environ.get("APP_URL") or "https://fornexia.figueiredo.dev").rstrip("/") + "/conta.html"
+        rodape = "Você recebe este e-mail porque pediu para acompanhar estes CNPJs. Para parar de receber, abra Minha conta e use Parar de acompanhar."
+        linhas += [AVISO, "", rodape, conta]
+        partes.append(f'<p><small>{html.escape(AVISO)}</small></p><p><small>{rodape} '
+                      f'<a href="{html.escape(conta, quote=True)}">Minha conta</a>.</small></p>')
+    else:
+        cancelar = f"python alertas/cli.py cancelar {assinatura['token']}"
+        linhas += [AVISO, "", "Você recebe este e-mail porque pediu para acompanhar estes CNPJs. Para parar de receber, peça o cancelamento",
+                   f"com o código: {assinatura['token']}  (ou rode: {cancelar})."]
+        partes.append(f"<p><small>{html.escape(AVISO)}</small></p><p><small>Você recebe este e-mail porque pediu para acompanhar estes CNPJs. "
+                      f"Para parar de receber, peça o cancelamento com o código <code>{html.escape(assinatura['token'])}</code>.</small></p>")
     msg.set_content("\n".join(linhas))
     msg.add_alternative("<html><body style=\"font-family:Arial,sans-serif\">" + "".join(partes) + "</body></html>", subtype="html")
     return msg
@@ -101,6 +117,8 @@ def enviar(msg: EmailMessage, pasta: Path | None = None) -> str:
         raise RuntimeError("SMTP sem ALERTAS_SMTP_HOST e ALERTAS_DE")
     porta = int(os.environ.get("ALERTAS_SMTP_PORTA") or 587)
     seguranca = (os.environ.get("ALERTAS_SMTP_SEGURANCA") or "starttls").lower()
+    if seguranca not in ("starttls", "ssl", "nenhuma"):
+        raise RuntimeError("ALERTAS_SMTP_SEGURANCA inválida")
     contexto = ssl.create_default_context()
     if seguranca == "ssl":
         servidor = smtplib.SMTP_SSL(host, porta, timeout=30, context=contexto)

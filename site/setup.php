@@ -105,6 +105,8 @@ require __DIR__ . '/migrar-autenticacao.php';
 migrar_autenticacao($pdo);
 require __DIR__ . '/migrar-tokens.php';
 migrar_tokens($pdo);
+require __DIR__ . '/migrar-acompanhamentos.php';
+migrar_acompanhamentos($pdo);
 
 // Elimina a etapa de aprovação também nos cadastros anteriores e no padrão do banco.
 $pdo->exec('ALTER TABLE telefones ALTER COLUMN status SET DEFAULT "aprovado"');
