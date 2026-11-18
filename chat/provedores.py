@@ -33,7 +33,10 @@ PROVEDORES = {
     "gemini": {
         "nome": "Gemini", "cliente": "openai", "chave": "GOOGLE_API_KEY",
         "base_url": "https://generativelanguage.googleapis.com/v1beta/openai", "url_env": "GEMINI_BASE_URL", "temperatura": 0,
-        "precos": {},   # sem preço configurado: o custo aparece como "—" em vez de inventar um valor
+        # Página oficial de preços (aistudio.google.com/docs/pricing), lida em 14/11/2026, camada paga, texto, por 1M de tokens.
+        # O 3.8 Flash tem preço promocional até 31/12/2026 e DOBRA em 01/01/2027 (1,50 / 7,50 / 0,15). A saída inclui o raciocínio.
+        "precos": {"gemini-3.8-flash": (0.75, 3.75, 0.075), "gemini-3.1-flash-lite": (0.25, 1.50, 0.025),
+                   "gemini-3-flash-preview": (0.50, 3.00, 0.05), "gemini-2.5-flash-lite": (0.10, 0.40, 0.01)},
     },
     "openai": {
         "nome": "OpenAI", "cliente": "openai", "chave": "OPENAI_API_KEY",

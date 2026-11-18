@@ -247,6 +247,9 @@
     resp.raiz.append(a)
   }
 
+  // Rede de segurança caso o modelo ainda escreva markdown: tira os símbolos e mantém o texto (continua por textContent).
+  const semMarkdown = (t) => t.replace(/\*\*|__/g, '').replace(/^#{1,6}\s+/gm, '')
+
   function aplicarEvento(ev, resp) {
     const d = ev.dados || {}
     switch (ev.tipo) {
@@ -256,7 +259,11 @@
         break
       }
       case 'texto':
-        if (typeof d.delta === 'string') resp.texto.textContent += d.delta
+        if (typeof d.delta === 'string') {
+          // O texto chega em pedaços e um ** pode vir partido; por isso a limpeza é refeita sobre o texto inteiro.
+          resp.bruto = (resp.bruto || '') + d.delta
+          resp.texto.textContent = semMarkdown(resp.bruto)
+        }
         break
       case 'fonte':
         adicionarFonte(resp, d)
