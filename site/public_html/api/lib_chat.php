@@ -5,7 +5,7 @@ declare(strict_types=1);
 if (!defined('API')) { http_response_code(404); exit; }
 
 const PERGUNTA_MAX_CARACTERES = 500;
-const FILA_MAX_SEGUNDOS = 120;         // ninguém pegou a pergunta: o notebook está fora do ar
+const FILA_MAX_SEGUNDOS = 300;         // ninguém pegou a pergunta: os workers estão fora do ar ou a fila está longa (100 pessoas: ~5 min)
 const PROCESSANDO_MAX_SEGUNDOS = 180;  // pegaram, mas não terminaram
 
 /**

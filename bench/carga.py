@@ -1,15 +1,19 @@
 """Teste de carga do site: várias contas fazem uma pergunta ao mesmo tempo, pela API de verdade.
 
-    python bench/carga.py                                   # 8 pessoas em http://127.0.0.1:8080
+    python bench/carga.py                                   # 8 pessoas em http://127.0.0.1:8080, todas no mesmo instante
     python bench/carga.py http://127.0.0.1:8080 --pessoas 8
+    python bench/carga.py https://fornexia.figueiredo.dev --pessoas 100 --janela 300 --limite 900
+                                                            # 100 pessoas chegando ao longo de 5 min
 
 O worker precisa estar rodando (python chat/worker.py) e o Neo4j com os dados. Cada pessoa é uma conta de teste
 (carga01@local.test ...), criada na primeira vez; o e-mail é fixo para a rodada poder repetir.
-Mede, por pessoa: quando saiu da fila, quando veio o primeiro sinal e quando a resposta terminou.
-No total: duração, latência média das requisições, erros 5xx e a memória extra dos processos `claude`.
+--janela S espalha as chegadas por igual ao longo de S segundos (0 = todas juntas); --limite S é quanto cada pessoa
+espera a resposta antes de desistir. A leitura dos eventos segue o ritmo do chat do site (0,7 s).
+Mede, por pessoa: quando enviou, quando saiu da fila, quando veio o primeiro sinal e quando a resposta terminou, com o
+número da pergunta (para cruzar com o logs/chat.jsonl de cada worker e saber qual máquina respondeu).
+No total: duração, latência média das requisições, erros 5xx, a memória extra dos agentes (`claude` e `codex`) e, no
+Linux, amostras da carga e da RAM livre desta máquina ao longo do teste.
 Grava dados/bench/carga.json (fora do git), o que a aba "Teste de carga" da área técnica mostra.
-
-Não é carga de produção: é uma rodada pequena, com um worker, para ver a fila e os agentes se comportando.
 """
 
 import http.cookiejar
@@ -84,18 +88,30 @@ class Sessao:
         return True
 
 
-def memoria_claude_mb() -> float | None:
-    """Soma da memória dos processos `claude` (os agentes). None se não der para medir ou não houver nenhum."""
+def memoria_agentes_mb() -> float | None:
+    """Soma da memória dos processos dos agentes (`claude` e `codex`). None se não der para medir ou não houver nenhum."""
     try:
         if os.name == "nt":
-            saida = subprocess.run(["tasklist", "/FO", "CSV", "/NH", "/FI", "IMAGENAME eq claude.exe"], capture_output=True, text=True, timeout=20).stdout
-            kb = [int("".join(c for c in linha.rsplit('","', 1)[-1] if c.isdigit()) or 0) for linha in saida.splitlines() if linha.lower().startswith('"claude.exe"')]
+            kb = []
+            for exe in ("claude.exe", "codex.exe"):
+                saida = subprocess.run(["tasklist", "/FO", "CSV", "/NH", "/FI", f"IMAGENAME eq {exe}"], capture_output=True, text=True, timeout=20).stdout
+                kb += [int("".join(c for c in linha.rsplit('","', 1)[-1] if c.isdigit()) or 0) for linha in saida.splitlines() if linha.lower().startswith(f'"{exe}"')]
         else:
-            saida = subprocess.run(["ps", "-C", "claude", "-o", "rss="], capture_output=True, text=True, timeout=20).stdout
+            saida = subprocess.run(["ps", "-C", "claude,codex", "-o", "rss="], capture_output=True, text=True, timeout=20).stdout
             kb = [int(x) for x in saida.split() if x.isdigit()]
     except (OSError, subprocess.SubprocessError, ValueError):
         return None
     return sum(kb) / 1024 if kb else 0.0
+
+
+def sistema() -> dict | None:
+    """Carga média de 1 min e RAM disponível desta máquina (Linux). None fora do Linux."""
+    try:
+        carga = float(Path("/proc/loadavg").read_text().split()[0])
+        livre = next(int(l.split()[1]) for l in Path("/proc/meminfo").read_text().splitlines() if l.startswith("MemAvailable:"))
+    except (OSError, ValueError, StopIteration):
+        return None
+    return {"carga": carga, "ram_livre_mb": round(livre / 1024)}
 
 
 def perguntas(n: int) -> list[str]:
@@ -110,6 +126,9 @@ def perguntas(n: int) -> list[str]:
 def main() -> int:
     base = next((a for a in sys.argv[1:] if a.startswith("http")), "http://127.0.0.1:8080").rstrip("/")
     n = int(sys.argv[sys.argv.index("--pessoas") + 1]) if "--pessoas" in sys.argv else 8
+    janela = float(sys.argv[sys.argv.index("--janela") + 1]) if "--janela" in sys.argv else 0.0
+    limite = float(sys.argv[sys.argv.index("--limite") + 1]) if "--limite" in sys.argv else 300.0
+    intervalo = 0.7     # o mesmo INTERVALO_MS do chat.js
     est = {"requisicoes": 0, "erros_500": 0, "tempos": []}
     trava = threading.Lock()
 
@@ -129,27 +148,39 @@ def main() -> int:
     medindo = threading.Event()
     medindo.set()
     pico = {"mb": 0.0}
-    base_mb = memoria_claude_mb()
+    amostras = []
+    base_mb = memoria_agentes_mb()
 
     def amostrar():
+        proxima = 0.0
         while medindo.is_set():
-            m = memoria_claude_mb()
+            m = memoria_agentes_mb()
             if m is not None:
                 pico["mb"] = max(pico["mb"], m)
+            agora = time.monotonic() - T0[0]
+            if agora >= proxima:        # uma amostra da máquina a cada 2 s
+                s = sistema()
+                if s is not None:
+                    amostras.append({"t": round(agora, 1), **s, "agentes_mb": None if m is None else round(m)})
+                proxima = agora + 2
             time.sleep(0.7)
 
     def pessoa(i: int):
         s = sessoes[i]
         largada.wait()
         t0 = T0[0]
+        enviada = i * janela / n        # chegada espalhada por igual na janela
+        time.sleep(max(0.0, t0 + enviada - time.monotonic()))
         status, resp = s.chamar("POST", "/perguntas", {"texto": perg[i]})
-        linha = {"pessoa": f"Pessoa {i + 1}", "inicio": None, "primeiro": None, "total": None, "fontes": 0, "ok": False}
+        linha = {"pessoa": f"Pessoa {i + 1}", "id": None, "enviada": round(enviada, 1), "inicio": None, "primeiro": None,
+                 "total": None, "fontes": 0, "ok": False}
         linhas[i] = linha
         if status != 201:
             linha["erro"] = f"HTTP {status}"
             return
         pid, desde = resp["id"], 0
-        while time.monotonic() - t0 < 300:
+        linha["id"] = pid
+        while time.monotonic() - t0 - enviada < limite:
             status, r = s.chamar("GET", f"/perguntas/{pid}/eventos?desde={desde}")
             agora = time.monotonic() - t0
             if status == 200:
@@ -167,8 +198,8 @@ def main() -> int:
                 if linha["total"] is not None or r.get("status") in ("concluida", "erro"):
                     linha["total"] = linha["total"] if linha["total"] is not None else agora
                     return
-            time.sleep(0.5)
-        linha["erro"] = "passou de 300 s"
+            time.sleep(intervalo)
+        linha["erro"] = f"passou de {limite:.0f} s"
 
     T0 = [0.0]
     fios = [threading.Thread(target=pessoa, args=(i,), daemon=True) for i in range(n)]
@@ -192,12 +223,15 @@ def main() -> int:
     saida = {
         "em": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
         "agentes_site": int(os.environ.get("AGENTES_SITE", "3")),
-        "pessoas": n, "erros_usuario": n - concluidas, "duracao_s": r1(duracao),
+        "pessoas": n, "janela_s": janela, "limite_s": limite, "intervalo_leitura_s": intervalo,
+        "erros_usuario": n - concluidas, "duracao_s": r1(duracao),
         "latencia_media_s": round(sum(est["tempos"]) / max(len(est["tempos"]), 1), 2),
         "erros_500": est["erros_500"], "requisicoes": est["requisicoes"],
         "memoria_extra_mb": None if base_mb is None else round(max(pico["mb"] - base_mb, 0)),
-        "linhas": [{"pessoa": l["pessoa"], "inicio": r1(l["inicio"]) or 0, "primeiro": r1(l["primeiro"]) or 0, "total": r1(l["total"]) or 0,
-                    "fontes": l["fontes"]} for l in linhas if l],
+        "linhas": [{"pessoa": l["pessoa"], "id": l["id"], "enviada": l["enviada"], "inicio": r1(l["inicio"]) or 0,
+                    "primeiro": r1(l["primeiro"]) or 0, "total": r1(l["total"]) or 0, "fontes": l["fontes"], "ok": l["ok"],
+                    "erro": l.get("erro")} for l in linhas if l],
+        "amostras": amostras,
     }
     SAIDA.mkdir(parents=True, exist_ok=True)
     (SAIDA / "carga.json").write_text(json.dumps(saida, ensure_ascii=False, indent=1), encoding="utf-8")
