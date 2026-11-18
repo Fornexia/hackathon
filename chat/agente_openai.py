@@ -84,19 +84,27 @@ class OpenAICompativel:
                   429: "limite de uso do provedor atingido"}.get(codigo, "provedor com problema")
         return f"modelo {self.modelo}: {motivo} (HTTP {codigo})"
 
+    @staticmethod
+    def _saida(uso: dict) -> int:
+        """Tokens de saída cobrados. O Gemini 3 não põe o raciocínio em completion_tokens, só em total_tokens (medido em 14/11/2026:
+        7 de entrada, 1 de saída, 124 no total), e o Google cobra o raciocínio como saída. No DeepSeek e na OpenAI o total é a soma,
+        então a conta não muda nada para eles."""
+        entrada, saida = int(uso.get("prompt_tokens") or 0), int(uso.get("completion_tokens") or 0)
+        return max(saida, int(uso.get("total_tokens") or 0) - entrada)
+
     def _custo(self, uso: dict) -> float | None:
         if not self.preco:
             return None
         entrada = int(uso.get("prompt_tokens") or 0)
         com_cache = int(uso.get("prompt_cache_hit_tokens") or (uso.get("prompt_tokens_details") or {}).get("cached_tokens") or 0)
-        sem_cache, saida = max(entrada - com_cache, 0), int(uso.get("completion_tokens") or 0)
+        sem_cache, saida = max(entrada - com_cache, 0), self._saida(uso)
         p_entrada, p_saida, p_cache = self.preco
         return (sem_cache * p_entrada + saida * p_saida + com_cache * p_cache) / 1_000_000
 
     @staticmethod
     def _somar(leitor_uso: dict, uso: dict, custo: float | None):
         leitor_uso["entrada"] = leitor_uso.get("entrada", 0) + int(uso.get("prompt_tokens") or 0)
-        leitor_uso["saida"] = leitor_uso.get("saida", 0) + int(uso.get("completion_tokens") or 0)
+        leitor_uso["saida"] = leitor_uso.get("saida", 0) + OpenAICompativel._saida(uso)
         if custo is not None:
             leitor_uso["custo_usd"] = leitor_uso.get("custo_usd", 0.0) + custo
         if "prompt_cache_hit_tokens" in uso or (uso.get("prompt_tokens_details") or {}).get("cached_tokens") is not None:
@@ -110,7 +118,7 @@ class OpenAICompativel:
             r = self._chamar({"messages": [{"role": "system", "content": sistema}, {"role": "user", "content": pergunta}]}, limite_s)
             uso = r.get("usage") or {}
             return {"resposta": ((r["choices"][0]["message"].get("content")) or "").strip(), "desfecho": "ok",
-                    "tokens_entrada": int(uso.get("prompt_tokens") or 0), "tokens_saida": int(uso.get("completion_tokens") or 0),
+                    "tokens_entrada": int(uso.get("prompt_tokens") or 0), "tokens_saida": self._saida(uso),
                     "custo_usd": self._custo(uso), "total_s": round(time.monotonic() - inicio, 1)}
         except ErroDoProvedor as e:
             return {"resposta": "", "desfecho": "erro", "erro": str(e), "tokens_entrada": None, "tokens_saida": None,
@@ -194,7 +202,7 @@ class OpenAICompativel:
             leitor.uso["rodadas"] = rodada
             agente._log(leitor, "chamada_modelo", "debug", modelo=self.modelo, rodada=rodada, resultado="ok",
                         duracao_ms=int((time.monotonic() - t_chamada) * 1000), tokens_entrada=int(uso.get("prompt_tokens") or 0),
-                        tokens_saida=int(uso.get("completion_tokens") or 0))
+                        tokens_saida=self._saida(uso))
             mensagem = resposta["choices"][0]["message"]
             chamadas = mensagem.get("tool_calls") or []
             for i, c in enumerate(chamadas):

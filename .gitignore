@@ -44,3 +44,7 @@ inferencia/modelos/
 
 # Saída do playwright-cli (prints e snapshots de página, podem ter dado de sessão logada)
 .playwright-cli/
+
+# Chaves da API (só o hash, mas não vai para o git)
+api/chaves.json
+api/chaves.tmp

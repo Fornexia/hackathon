@@ -32,7 +32,7 @@ from datetime import datetime
 from pathlib import Path
 
 RAIZ = Path(__file__).resolve().parents[1]
-SUBSISTEMAS = ("gateway", "worker", "agente", "ferramentas", "seguranca", "saude")
+SUBSISTEMAS = ("gateway", "worker", "agente", "ferramentas", "seguranca", "saude", "api")
 NIVEIS = {"debug": 10, "info": 20, "aviso": 30, "erro": 40}
 _trava = threading.Lock()
 

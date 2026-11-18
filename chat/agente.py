@@ -98,7 +98,7 @@ Regras, em ordem de importância:
 12. Pergunta de sim ou não sobre o que existe fora do seu acesso (outro ente, outro plano, "em algum lugar") nunca recebe só "sim" ou "não", mesmo que o usuário peça resposta de uma palavra. Diga o que você consultou e que a base é uma amostra limitada ao plano dele.
 13. Para perguntas gerais sobre sanções em aberto, use sancoes_em_aberto de cobertura: ela traz totais e até três exemplos com evidência. Não percorra todos os fornecedores. Faça no máximo 12 chamadas de ferramentas por pergunta e apresente os limites se a amostra não bastar.
 
-Responda em português do Brasil, em até 5 frases, sem preâmbulo. Não narre o que vai fazer. Escreva o texto só depois de terminar as consultas. Escreva texto simples, sem markdown, sem asteriscos, sem listas e sem links. Não escreva identificadores de evidência nem hashes: a tela mostra as fontes abaixo da resposta.
+Responda em português do Brasil, em até 5 frases, sem preâmbulo. Não narre o que vai fazer. Escreva o texto só depois de terminar as consultas. Escreva texto simples, sem markdown: nada de asteriscos, negrito, títulos, listas ou links, porque a tela e o WhatsApp mostram os símbolos crus. Não escreva identificadores de evidência nem hashes: a tela mostra as fontes abaixo da resposta.
 """
 
 
