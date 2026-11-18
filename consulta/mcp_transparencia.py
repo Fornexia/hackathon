@@ -11,6 +11,8 @@ Camadas de proteção deste arquivo (ver docs/seguranca/ataques-de-prompt.md):
   5. Registro de cada consulta em logs/consultas.jsonl (quem, o quê, quais evidências).
 """
 
+import contextlib
+import contextvars
 import functools
 import inspect
 import json
@@ -57,6 +59,32 @@ driver = GraphDatabase.driver(
     os.environ.get("NEO4J_URI", "bolt://127.0.0.1:7689"),
     auth=("neo4j", os.environ.get("NEO4J_SENHA", "")),
 )
+
+# Perfil por chamada. O agente sobe UM servidor por perfil e o perfil vem do ambiente (acima). A API HTTP (api/) atende vários
+# clientes num só processo, então o perfil de cada chamada vem da CHAVE de API, guardada no servidor, e entra aqui. Continua
+# valendo a regra: o perfil nunca é argumento de tool nem de requisição. Sem contexto definido, valem as variáveis de ambiente,
+# como sempre; num processo da API, sem variáveis de ambiente, isso quer dizer "nenhum ente": a consulta falha fechada.
+_CONTEXTO: contextvars.ContextVar[dict | None] = contextvars.ContextVar("transparencia_contexto", default=None)
+
+
+def _ctx() -> dict:
+    c = _CONTEXTO.get()
+    if c is not None:
+        return c
+    return {"perfil": PERFIL, "tenants": TENANTS, "ver_pessoal": VER_PESSOAL, "sensibilidades": SENSIBILIDADES, "sessao": SESSAO}
+
+
+@contextlib.contextmanager
+def com_perfil(perfil: str, tenants: list[str], ver_pessoal: bool = False, sessao: str | None = None):
+    """Roda o bloco com este perfil (só nesta thread/tarefa). Lista de entes vazia é erro: nunca cai num perfil padrão."""
+    if not tenants or not all(isinstance(t, str) and t for t in tenants):
+        raise ValueError("perfil sem entes: recusado")
+    token = _CONTEXTO.set({"perfil": perfil, "tenants": list(tenants), "ver_pessoal": bool(ver_pessoal),
+                           "sensibilidades": ["publico", "pessoal"] if ver_pessoal else ["publico"], "sessao": sessao})
+    try:
+        yield
+    finally:
+        _CONTEXTO.reset(token)
 
 mcp = MCPServer(
     name="transparencia",
@@ -109,17 +137,18 @@ def _registrar_chamada(tool: str, argumentos: dict, n: int, erro, excecao, durac
     Não substitui o consultas.jsonl, que segue igual. Nunca levanta."""
     try:
         pasta = LOG.parent
+        c = _ctx()
         bloqueada = isinstance(excecao, ValueError)         # nossa validação de entrada recusou o argumento
         registro.registrar("ferramentas", "chamada", "erro" if erro and not bloqueada else "aviso" if bloqueada else "info",
-                           request_id=SESSAO, pasta_destino=pasta, tool=tool, perfil=PERFIL, args=argumentos, resultados=n,
+                           request_id=c["sessao"], pasta_destino=pasta, tool=tool, perfil=c["perfil"], args=argumentos, resultados=n,
                            vazio=(n == 0 and not erro), duracao_ms=duracao_ms, erro=erro)
         if bloqueada:
-            registro.registrar("seguranca", "entrada_bloqueada", "aviso", request_id=SESSAO, pasta_destino=pasta, tool=tool,
-                               perfil=PERFIL, motivo=str(excecao)[:120])
+            registro.registrar("seguranca", "entrada_bloqueada", "aviso", request_id=c["sessao"], pasta_destino=pasta, tool=tool,
+                               perfil=c["perfil"], motivo=str(excecao)[:120])
         for nome, valor in argumentos.items():
             for sinal in deteccao.verificar(valor if isinstance(valor, str) else ""):
-                registro.registrar("seguranca", "injecao_em_argumento", "aviso", request_id=SESSAO, pasta_destino=pasta,
-                                   tool=tool, argumento=nome, perfil=PERFIL, **sinal)
+                registro.registrar("seguranca", "injecao_em_argumento", "aviso", request_id=c["sessao"], pasta_destino=pasta,
+                                   tool=tool, argumento=nome, perfil=c["perfil"], **sinal)
     except Exception:  # noqa: BLE001  o log nunca derruba a consulta
         pass
 
@@ -151,12 +180,13 @@ def registrado(fn):
             else:
                 n = 0
             _registrar_chamada(fn.__name__, argumentos, n, erro, excecao, round((time.perf_counter() - inicio) * 1000))
+            c = _ctx()
             _gravar({
                 "ts": datetime.now(timezone.utc).isoformat(timespec="milliseconds"),
-                "sessao": SESSAO,
-                "perfil": PERFIL,
-                "tenants": TENANTS,
-                "ver_pessoal": VER_PESSOAL,
+                "sessao": c["sessao"],
+                "perfil": c["perfil"],
+                "tenants": c["tenants"],
+                "ver_pessoal": c["ver_pessoal"],
                 "tool": fn.__name__,
                 "args": argumentos,
                 "resultados": n,
@@ -193,10 +223,11 @@ def _sem_vazios(linhas: list[dict], chaves: tuple[str, ...]) -> list[dict]:
 # ---------- acesso ao grafo ----------
 
 def consultar(cypher: str, **parametros) -> list[dict]:
-    """Único ponto de acesso ao Neo4j. Entes e sensibilidade vêm do ambiente, nunca do chamador."""
+    """Único ponto de acesso ao Neo4j. Entes e sensibilidade vêm do ambiente (ou do perfil da chave, na API), nunca do chamador."""
+    c = _ctx()
     with driver.session() as s:
         return [dict(r) for r in s.run(
-            cypher, tenants=TENANTS, sensibilidades=SENSIBILIDADES, **parametros)]
+            cypher, tenants=c["tenants"], sensibilidades=c["sensibilidades"], **parametros)]
 
 
 @mcp.tool()
@@ -256,8 +287,8 @@ def cobertura() -> dict:
         "contratos_por_ente": por_ente,
         "orgaos": orgaos,
         "execucao_financeira": anos,
-        "perfil": PERFIL,
-        "tenants_do_perfil": TENANTS,
+        "perfil": _ctx()["perfil"],
+        "tenants_do_perfil": _ctx()["tenants"],
         "capturado_entre": [datas["de"], datas["ate"]],
         # A data fixa vale só para o cadastro de sanções de Pernambuco: sem sanção desse ente no perfil, ela não se aplica (visto na demonstração de 14/11/2026).
         **({"cadastro_de_sancoes_de": CADASTRO_DE_SANCOES_DE} if tem_sancoes_de_pe else {}),
