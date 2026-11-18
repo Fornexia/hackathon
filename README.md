@@ -25,6 +25,7 @@ da fonte, e cada perfil vê só o que está autorizado a ver.
 | `esquema/`, `infra/` | Restrições do grafo e Docker Compose local |
 | `canal-whatsapp/` | Gateway Baileys, canal MCP e controle de acesso |
 | `api/` | **API para IAs de terceiros** (demonstração): REST, MCP e pergunta em português, com chave de API que define o perfil. [`api/README.md`](api/README.md) |
+| `alertas/` | **Alertas por e-mail** (demonstração): avisa o cliente quando muda sanção, contrato ou situação cadastral de um CNPJ acompanhado, pelo perfil dele. [`alertas/README.md`](alertas/README.md) |
 | `site/` | Site PHP 8.2 + MariaDB: páginas, API (`public_html/api/`), `setup.php` e `deploy.sh` para a Hostinger |
 | `site/dev/` | Ambiente local do site: Docker do banco, roteador do servidor embutido do PHP, worker falso e os 80 testes da API |
 | `inferencia/`, `planilha/` | Ferramentas de visão, áudio e planilha, herdadas do modelo do hackathon |
