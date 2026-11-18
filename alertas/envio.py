@@ -81,8 +81,9 @@ def montar(assinatura: dict, eventos: list[dict], agora: datetime, de: str | Non
                 prova.append(f"capturada em {e['capturado_em']}")
             if e.get("evidencia"):
                 prova.append(f"prova: evidência {e['evidencia']}")
-            linhas += [f"* {e['titulo']}", f"  {e['detalhe']}"] + ([f"  {'; '.join(prova)}"] if prova else []) + [""]
-            partes.append(f"<li><strong>{html.escape(e['titulo'])}</strong><br>{html.escape(e['detalhe'])}"
+            titulo = ("Retrato inicial: " if e.get("tipo") == "retrato_inicial" else "") + e["titulo"]
+            linhas += [f"* {titulo}", f"  {e['detalhe']}"] + ([f"  {'; '.join(prova)}"] if prova else []) + [""]
+            partes.append(f"<li><strong>{html.escape(titulo)}</strong><br>{html.escape(e['detalhe'])}"
                           + (f"<br><small>{html.escape('; '.join(prova))}</small>" if prova else "") + "</li>")
         partes.append("</ul>")
     if assinatura.get("origem") == "site":

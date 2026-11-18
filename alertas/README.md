@@ -14,7 +14,7 @@ cron diário: recoleta (coleta/federal.py ...) -> extrai -> carrega no Neo4j -> 
 ```
 
 - Não consulta o portal: lê o grafo, pelas **mesmas consultas do agente**, com o perfil da assinatura. O cliente nunca é avisado de algo que o plano dele não enxerga.
-- A **primeira verificação** de um CNPJ só tira a foto (linha de base). Senão tudo o que já existia viraria "novidade".
+- No **CLI**, a primeira verificação só tira a linha de base. Na ponte do site, envia o retrato inicial identificado como tal, sem apresentar registros antigos como novidade.
 - A foto só é gravada **depois** que o e-mail saiu. Se o envio falha, a próxima rodada tenta de novo.
 - CNPJ que tinha dados e agora não tem nenhum (recarga ou queda da base) **não** vira "tudo foi removido": fica sem aviso e a foto anterior é mantida.
 - **Um e-mail por assinatura por rodada**, com todos os avisos juntos. O CLI usa código de cancelamento; assinaturas do site levam o link de Minha conta.
@@ -76,7 +76,7 @@ Nenhum teste manda e-mail de verdade nem gasta crédito de modelo.
   então nada vira "removido" nem "novo" por ter saído ou voltado à janela. O custo é que remoção e mudança de itens fora da janela não são vistas (o relatório da rodada avisa).
 - **Pedido sem verificar:** quem pede aviso para um e-mail que já tem assinatura verificada é recusado; quem confirma o e-mail descarta o que foi pedido antes sem confirmação.
 - **Cancelar por e-mail e confirmar por e-mail** (`cancelar`, `confirmar`) são do CLI local. Na ponte com o site, exigir o código aleatório, nunca só o e-mail.
-- **Arquivos JSON sem trava:** o cron `verificar` e o cadastro pelo site gravando ao mesmo tempo podem perder uma atualização. A tabela no MariaDB resolve.
+- **CLI com arquivos JSON sem trava:** não execute dois comandos CLI de escrita ao mesmo tempo. O site guarda os acompanhamentos no MariaDB; sua ponte tem estado separado e trava local.
 - `ALERTAS_ENVIO` com valor diferente de `arquivo` ou `smtp` falha em vez de cair em arquivo.
 
 ## O que não está feito

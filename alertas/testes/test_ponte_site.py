@@ -139,6 +139,7 @@ class TestPonte(unittest.TestCase):
             self.assertIn('/conta.html', texto)
             self.assertNotIn('cli.py', texto)
             self.assertNotIn('Nova ocorrência', texto)
+            self.assertIn('Retrato inicial:', texto)
 
     def test_seguranca_smtp_desconhecida_falha_antes_de_conectar(self):
         with patch.dict(os.environ, {'ALERTAS_ENVIO': 'smtp', 'ALERTAS_SMTP_HOST': 'smtp.invalid',

@@ -223,7 +223,7 @@ def verificar(loja, fabricar_fonte, enviar, ensaio: bool = False, agora: datetim
                 depois_tudo[cnpj] = foto if foto is not None else {"nome": None, "sancoes": {}, "contratos": {}, "cadastro": None}
                 if a.get("avisar_inicial"):
                     f = depois_tudo[cnpj]
-                    detalhe = (f"A base registra {len(f['sancoes'])} sanção(ões) e {len(f['contratos'])} contrato(s) neste plano. "
+                    detalhe = (f"A base registra {len(f['sancoes'])} sanção(ões) e {len(f['contratos'])} contrato(s) na janela de consulta deste plano. "
                                "Retrato da amostra disponível; ausência de registros não prova ausência de ocorrências.")
                     eventos.append(_evento("retrato_inicial", cnpj, f.get("nome"), "Acompanhamento iniciado", detalhe, {}))
                     for item in f["sancoes"].values():
