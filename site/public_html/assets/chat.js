@@ -26,7 +26,7 @@
   // A regra de plano continua valendo no servidor. Ligue isto para voltar a pedir a escolha na tela.
   const ESCOLHER_PLANO = false
   const INTERVALO_MS = 700          // o plano pede leitura a cada 0,7 s
-  const LIMITE_MS = 130000          // RF-14: depois disso, mensagem legível
+  const LIMITE_MS = 500000          // RF-14: depois disso, mensagem legível. Acima de fila (300 s) + processamento (180 s) do servidor, para valer a mensagem dele
   const ESTADOS_FINAIS = ['concluida', 'erro']
 
   const estado = { usuario: null, plano: null, acompanhando: false, sessao: 0 }

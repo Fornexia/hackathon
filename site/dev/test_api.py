@@ -952,7 +952,7 @@ class TestPerguntasVencidas(Base):
     def test_fila_parada_vira_erro_legivel(self):
         c = self.cliente_com_plano()
         pid = c.perguntar()["id"]
-        sql(f"UPDATE perguntas SET criada_em = NOW(3) - INTERVAL 130 SECOND WHERE id={pid}")
+        sql(f"UPDATE perguntas SET criada_em = NOW(3) - INTERVAL 310 SECOND WHERE id={pid}")   # acima de FILA_MAX_SEGUNDOS (300)
         r = c.req("GET", f"/api/perguntas/{pid}/eventos", csrf=False)
         self.assertEqual(r["status"], "erro")
         self.assertEqual(r["eventos"][-1]["tipo"], "erro")
