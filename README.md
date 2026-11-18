@@ -91,7 +91,7 @@ Qualquer conta pode usar as consultas do FornexIA dentro do próprio Claude Code
 
 ```bash
 # Claude Code
-claude mcp add --transport http --scope user --header "Authorization: Bearer SEU_TOKEN" fornexia https://luks108-samgung-x40.tailc7827f.ts.net/mcp
+claude mcp add --transport http --scope user fornexia https://luks108-samgung-x40.tailc7827f.ts.net/mcp --header "Authorization: Bearer SEU_TOKEN"
 
 # Codex
 export FORNEXIA_TOKEN="SEU_TOKEN"

@@ -108,7 +108,8 @@
 
   function comandos(token) {
     const t = token || 'SEU_TOKEN', url = mcpUrl
-    const claude = `claude mcp add --transport http --scope user --header "Authorization: Bearer ${t}" fornexia ${url}`
+    // O --header do Claude Code aceita vários valores: precisa vir depois do nome e do endereço, senão os engole.
+    const claude = `claude mcp add --transport http --scope user fornexia ${url} --header "Authorization: Bearer ${t}"`
     const codex = `codex mcp add fornexia --url ${url} --bearer-token-env-var FORNEXIA_TOKEN`
     return {
       claude,
