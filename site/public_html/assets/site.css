@@ -323,6 +323,16 @@ html.embutido .topo-links { display: none; }
 @media (max-width: 860px) { .camadas { grid-template-columns: minmax(0, 1fr); } }
 
 .cru { margin: 0; max-height: 340px; overflow: auto; background: var(--codigo-bg); color: var(--codigo-texto); border: 1px solid var(--borda); border-radius: 12px; padding: 14px; font: 400 13px/1.55 var(--mono); white-space: pre-wrap; overflow-wrap: anywhere; }
+/* Página da conta: token MCP e guia de instalação */
+.mcp-novo { margin: 14px 0; padding: 14px 16px; border: 1px solid var(--borda); border-radius: 12px; background: var(--verde-fraco); }
+.mcp-novo p { margin: 0 0 8px; }
+.token-linha { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.token-linha code, .secao .detalhe code, #mcp-url { font: 500 14px var(--mono); overflow-wrap: anywhere; }
+.token-linha code { flex: 1 1 260px; padding: 8px 10px; border-radius: 8px; background: var(--cartao); border: 1px solid var(--borda); color: var(--tinta); }
+.guia-titulo { margin: 26px 0 6px; font: 600 19px var(--titulos); color: var(--titulo); }
+.guia { margin-top: 4px; }
+.guia .cru { margin: 8px 0 10px; max-height: none; }
+.guia .detalhe { margin-top: 10px; }
 .duas-colunas { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
 .duas-colunas h4, .conteudo-painel > section > h4 { margin: 0 0 6px; color: var(--titulo); font-size: 16px; }
 .processo { margin: 0; padding: 0; list-style: none; display: grid; gap: 7px; }
