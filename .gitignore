@@ -16,6 +16,7 @@ portal/dados/bruto/
 
 # Ambiente
 node_modules/
+site/vendor/
 .venv/
 __pycache__/
 
@@ -48,3 +49,7 @@ inferencia/modelos/
 # Chaves da API (só o hash, mas não vai para o git)
 api/chaves.json
 api/chaves.tmp
+
+# Sessões privadas e arquivos locais de contas do teste de carga
+site/sessoes/
+bench/contas-carga*.json

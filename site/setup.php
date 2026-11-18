@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }   // nunca pela web
 
-require __DIR__ . '/hackathon-config.php';
+require __DIR__ . '/config.php';
 
 $dsn = 'mysql:host=' . DB_HOST . (defined('DB_PORT') ? ';port=' . DB_PORT : '') . ';dbname=' . DB_NAME . ';charset=utf8mb4';
 $pdo = new PDO($dsn, DB_USER, DB_PASS, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
@@ -101,6 +101,8 @@ $tabelas = [
 foreach ($tabelas as $nome => $sql) {
     $pdo->exec($sql);
 }
+require __DIR__ . '/migrar-autenticacao.php';
+migrar_autenticacao($pdo);
 
 // Elimina a etapa de aprovação também nos cadastros anteriores e no padrão do banco.
 $pdo->exec('ALTER TABLE telefones ALTER COLUMN status SET DEFAULT "aprovado"');

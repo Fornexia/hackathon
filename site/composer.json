@@ -1,0 +1,5 @@
+{
+    "description": "Envio SMTP da autenticação FORNEX",
+    "require": {"php": ">=8.2", "ext-openssl": "*", "phpmailer/phpmailer": "^7.0"},
+    "config": {"sort-packages": true}
+}
