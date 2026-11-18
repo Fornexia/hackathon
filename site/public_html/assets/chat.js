@@ -30,6 +30,38 @@
   const ESTADOS_FINAIS = ['concluida', 'erro']
 
   const estado = { usuario: null, plano: null, acompanhando: false, sessao: 0 }
+  const embutido = document.documentElement.classList.contains('embutido')
+
+  // ---------- mapa da consulta (grafo.js): acende o caminho que cada pergunta percorreu na base ----------
+  const SEM_MAPA = { novaPergunta() {}, consulta() {}, fonte() {}, texto() {}, fim() {}, erro() {}, reiniciar() {} }
+  let mapa = SEM_MAPA, entesDoMapa = ''
+  const plural = (n, um, varios) => n + ' ' + (n === 1 ? um : varios)
+  function montarMapa() {
+    if (embutido || !window.MapaConsulta || !estado.plano) return
+    const entes = (estado.plano.tenants || []).join(',')
+    if (mapa !== SEM_MAPA && entes === entesDoMapa) return
+    entesDoMapa = entes
+    $('#mapa-area').replaceChildren()
+    mapa = window.MapaConsulta.criar($('#mapa-area'), {
+      entes: estado.plano.tenants || [],
+      aoMudar: n => {
+        $('#mapa-perguntas').textContent = plural(n.perguntas, 'pergunta', 'perguntas')
+        $('#mapa-nos').textContent = plural(n.nos, 'nó', 'nós')
+        $('#mapa-provas').textContent = plural(n.provas, 'prova', 'provas')
+      },
+    })
+  }
+  const CHAVE_MAPA = 'fornexia-mapa'
+  function mostrarMapa(sim, guardar) {
+    const painel = $('#mapa-consulta'), botao = $('#alternar-mapa')
+    painel.classList.toggle('fechado', !sim)
+    painel.inert = !sim
+    $('#caixa-conversa').classList.toggle('larga', !sim)
+    botao.setAttribute('aria-expanded', String(sim))
+    botao.querySelector('span').textContent = sim ? 'Ocultar mapa' : 'Mostrar mapa'
+    if (guardar) try { localStorage.setItem(CHAVE_MAPA, sim ? 'aberto' : 'fechado') } catch { /* sem armazenamento: vale só nesta página */ }
+  }
+  const mapaGuardado = () => { try { return localStorage.getItem(CHAVE_MAPA) !== 'fechado' } catch { return true } }
 
   const esperar = ms => new Promise(r => setTimeout(r, ms))
   const el = (tag, classe, texto) => {
@@ -84,7 +116,7 @@
 
   // ---------- plano no chat ----------
   function mostrarPlanoAtual() {
-    $('#plano-info').textContent = 'Consulta: ' + juntar(estado.plano.tenants.map(nomeDoEnte))
+    $('#plano-info').textContent = juntar(estado.plano.tenants.map(nomeDoEnte))
   }
 
   // ---------- entrar e criar conta ----------
@@ -161,21 +193,29 @@
     conversa.replaceChildren()
     const w = el('div', 'boas-vindas')
     w.append(el('h2', '', 'Como posso ajudar?'))
-    w.append(el('p', 'apoio', 'Pergunte sobre fornecedores. Cada resposta traz a fonte, com o trecho do portal.'))
-    const lista = el('div', 'sugestoes')
+    const comMapa = !embutido && window.matchMedia && window.matchMedia('(min-width: 981px)').matches
+    w.append(el('p', 'apoio', 'Pergunte sobre fornecedores. Cada resposta traz a fonte, com o trecho do portal.' + (comMapa ? ' O mapa ao lado mostra o caminho da consulta na base.' : '')))
+    conversa.append(w)
+  }
+
+  // As sugestões ficam numa linha acima do campo, à vista durante toda a conversa.
+  function montarSugestoes() {
+    const lista = $('#sugestoes')
+    if (lista.children.length) return
     for (const s of SUGESTOES) {
       const b = el('button', 'sugestao', s)
       b.type = 'button'
       b.addEventListener('click', () => { $('#pergunta').value = s; atualizarContador(); enviarPergunta() })
       lista.append(b)
     }
-    w.append(lista)
-    conversa.append(w)
   }
 
   async function abrirChat() {
     tela('chat')
     mostrarPlanoAtual()
+    montarSugestoes()
+    montarMapa()
+    if (!embutido) mostrarMapa(mapaGuardado(), false)
     travarEntrada(false)
     boasVindas()
     atualizarContador()
@@ -198,6 +238,7 @@
     conversa.querySelector('.boas-vindas')?.remove()
     conversa.append(el('div', 'msg eu', texto))
     conversa.scrollTop = conversa.scrollHeight
+    mapa.novaPergunta()
   }
 
   function criarResposta() {
@@ -208,7 +249,7 @@
     progresso.append(pontos, rotulo)
     const texto = el('div', 'texto-resp')
     const fontes = el('div', 'fontes')
-    raiz.append(progresso, texto, fontes)
+    raiz.append(el('div', 'marca-ia', 'Escrito pela IA'), progresso, texto, fontes)
     $('#conversa').append(raiz)
     return { raiz, progresso, rotulo, texto, fontes, nFontes: 0 }
   }
@@ -216,12 +257,16 @@
   const dataBR = iso => { const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso || ''); return m ? `${m[3]}/${m[2]}/${m[1]}` : '' }
   const urlSegura = u => (typeof u === 'string' && /^https?:\/\//i.test(u)) ? u : null   // nunca javascript:
 
+  // Cada fonte é um cartão: o trecho literal do portal, a data da captura e se o hash do arquivo guardado conferiu agora.
   function adicionarFonte(resp, d) {
     resp.nFontes++
-    const det = el('details', 'fonte')
-    det.append(el('summary', '', resp.nFontes === 1 && !resp.fontes.children.length ? 'Ver fonte' : 'Ver fonte ' + resp.nFontes))
-    det.append(el('blockquote', '', String(d.trecho || 'Trecho não informado.')))
-    const meta = el('small', 'meta')
+    const cartao = el('div', 'fonte-card')
+    const cabeca = el('div', 'fonte-cabeca')
+    cabeca.append(el('span', '', 'Fonte ' + resp.nFontes))
+    cabeca.append(d.hash_confere ? el('span', 'selo-hash', 'hash confere') : el('span', 'selo-hash sem', 'hash não conferido'))
+    cartao.append(cabeca)
+    cartao.append(el('p', 'fonte-trecho', '“' + String(d.trecho || 'Trecho não informado.') + '”'))
+    const meta = el('div', 'fonte-meta')
     const partes = []
     if (d.capturado_em) partes.push('Capturado em ' + dataBR(String(d.capturado_em)))
     if (d.evidencia) partes.push('evidência ' + d.evidencia)
@@ -233,8 +278,8 @@
       a.href = url; a.target = '_blank'; a.rel = 'noopener noreferrer'
       meta.append(a)
     }
-    det.append(meta)
-    resp.fontes.append(det)
+    cartao.append(meta)
+    resp.fontes.append(cartao)
   }
 
   // Pacote de prova: um ZIP que um terceiro reconfere sem acesso ao sistema. É um link comum; o navegador já manda a sessão.
@@ -248,6 +293,7 @@
   }
 
   // Rede de segurança caso o modelo ainda escreva markdown: tira os símbolos e mantém o texto (continua por textContent).
+  // Vem do PR #3 (Isaac).
   const semMarkdown = (t) => t.replace(/\*\*|__/g, '').replace(/^#{1,6}\s+/gm, '')
 
   function aplicarEvento(ev, resp) {
@@ -256,6 +302,7 @@
       case 'consulta': {
         const nome = String(d.nome || '').replace(/^mcp__transparencia__/, '')
         resp.rotulo.textContent = (ROTULOS[nome] || 'Consultando a base') + '…'
+        mapa.consulta(nome)
         break
       }
       case 'texto':
@@ -263,18 +310,22 @@
           // O texto chega em pedaços e um ** pode vir partido; por isso a limpeza é refeita sobre o texto inteiro.
           resp.bruto = (resp.bruto || '') + d.delta
           resp.texto.textContent = semMarkdown(resp.bruto)
+          mapa.texto()
         }
         break
       case 'fonte':
         adicionarFonte(resp, d)
+        mapa.fonte(d)
         break
       case 'fim':
         resp.progresso.hidden = true
         adicionarExportar(resp)
+        mapa.fim()
         break
       case 'erro':
         resp.progresso.hidden = true
         resp.raiz.append(el('p', 'erro-resp', typeof d.motivo === 'string' && d.motivo ? d.motivo : 'Não consegui concluir a consulta. Tente novamente.'))
+        mapa.erro()
         break
     }
   }
@@ -388,6 +439,7 @@
   // ---------- eventos ----------
   $('#aba-entrar').addEventListener('click', () => trocarAba('entrar'))
   $('#aba-cadastro').addEventListener('click', () => trocarAba('cadastro'))
+  if (location.hash === '#cadastro') trocarAba('cadastro')   // vindo do site institucional ("Criar conta"); quem já tem sessão vai direto ao chat (Rodrigo, b7dc44b)
 
   $('#form-entrar').addEventListener('submit', e => {
     e.preventDefault()
@@ -402,9 +454,12 @@
     estado.sessao++   // interrompe qualquer acompanhamento em andamento
     try { await Api.sair() } catch { /* sai mesmo assim */ }
     estado.usuario = null; estado.plano = null
+    mapa.reiniciar()
     tela('entrar')
     trocarAba('entrar')
   })
+
+  $('#alternar-mapa').addEventListener('click', () => mostrarMapa($('#mapa-consulta').classList.contains('fechado'), true))
 
   $('#form-pergunta').addEventListener('submit', e => { e.preventDefault(); enviarPergunta() })
   $('#pergunta').addEventListener('input', atualizarContador)

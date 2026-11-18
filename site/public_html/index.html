@@ -3,207 +3,407 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="color-scheme" content="dark light">
-<meta name="theme-color" content="#03162d" media="(prefers-color-scheme: dark)">
-<meta name="theme-color" content="#f2f7fb" media="(prefers-color-scheme: light)">
+<meta name="color-scheme" content="light">
+<meta name="theme-color" content="#FFFFFF">
 <title>FornexIA | Dados públicos. Decisões seguras.</title>
-<meta name="description" content="Pergunte em português sobre um fornecedor e receba o histórico com a fonte de cada número.">
+<meta name="description" content="Pergunte em português sobre um fornecedor e receba o histórico com a prova de cada número: o trecho do portal, a data da captura e o hash conferido.">
 <link rel="canonical" href="https://fornexia.figueiredo.dev/">
 <meta property="og:type" content="website">
 <meta property="og:locale" content="pt_BR">
 <meta property="og:title" content="FornexIA">
-<meta property="og:description" content="Nós entregamos a resposta e a prova juntas.">
+<meta property="og:description" content="O histórico do fornecedor, com a prova de cada número.">
 <meta property="og:url" content="https://fornexia.figueiredo.dev/">
-<link rel="icon" href="icone.svg" type="image/svg+xml">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap">
-<link rel="stylesheet" href="assets/site.css?v=20261115a">
-<script src="assets/tema.js?v=20261115a"></script>
+<link rel="icon" href="icone-32.png" type="image/png" sizes="32x32">
+<link rel="apple-touch-icon" href="icone-192.png">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="assets/site.css?v=20261116a">
+<script src="assets/tema.js?v=20261116a"></script>
 <style>
-/* Landing: mesma identidade das páginas internas. A moldura deslocada guarda a prova, o centro do produto. */
-main#topo { display: block; padding: 0; }
-html { scroll-behavior: smooth; scroll-padding-top: 76px; }
-.faixa-centro { width: 100%; max-width: 1120px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
-.topo-nav .miolo { max-width: 1120px; }
-.topo-nav .marca { display: inline-flex; }
-.topo-nav nav { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
-.topo-nav nav a { color: var(--tinta); text-decoration: none; font-size: 15px; }
-.topo-nav nav a:hover { color: var(--verde); }
-.topo-nav nav a.botao { color: var(--verde); }
-.heroi { padding-block: 60px 68px; background: var(--cartao); }
-.heroi .faixa-centro { display: grid; grid-template-columns: minmax(0, 1.08fr) minmax(0, .92fr); gap: 56px; align-items: center; }
-.rotulo { font-size: 13px; font-weight: 700; letter-spacing: .09em; color: var(--verde); margin: 0 0 8px; text-transform: uppercase; }
-.heroi h1 { font-size: clamp(38px, 5.4vw, 60px); line-height: 1.08; font-weight: 800; color: var(--titulo); margin: 0 0 18px; }
-.lide { font-size: 19px; color: var(--tinta-2); max-width: 54ch; margin: 0; }
-.heroi .lide { padding-top: 16px; border-top: 1px solid var(--regra); }
-.acoes { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 26px; }
-.moldura { position: relative; border: 2px solid var(--linha-forte); border-radius: 30px; padding: 12px; }
-.moldura::before { content: ""; position: absolute; width: 62px; height: 62px; right: -20px; top: -20px; border: 4px solid var(--verde); border-radius: 15px; background: var(--papel); }
-.zap { background: var(--zap-bg); border-radius: 20px; padding: 18px; display: flex; flex-direction: column; gap: 10px; }
-.zap-topo { color: #f4fbff; font-weight: 600; font-size: 14px; padding: 0 44px 10px 0; border-bottom: 1px solid var(--zap-linha); margin: 0; }
-.bolha { background: var(--bolha-bg); color: var(--bolha-texto); padding: 10px 13px; border-radius: 13px; font-size: 14.5px; line-height: 1.45; max-width: 92%; margin: 0; }
-.bolha.eu { align-self: flex-end; background: var(--bolha-eu); }
-.citacao { display: block; font: 400 13px/1.45 var(--mono); border-left: 3px solid var(--bolha-destaque); padding-left: 9px; margin-top: 7px; color: var(--bolha-apoio); }
-.bloco { padding-block: 62px; background: var(--cartao); }
-.bloco.claro { background: var(--papel); }
-.bloco h2 { font-size: clamp(28px, 3.4vw, 38px); font-weight: 800; color: var(--titulo); margin: 0 0 12px; }
-.bloco .apoio-secao { color: var(--tinta-2); max-width: 62ch; margin: 0; }
-.passos { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 32px; margin: 32px 0 0; padding: 0; list-style: none; counter-reset: passo; }
-.passos li { counter-increment: passo; border-top: 3px solid var(--linha-forte); padding-top: 16px; }
-.passos li::before { content: counter(passo); display: block; font: 500 15px var(--mono); color: var(--verde); margin-bottom: 6px; }
-.passos h3, .quatro h3 { color: var(--titulo); }
-.passos h3 { font-size: 19px; margin-bottom: 5px; }
-.passos p, .quatro p { color: var(--tinta-2); font-size: 15px; margin: 0; }
-.planos { grid-template-columns: minmax(0, 1fr); max-width: 520px; margin: 30px 0 0; gap: 22px; }
-.plano-card { background: var(--cartao); border: 1px solid var(--borda); border-radius: 18px; padding: 26px; display: flex; flex-direction: column; gap: 8px; transition: transform .2s, border-color .2s, box-shadow .2s; }
-.plano-card:hover { transform: translateY(-4px); border-color: var(--verde); box-shadow: var(--brilho); }
-.plano-card:last-child { border: 2px solid var(--linha-forte); }
-.plano-card:last-child:hover { border-color: var(--verde); }
-.plano-card h3 { color: var(--titulo); font-size: 21px; }
-.plano-card .preco { font-size: 34px; font-weight: 800; color: var(--titulo); margin: 0; font-variant-numeric: tabular-nums; }
-.plano-card .preco small { font-size: 15px; font-weight: 400; color: var(--tinta-2); }
-.plano-card ul { margin: 0; padding-left: 18px; color: var(--tinta-2); font-size: 15px; }
-.planos-estado, .nota-planos { color: var(--tinta-2); font-size: 14px; }
-.nota-planos { margin: 16px 0 0; max-width: 820px; }
-.quatro { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 26px; margin-top: 30px; }
-.quatro h3 { font-size: 15px; color: var(--verde); margin-bottom: 5px; }
-.limites { margin: 24px 0 0; padding-left: 20px; color: var(--tinta-2); columns: 2; column-gap: 40px; font-size: 15px; }
-.limites li { break-inside: avoid; margin-bottom: 8px; }
-.limites strong { color: var(--tinta); }
-.chamada { background: var(--marinho); color: #f4fbff; padding-block: 56px; border-top: 1px solid var(--zap-linha); }
-.chamada h2 { color: #f4fbff; font-size: clamp(26px, 3.2vw, 36px); font-weight: 800; margin: 0 0 8px; }
-.chamada p { margin: 0 0 20px; color: #d3e0ea; }
-footer { background: var(--marinho); color: #f4fbff; border-top: 1px solid var(--zap-linha); padding-block: 28px; font-size: 14px; }
-footer .faixa-centro { display: flex; justify-content: space-between; gap: 18px; flex-wrap: wrap; }
-footer p { margin: 0; max-width: 66ch; }
-@media (max-width: 900px) {
-  .heroi .faixa-centro, .passos, .planos { grid-template-columns: minmax(0, 1fr); }
-  .quatro { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .limites { columns: 1; }
-  .moldura::before { right: -6px; top: -14px; width: 40px; height: 40px; border-radius: 11px; }
-  .topo-nav nav a.opcional { display: none; }
-}
+/* Página inicial: identidade do manual v1.0 na leitura clara (B3). O produto aparece de verdade na abertura. */
+main#inicio { display: block; padding: 0; }
+html { scroll-behavior: smooth; scroll-padding-top: 84px; }
+.faixa { width: 100%; max-width: 1200px; margin: 0 auto; padding-left: max(24px, env(safe-area-inset-left, 0px)); padding-right: max(24px, env(safe-area-inset-right, 0px)); }
+.topo-nav .miolo { max-width: 1200px; padding-left: max(24px, env(safe-area-inset-left, 0px)); padding-right: max(24px, env(safe-area-inset-right, 0px)); }
+.topo-nav nav { display: flex; align-items: center; gap: 28px; }
+.topo-nav nav a.lk { font-size: 15px; font-weight: 500; }
+.topo-acoes-inicio { display: flex; align-items: center; gap: 10px; }
+.lk { color: var(--marinho); text-decoration: none; background: linear-gradient(var(--turquesa), var(--turquesa)) 0 100% / 0 2px no-repeat; padding-bottom: 3px; transition: background-size .25s ease; }
+.lk:hover { background-size: 100% 2px; }
+.botao.pequeno-topo { min-height: 44px; padding: 8px 18px; }
+.botao.vazado { background: #FFFFFF; color: var(--marinho); border-color: var(--regra); }
+.botao.vazado:hover:not(:disabled) { background: #FFFFFF; border-color: var(--marinho); box-shadow: none; }
+
+.secao-inicio { padding: 112px 0; }
+.secao-inicio.gelo { background: var(--gelo); border-top: 1px solid var(--regra); border-bottom: 1px solid var(--regra); }
+.sobrelinha { margin: 0 0 14px; font: 600 13px var(--texto); letter-spacing: .12em; text-transform: uppercase; color: var(--marinho); }
+.secao-inicio h2 { font-size: clamp(30px, 3.6vw, 44px); line-height: 1.1; letter-spacing: -.03em; max-width: 820px; }
+.secao-inicio .sub { margin: 18px 0 0; font-size: 18px; line-height: 1.6; color: var(--tinta-2); max-width: 660px; }
+.grade-3 { margin-top: 56px; display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 24px; }
+.cartao-inicio { background: #FFFFFF; border: 1px solid var(--regra); border-radius: 18px; padding: 28px; display: flex; flex-direction: column; gap: 14px; transition: transform .2s ease, box-shadow .2s ease; }
+.cartao-inicio:hover { transform: translateY(-2px); box-shadow: 0 18px 36px -24px rgba(15, 30, 61, .35); }
+.cartao-inicio h3 { font-size: 22px; }
+.cartao-inicio p { margin: 0; font-size: 16px; line-height: 1.6; color: var(--tinta-2); }
+.num { font: 400 13px var(--mono); color: var(--tinta-3); }
+.fragmento { margin-top: auto; border: 1px solid var(--regra); border-radius: 12px; padding: 14px; background: var(--gelo); display: flex; flex-direction: column; gap: 10px; }
+.fragmento.mono { font: 400 12.5px/1.75 var(--mono); color: var(--marinho); gap: 0; }
+.fragmento.mono span { color: var(--tinta-3); }
+.linha-hash { display: flex; justify-content: space-between; gap: 12px; font-size: 13px; color: var(--tinta-2); }
+.linha-hash code { font: 400 13px var(--mono); color: var(--marinho); }
+.etiqueta { align-self: flex-start; font: 600 12px var(--texto); color: var(--marinho); border: 1px solid var(--regra); border-radius: 999px; padding: 4px 10px; background: #FFFFFF; }
+
+/* Abertura */
+.heroi-inicio { padding: 64px 0 104px; }
+.heroi-inicio .faixa { display: flex; flex-wrap: wrap; align-items: center; gap: 56px; }
+.heroi-texto { flex: 1 1 440px; min-width: 0; }
+.pilula { margin: 0 0 22px; display: inline-flex; align-items: center; gap: 10px; padding: 8px 14px; border: 1px solid var(--regra); border-radius: 999px; background: var(--gelo); font: 600 13px var(--texto); color: var(--marinho); }
+.pilula::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--turquesa); }
+.heroi-inicio h1 { font-size: clamp(40px, 5vw, 60px); line-height: 1.04; letter-spacing: -.035em; }
+.heroi-inicio .lide { margin: 24px 0 0; font-size: 19px; line-height: 1.6; color: var(--tinta-2); max-width: 560px; }
+.heroi-acoes { margin-top: 32px; display: flex; flex-wrap: wrap; gap: 12px; }
+.cobertura { margin-top: 40px; padding-top: 24px; border-top: 1px solid var(--regra); display: grid; gap: 12px; }
+.cobertura .fontes-ativas { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 14px; }
+.cobertura b { color: var(--marinho); margin-right: 4px; }
+.cobertura .ente { padding: 6px 12px; border-radius: 8px; background: var(--gelo); border: 1px solid var(--regra); color: var(--marinho); }
+.cobertura p { margin: 0; font-size: 14px; line-height: 1.5; color: var(--tinta-3); }
+.entra { animation: entra .8s cubic-bezier(.2, .7, .2, 1) both; }
+.e2 { animation-delay: .08s; } .e3 { animation-delay: .16s; } .e4 { animation-delay: .24s; } .e5 { animation-delay: .32s; }
+@keyframes entra { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+
+/* O produto na abertura: o mapa da consulta e a conversa, como na tela do chat */
+.produto { flex: 1.2 1 520px; min-width: 0; background: #FFFFFF; border: 1px solid var(--regra); border-radius: 22px; padding: 20px; box-shadow: 0 40px 80px -48px rgba(15, 30, 61, .45); display: grid; gap: 12px; }
+.produto-topo { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.produto-topo .nome { display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--tinta-2); }
+.produto-topo .nome img { width: 22px; height: 26px; }
+.produto-topo .nome b { color: var(--marinho); font-weight: 600; }
+.produto-topo .direita { display: flex; align-items: center; gap: 8px; }
+.pausar { display: inline-flex; align-items: center; gap: 6px; min-height: 32px; padding: 0 10px; border: 1px solid var(--regra); border-radius: 999px; background: #FFFFFF; color: var(--marinho); font: 600 12px var(--texto); cursor: pointer; }
+.pausar:hover { border-color: var(--marinho); }
+.produto-mapa { position: relative; height: 330px; }
+.produto-mapa .mapa-svg { position: absolute; inset: 0; }
+.produto-conversa { background: var(--gelo); border: 1px solid #E2E9F2; border-radius: 14px; padding: 14px 16px; display: grid; gap: 10px; min-height: 182px; align-content: start; }
+.produto-conversa .eu { justify-self: end; max-width: 85%; margin: 0; background: var(--marinho); color: #FFFFFF; border-radius: 14px 14px 4px 14px; padding: 9px 13px; font-size: 14px; line-height: 1.45; }
+.produto-conversa .linha-ia { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.produto-conversa .rotulo-agora { display: inline-flex; align-items: center; gap: 7px; font-size: 13px; color: var(--marinho); }
+.produto-conversa .rotulo-agora::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--turquesa); animation: pisca 1.1s ease-in-out infinite; }
+.produto-conversa .rotulo-agora:empty { display: none; }
+@keyframes pisca { 50% { opacity: .3; } }
+.produto-conversa .resposta { margin: 0; font-size: 14px; line-height: 1.55; color: var(--tinta); min-height: 44px; }
+.produto-conversa .provas { display: flex; flex-wrap: wrap; gap: 8px; }
+.produto-conversa .prova-chip { display: inline-flex; align-items: center; gap: 6px; font: 400 12px var(--mono); color: var(--marinho); background: #FFFFFF; border: 1px solid var(--regra); border-radius: 8px; padding: 5px 9px; }
+
+/* WhatsApp e API */
+.zap-mini { margin-top: auto; background: var(--gelo); border-radius: 14px; padding: 14px; display: flex; flex-direction: column; gap: 8px; }
+.zap-mini .voz { align-self: flex-end; display: flex; align-items: center; gap: 8px; background: var(--marinho); color: #FFFFFF; border-radius: 12px 12px 4px 12px; padding: 8px 12px; font-size: 13px; }
+.zap-mini .onda-voz { display: inline-flex; align-items: center; gap: 2px; }
+.zap-mini .onda-voz i { width: 2px; background: var(--turquesa); display: inline-block; }
+.zap-mini .bot { align-self: flex-start; background: #FFFFFF; border: 1px solid var(--regra); border-radius: 12px 12px 12px 4px; padding: 8px 12px; font-size: 13px; line-height: 1.45; color: var(--tinta); max-width: 90%; }
+.codigo { margin-top: auto; background: var(--marinho); border-radius: 12px; padding: 14px; font: 400 12.5px/1.75 var(--mono); color: rgba(255, 255, 255, .9); }
+.codigo b { color: var(--turquesa); font-weight: 500; }
+.codigo span { color: rgba(255, 255, 255, .72); }
+
+/* Faixa escura: acesso controlado */
+.faixa-escura { background: var(--marinho); color: #FFFFFF; }
+.faixa-escura .faixa { display: flex; flex-wrap: wrap; gap: 56px; align-items: center; }
+.faixa-escura h2 { color: #FFFFFF; }
+.faixa-escura .sobrelinha { color: var(--turquesa); }
+.pontos-seguranca { margin-top: 40px; display: grid; gap: 26px; }
+.ponto { display: flex; gap: 16px; }
+.ponto .icone { flex: none; width: 36px; height: 36px; border-radius: 10px; background: rgba(0, 185, 167, .16); display: grid; place-items: center; }
+.ponto h3 { font-size: 17px; color: #FFFFFF; letter-spacing: 0; font-family: var(--texto); }
+.ponto p { margin: 6px 0 0; font-size: 15px; line-height: 1.6; color: rgba(255, 255, 255, .78); }
+.recusa { flex: 1 1 440px; min-width: 0; background: rgba(255, 255, 255, .04); border: 1px solid rgba(255, 255, 255, .12); border-radius: 20px; padding: 24px; display: grid; gap: 14px; }
+.recusa .topo-recusa { display: flex; justify-content: space-between; align-items: center; gap: 12px; font-size: 13px; color: rgba(255, 255, 255, .74); }
+.recusa .etiqueta-escura { font-size: 12px; color: rgba(255, 255, 255, .8); border: 1px solid rgba(255, 255, 255, .24); border-radius: 999px; padding: 4px 10px; }
+.recusa .pergunta { justify-self: end; max-width: 85%; margin: 0; background: rgba(255, 255, 255, .09); border-radius: 14px 14px 4px 14px; padding: 10px 14px; font-size: 14px; line-height: 1.45; }
+.recusa .resposta { justify-self: start; max-width: 92%; margin: 0; background: #FFFFFF; color: var(--tinta); border-radius: 14px 14px 14px 4px; padding: 12px 14px; font-size: 14px; line-height: 1.55; }
+.recusa .log { font: 400 12px/1.7 var(--mono); color: rgba(255, 255, 255, .8); border-top: 1px solid rgba(255, 255, 255, .12); padding-top: 12px; }
+.recusa .log b { color: var(--turquesa); font-weight: 500; }
+
+/* Plano */
+.grade-plano { margin-top: 56px; display: flex; flex-wrap: wrap; gap: 24px; align-items: stretch; }
+.grade-plano .planos { flex: 1 1 420px; margin: 0; display: grid; gap: 16px; }
+.plano-card { background: #FFFFFF; border: 1px solid var(--regra); border-radius: 20px; padding: 32px; display: flex; flex-direction: column; gap: 12px; }
+.plano-card h3 { font-size: 22px; }
+.plano-card .preco { margin: 0; font: 600 48px var(--titulos); letter-spacing: -.03em; color: var(--marinho); }
+.plano-card .preco small { font: 400 16px var(--texto); letter-spacing: 0; color: var(--tinta-3); }
+.plano-card ul { margin: 6px 0 0; padding: 0; list-style: none; display: grid; gap: 10px; font-size: 15px; color: var(--tinta); }
+.plano-card li { display: flex; gap: 10px; }
+.plano-card li::before { content: ""; flex: none; width: 10px; height: 6px; margin-top: 6px; border-left: 2.4px solid var(--turquesa); border-bottom: 2.4px solid var(--turquesa); transform: rotate(-45deg); }
+.plano-card .botao { margin-top: 12px; align-self: flex-start; }
+.planos-estado { color: var(--tinta-3); }
+.depois { flex: 1 1 360px; min-width: 0; border: 1px dashed #B9C6D8; border-radius: 20px; padding: 32px; display: grid; gap: 14px; align-content: start; }
+.depois h3 { font-size: 22px; }
+.depois p { margin: 0; font-size: 15px; color: var(--tinta-2); }
+.depois ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 12px; font-size: 15px; }
+.depois li { display: flex; gap: 10px; }
+.depois li::before { content: ""; flex: none; width: 6px; height: 6px; margin-top: 9px; border-radius: 50%; background: var(--marinho); }
+.nota-plano { margin: 20px 0 0; font-size: 14px; color: var(--tinta-3); }
+
+/* Limites */
+.limites-lista { margin: 40px 0 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 12px 32px; }
+.limites-lista li { display: flex; gap: 12px; font-size: 15px; line-height: 1.55; color: var(--tinta-2); padding: 12px 0; border-bottom: 1px solid var(--regra); }
+.limites-lista li::before { content: ""; flex: none; width: 6px; height: 6px; margin-top: 9px; border-radius: 50%; background: var(--turquesa); }
+.limites-lista strong { color: var(--marinho); }
+
+/* Fecho e rodapé */
+.fecho { text-align: center; }
+.fecho h2 { margin: 0 auto; }
+.fecho p { margin: 16px auto 0; font-size: 18px; color: var(--tinta-2); }
+.fecho .botao { margin-top: 28px; }
+footer.rodape { background: #07172F; color: #FFFFFF; padding: 64px 0 40px; }
+.rodape .linha { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 40px; align-items: flex-start; }
+.rodape img { width: 180px; height: 60px; display: block; }
+.rodape nav { display: flex; flex-wrap: wrap; gap: 28px; font-size: 15px; }
+.rodape nav a { color: #FFFFFF; text-decoration: none; background: linear-gradient(var(--turquesa), var(--turquesa)) 0 100% / 0 2px no-repeat; padding-bottom: 3px; transition: background-size .25s ease; }
+.rodape nav a:hover { background-size: 100% 2px; }
+.rodape .creditos { margin-top: 48px; padding-top: 24px; border-top: 1px solid rgba(255, 255, 255, .14); display: grid; gap: 6px; font-size: 13px; color: rgba(255, 255, 255, .74); }
+.rodape .creditos p { margin: 0; }
+
+/* Assistente embutido: botão no canto que abre o chat de verdade num painel */
 .assistente { position: fixed; z-index: 50; right: max(16px, env(safe-area-inset-right, 0px)); bottom: max(16px, env(safe-area-inset-bottom, 0px)); }
-.assistente-botao { display: inline-flex; align-items: center; gap: 10px; min-height: 56px; padding: 0 22px 0 18px; border: 0; border-radius: 999px; cursor: pointer;
-  background: var(--cartao-solido); color: var(--tinta); border: 1.5px solid var(--verde); font: 700 16px var(--texto); box-shadow: 0 10px 28px -8px var(--sombra), 0 2px 6px -2px var(--sombra); transition: transform .2s, box-shadow .2s, background .2s; }
-.assistente-botao:hover { background: var(--verde-fraco); transform: translateY(-2px); box-shadow: var(--brilho); }
+.assistente-botao { display: inline-flex; align-items: center; gap: 10px; min-height: 56px; padding: 0 22px 0 18px; border-radius: 999px; cursor: pointer;
+  background: #FFFFFF; color: var(--marinho); border: 1.5px solid var(--marinho); font: 600 15px var(--texto); box-shadow: 0 14px 30px -14px rgba(15, 30, 61, .45); transition: transform .2s, box-shadow .2s; }
+.assistente-botao:hover { transform: translateY(-2px); box-shadow: var(--brilho); }
 .assistente-botao svg { flex: none; }
 .assistente-botao .i-seta, .assistente-botao.aberto .i-balao { display: none; }
 .assistente-botao.aberto .i-seta { display: block; }
 .assistente-painel { position: absolute; right: 0; bottom: calc(100% + 12px); width: min(420px, calc(100vw - 32px)); height: min(680px, calc(100vh - 110px)); height: min(680px, calc(100dvh - 110px));
-  display: flex; flex-direction: column; overflow: hidden; background: var(--cartao-solido); border: 1px solid var(--borda); border-radius: 16px; box-shadow: 0 24px 60px -16px var(--sombra);
+  display: flex; flex-direction: column; overflow: hidden; background: #FFFFFF; border: 1px solid var(--regra); border-radius: 16px; box-shadow: 0 24px 60px -16px rgba(15, 30, 61, .35);
   transform-origin: bottom right; transition: opacity .18s ease, transform .18s ease, visibility 0s; }
 .assistente-painel[inert] { opacity: 0; visibility: hidden; transform: translateY(10px) scale(.98); transition: opacity .18s ease, transform .18s ease, visibility 0s .18s; pointer-events: none; }
 .assistente-topo { flex: none; display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 6px 8px 6px 18px; border-bottom: 1px solid var(--regra); }
-.assistente-topo strong { font: 600 19px var(--serifa); }
+.assistente-topo strong { font: 600 17px var(--titulos); color: var(--marinho); }
 .assistente-fechar { display: grid; place-items: center; width: 40px; height: 40px; border: 0; border-radius: 50%; background: transparent; color: var(--tinta-2); cursor: pointer; }
-.assistente-fechar:hover { background: var(--papel); color: var(--tinta); }
-.assistente-quadro { flex: 1; min-height: 0; width: 100%; border: 0; background: var(--cartao-solido); }
-@media (max-width: 480px) { .assistente-botao span { display: none; } .assistente-botao { padding: 0 18px; } }
+.assistente-fechar:hover { background: var(--gelo); color: var(--tinta); }
+.assistente-quadro { flex: 1; min-height: 0; width: 100%; border: 0; background: #FFFFFF; }
+
+@media (max-width: 900px) {
+  .topo-nav nav { display: none; }
+  .secao-inicio { padding: 72px 0; }
+  .heroi-inicio { padding: 40px 0 72px; }
+  .produto-mapa { height: 260px; }
+}
+@media (max-width: 640px) {
+  .topo-nav .marca { display: block; }          /* nas páginas internas a marca some no celular; aqui ela fica */
+}
+@media (max-width: 480px) {
+  .assistente-botao span { display: none; } .assistente-botao { padding: 0 18px; }
+  .heroi-acoes .botao { width: 100%; }
+  .topo-acoes-inicio .botao.vazado { display: none; }
+  .topo-acoes-inicio .botao { min-height: 40px; padding: 6px 14px; font-size: 14px; }
+  .topo-nav .marca { width: 135px; height: 45px; }
+}
+@media (max-width: 360px) { .topo-acoes-inicio { display: none; } }
+@media (prefers-reduced-motion: reduce) { .entra, .produto-conversa .rotulo-agora::before { animation: none; } .cartao-inicio:hover { transform: none; } }
 </style>
 </head>
 <body>
 
 <header class="topo topo-nav">
   <div class="miolo">
-    <a class="marca" href="#topo">Fornex<span>IA</span></a>
+    <a class="marca" href="#inicio" aria-label="FornexIA, início">Fornex<span>IA</span></a>
     <nav aria-label="Seções">
-      <a class="opcional" href="#como">Como funciona</a>
-      <a class="opcional" href="#planos">Plano</a>
-      <a class="opcional" href="#sobre">Sobre nós</a>
-      <button type="button" class="tema-botao" data-tema-botao></button>
-      <a class="botao acao pequeno" href="chat.html">Entrar</a>
+      <a class="lk" href="#como">Como funciona</a>
+      <a class="lk" href="#canais">Canais</a>
+      <a class="lk" href="#seguranca">Segurança</a>
+      <a class="lk" href="#plano">Plano</a>
     </nav>
+    <div class="topo-acoes-inicio">
+      <a class="botao vazado pequeno-topo" href="chat.html">Entrar</a>
+      <a class="botao pequeno-topo" href="chat.html" data-abrir>Testar a demonstração</a>
+    </div>
   </div>
 </header>
 
-<main id="topo">
+<main id="inicio">
 
-<section class="heroi" aria-labelledby="titulo">
-  <div class="faixa-centro">
-    <div>
-      <p class="rotulo">Dados públicos. Decisões seguras.</p>
-      <h1 id="titulo">Histórico de fornecedor com prova.</h1>
-      <p class="lide">Pergunte em português sobre um fornecedor e receba o histórico em minutos, com a fonte de cada número.</p>
-      <div class="acoes">
-        <a class="botao acao" href="chat.html" data-abrir>Testar a demonstração</a>
-        <a class="botao vazado" href="#como">Como funciona</a>
+<section class="heroi-inicio" aria-labelledby="titulo">
+  <div class="faixa">
+    <div class="heroi-texto">
+      <p class="pilula entra">Due diligence de fornecedores com dados públicos</p>
+      <h1 id="titulo" class="entra e2">O histórico do fornecedor, com a prova de cada número.</h1>
+      <p class="lide entra e3">Pergunte em português, no site ou no WhatsApp. O FornexIA consulta contratos, sanções e cadastros em portais públicos e responde mostrando o trecho original de cada fonte, a data da captura e o hash conferido.</p>
+      <div class="heroi-acoes entra e4">
+        <a class="botao" href="chat.html" data-abrir>Testar a demonstração</a>
+        <a class="botao vazado" href="#como">Ver como funciona</a>
+      </div>
+      <div class="cobertura entra e5">
+        <div class="fontes-ativas"><b>Fontes ativas</b><span class="ente">Estado de Pernambuco</span><span class="ente">Município de Garanhuns</span></div>
+        <p>União (CEIS, CNEP e contratos federais): em implantação. Para compliance, auditoria, compras e jurídico.</p>
       </div>
     </div>
-    <div class="moldura">
-      <div class="zap" aria-label="Exemplo de conversa no WhatsApp com dados fictícios">
-        <p class="zap-topo">FornexIA no WhatsApp · exemplo fictício</p>
-        <p class="bolha eu">A Construtora Exemplo tem sanções?</p>
-        <p class="bolha">Tem 1 ocorrência no cadastro do Estado: multa em aberto. Isso não prova irregularidade.<span class="citacao">"MULTA, EM ABERTO, Construtora Exemplo"<br>Cadastro de 05/06/2025</span></p>
-        <p class="bolha eu">E contratos?</p>
-        <p class="bolha">1 contrato em Garanhuns, de R$ 120.000,00.<span class="citacao">Contrato 1/2026 · captura de 05/11/2026</span></p>
+
+    <div class="produto entra e3" aria-label="Demonstração do assistente com exemplo fictício">
+      <div class="produto-topo">
+        <div class="nome"><img src="assets/marca/simbolo.png" alt=""><b>Assistente</b><span>·</span><span>Mapa da consulta</span></div>
+        <div class="direita">
+          <span class="etiqueta">Exemplo fictício</span>
+          <button type="button" class="pausar" id="pausar-demo" aria-pressed="false">Pausar</button>
+        </div>
+      </div>
+      <div class="produto-mapa" id="mapa-demo"></div>
+      <div class="produto-conversa">
+        <p class="eu" id="demo-pergunta">A Construtora Exemplo tem sanção?</p>
+        <div class="linha-ia"><span class="marca-ia">Escrito pela IA</span><span class="rotulo-agora" id="demo-rotulo"></span></div>
+        <p class="resposta" id="demo-resposta"></p>
+        <div class="provas" id="demo-provas"></div>
       </div>
     </div>
   </div>
 </section>
 
-<section class="bloco claro" id="como" aria-labelledby="t-como">
-  <div class="faixa-centro">
-    <p class="rotulo">Como funciona</p>
-    <h2 id="t-como">Da pergunta à fonte oficial</h2>
-    <ol class="passos">
-      <li><h3>Pergunte</h3><p>Use o site ou o WhatsApp, em linguagem natural.</p></li>
-      <li><h3>Consultamos com permissão</h3><p>O sistema busca só nos entes cobertos pelo seu plano.</p></li>
-      <li><h3>Confira a prova</h3><p>Cada afirmação traz o trecho, a data da captura e o link da fonte.</p></li>
-    </ol>
+<section class="secao-inicio gelo" id="como" aria-labelledby="t-como">
+  <div class="faixa">
+    <p class="sobrelinha">Como funciona</p>
+    <h2 id="t-como">Três camadas entre a pergunta e a resposta.</h2>
+    <p class="sub">São as mesmas três camadas do símbolo da marca: o dado público, a validação e a inteligência. Na tela, cada uma aparece separada da outra.</p>
+    <div class="grade-3">
+      <article class="cartao-inicio">
+        <span class="num">01</span>
+        <h3>Dado público</h3>
+        <p>Capturamos os portais oficiais e guardamos o arquivo original, com a data e o hash de cada captura.</p>
+        <div class="fragmento mono"><div>contratos-2024.csv</div><span>Portal da Transparência de PE</span><span>capturado em 05/11/2026</span><span>sha256 a41f…9e07</span></div>
+      </article>
+      <article class="cartao-inicio">
+        <span class="num">02</span>
+        <h3>Validação</h3>
+        <p>Antes de responder, o sistema reabre o arquivo e recalcula o hash. Se o trecho não bater com a fonte, a resposta avisa.</p>
+        <div class="fragmento">
+          <div class="linha-hash"><span>Hash da captura</span><code>a41f…9e07</code></div>
+          <div class="linha-hash"><span>Hash recalculado agora</span><code>a41f…9e07</code></div>
+          <span class="selo-hash" style="align-self: flex-start">confere com a fonte</span>
+        </div>
+      </article>
+      <article class="cartao-inicio">
+        <span class="num">03</span>
+        <h3>Inteligência</h3>
+        <p>A IA escreve só com o que as consultas devolveram, e a tela separa o texto dela do trecho da fonte.</p>
+        <div class="fragmento">
+          <span class="marca-ia">Escrito pela IA</span>
+          <p style="font-size: 14px; color: var(--tinta)">1 ocorrência no cadastro de sanções do Estado: multa em aberto. Isso não prova irregularidade.</p>
+          <span class="prova-chip" style="font: 400 12px var(--mono); color: var(--marinho); background: #FFFFFF; border: 1px solid var(--regra); border-radius: 8px; padding: 6px 10px">“MULTA · EM ABERTO” · PE · 05/06/2025</span>
+        </div>
+      </article>
+    </div>
   </div>
 </section>
 
-<section class="bloco" id="planos" aria-labelledby="t-planos">
-  <div class="faixa-centro">
-    <p class="rotulo">Assinatura</p>
-    <h2 id="t-planos">Uma assinatura simples</h2>
-    <p class="apoio-secao">Plano único para compliance, gestoras de terceiros e empresas menores. Valor de demonstração, ainda não validado. Nada é cobrado nesta versão.</p>
-    <div class="planos" id="lista-planos" aria-live="polite"><p class="planos-estado">Carregando os planos…</p></div>
+<section class="secao-inicio" id="canais" aria-labelledby="t-canais">
+  <div class="faixa">
+    <p class="sobrelinha">Onde você pergunta</p>
+    <h2 id="t-canais">No site e no WhatsApp. Depois, dentro da sua própria plataforma.</h2>
+    <div class="grade-3">
+      <article class="cartao-inicio">
+        <svg width="28" height="28" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="14" rx="2.5" fill="none" stroke="#0F1E3D" stroke-width="1.8"/><path d="M8 21h8M12 18v3" fill="none" stroke="#0F1E3D" stroke-width="1.8" stroke-linecap="round"/><circle cx="9" cy="11" r="1.6" fill="#00B9A7"/><circle cx="15" cy="9" r="1.6" fill="#00B9A7"/><path d="M10.4 10.4l3.2-1" stroke="#00B9A7" stroke-width="1.4"/></svg>
+        <h3>Site</h3>
+        <p>O chat mostra o mapa da consulta enquanto responde, e cada resposta tem o botão Exportar prova.</p>
+        <a class="lk" href="chat.html" data-abrir style="margin-top: auto; align-self: flex-start; font-weight: 600">Abrir o chat</a>
+      </article>
+      <article class="cartao-inicio">
+        <svg width="28" height="28" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3" fill="none" stroke="#0F1E3D" stroke-width="1.8"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21" fill="none" stroke="#0F1E3D" stroke-width="1.8" stroke-linecap="round"/></svg>
+        <h3>WhatsApp, com nota de voz</h3>
+        <p>O bot repete o que entendeu e só consulta um CNPJ falado se o dígito verificador fechar.</p>
+        <div class="zap-mini" aria-label="Exemplo de nota de voz">
+          <div class="voz"><span class="onda-voz" aria-hidden="true"><i style="height: 8px"></i><i style="height: 14px"></i><i style="height: 10px"></i><i style="height: 16px"></i><i style="height: 7px"></i><i style="height: 12px"></i></span><span>0:04</span></div>
+          <div class="bot">Entendi: “a Construtora Exemplo tem sanção?”</div>
+        </div>
+      </article>
+      <article class="cartao-inicio">
+        <span class="etiqueta">Próximo passo</span>
+        <h3>API e MCP</h3>
+        <p>Para levar a consulta e a prova para dentro da plataforma que a sua equipe já usa, ou para a IA da sua empresa.</p>
+        <div class="codigo"><div><b>GET</b> /v1/fornecedores/{cnpj}</div><span>→ fatos, evidências e hashes</span></div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section class="secao-inicio faixa-escura" id="seguranca" aria-labelledby="t-seguranca">
+  <div class="faixa">
+    <div style="flex: 1 1 460px; min-width: 0">
+      <p class="sobrelinha">Acesso controlado</p>
+      <h2 id="t-seguranca">Cada plano vê só os seus dados. Toda recusa fica registrada.</h2>
+      <div class="pontos-seguranca">
+        <div class="ponto"><span class="icone"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l7 3v5.5c0 4.4-3 8-7 9.5-4-1.5-7-5.1-7-9.5V6l7-3z" fill="none" stroke="#00B9A7" stroke-width="2" stroke-linejoin="round"/></svg></span><div><h3>Perfil por ente</h3><p>O filtro está nos dados, não no texto da IA: quem não tem a União não enxerga nada federal.</p></div></div>
+        <div class="ponto"><span class="icone"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5" fill="none" stroke="#00B9A7" stroke-width="2"/><path d="M16 16l4.5 4.5" stroke="#00B9A7" stroke-width="2" stroke-linecap="round"/></svg></span><div><h3>Recusa em vez de invenção</h3><p>Fora da cobertura, a resposta diz que não encontrou e que isso não prova que não exista.</p></div></div>
+        <div class="ponto"><span class="icone"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7.5 10.5L12 15l4.5-4.5M5 19h14" fill="none" stroke="#00B9A7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><div><h3>Pacote de prova</h3><p>Um ZIP com a pergunta, a resposta, os trechos e os hashes, que um auditor reconfere sem acessar o sistema.</p></div></div>
+      </div>
+    </div>
+    <div class="recusa" aria-label="Exemplo de recusa, com dados fictícios">
+      <div class="topo-recusa"><span>Plano: Estado de PE e Garanhuns</span><span class="etiqueta-escura">Exemplo fictício</span></div>
+      <p class="pergunta">Quais sanções federais tem a Construtora Exemplo?</p>
+      <div class="resposta"><span class="marca-ia" style="margin-bottom: 6px">Escrito pela IA</span><br>O seu plano cobre o Estado de Pernambuco e o Município de Garanhuns. Os dados da União ficam fora dele, então não consultei.</div>
+      <div class="log"><div><b>recusa</b> · perfil pe-estado, pe-garanhuns</div><div>motivo: ente fora do plano · registrado no log</div></div>
+    </div>
+  </div>
+</section>
+
+<section class="secao-inicio gelo" id="plano" aria-labelledby="t-plano">
+  <div class="faixa">
+    <p class="sobrelinha">Plano</p>
+    <h2 id="t-plano">Um plano para começar a investigar hoje.</h2>
+    <p class="sub">Para compliance, gestoras de terceiros e empresas menores. Valor de demonstração, ainda não validado. Nada é cobrado nesta versão.</p>
+    <div class="grade-plano">
+      <div class="planos" id="lista-planos" aria-live="polite"><p class="planos-estado">Carregando os planos…</p></div>
+      <div class="depois">
+        <h3>O que vem depois</h3>
+        <p>Planejado, ainda não disponível:</p>
+        <ul>
+          <li>União: sanções federais (CEIS e CNEP) e contratos federais</li>
+          <li>Monitoramento da carteira, com alerta quando surge uma sanção</li>
+          <li>Consulta em lote por planilha</li>
+          <li>API e MCP para integração</li>
+        </ul>
+      </div>
+    </div>
     <noscript><p class="planos-estado">Ative o JavaScript para ver os planos, ou <a href="chat.html">abra o assistente</a>.</p></noscript>
-    <p class="nota-planos">A conta recebe o acesso automaticamente, para experimentar o site e cadastrar seus números de WhatsApp.</p>
+    <p class="nota-plano">A conta recebe o acesso automaticamente, para experimentar o site e cadastrar seus números de WhatsApp.</p>
   </div>
 </section>
 
-<section class="bloco claro" id="sobre" aria-labelledby="t-sobre">
-  <div class="faixa-centro">
-    <p class="rotulo">Sobre nós</p>
-    <h2 id="t-sobre">Equipe Nexus</h2>
-    <p class="apoio-secao">Construímos o FornexIA no Hack Garanhuns Tech 2026. Compliance não é só descobrir se o fornecedor tem problema: é conseguir provar como você descobriu.</p>
-  </div>
-</section>
-
-<section class="bloco" id="limites" aria-labelledby="t-limites">
-  <div class="faixa-centro">
-    <p class="rotulo">Transparência</p>
-    <h2 id="t-limites">O que esta versão ainda não faz</h2>
-    <ul class="limites">
-      <li>A base real é uma <strong>amostra</strong> de 100 contratos: 70 do Estado de Pernambuco, todos de 2024, e 30 de Garanhuns.</li>
-      <li>O cadastro de sanções de PE é de <strong>05/06/2025</strong> e pode estar desatualizado.</li>
-      <li>Os <strong>pagamentos</strong> são totais por fornecedor, órgão e ano. Ainda não ligam um pagamento a um contrato.</li>
-      <li>Contratos do Estado a partir de <strong>2025</strong> não estão na base.</li>
-      <li>Sanção em aberto <strong>não prova irregularidade</strong>.</li>
-      <li>Pessoa física não aparece nas respostas.</li>
-      <li>O ganho de tempo é <strong>hipótese</strong>, ainda sem validação.</li>
-      <li>Planos e preços são de <strong>demonstração</strong>. Não há cobrança real.</li>
-      <li>Dado público não é automaticamente livre de LGPD.</li>
+<section class="secao-inicio" id="limites" aria-labelledby="t-limites">
+  <div class="faixa">
+    <p class="sobrelinha">Transparência</p>
+    <h2 id="t-limites">O que esta versão ainda não faz.</h2>
+    <ul class="limites-lista">
+      <li><span>A base real é uma <strong>amostra</strong> de 100 contratos: 70 do Estado de Pernambuco, todos de 2024, e 30 de Garanhuns.</span></li>
+      <li><span>O cadastro de sanções de PE é de <strong>05/06/2025</strong> e pode estar desatualizado.</span></li>
+      <li><span>Os <strong>pagamentos</strong> são totais por fornecedor, órgão e ano. Ainda não ligam um pagamento a um contrato.</span></li>
+      <li><span>Contratos do Estado a partir de <strong>2025</strong> não estão na base.</span></li>
+      <li><span>Sanção em aberto <strong>não prova irregularidade</strong>.</span></li>
+      <li><span>Pessoa física não aparece nas respostas.</span></li>
+      <li><span>O ganho de tempo é <strong>hipótese</strong>, ainda sem validação.</span></li>
+      <li><span>Dado público não é automaticamente livre de LGPD.</span></li>
     </ul>
   </div>
 </section>
 
-<section class="chamada" aria-labelledby="t-final">
-  <div class="faixa-centro">
+<section class="secao-inicio gelo fecho" aria-labelledby="t-final">
+  <div class="faixa">
     <h2 id="t-final">Nós entregamos a resposta e a prova juntas.</h2>
     <p>Crie uma conta, faça uma pergunta e confira a fonte.</p>
-    <a class="botao acao" href="chat.html" data-abrir>Testar a demonstração</a>
+    <a class="botao" href="chat.html" data-abrir>Testar a demonstração</a>
   </div>
 </section>
 
 </main>
 
-<footer>
-  <div class="faixa-centro">
-    <p><b>FornexIA</b> é um protótipo da Equipe Nexus, criado no Hack Garanhuns Tech 2026. Sem vínculo oficial com empresas ou órgãos citados.</p>
-    <p>Os exemplos desta página usam dados fictícios.</p>
+<footer class="rodape">
+  <div class="faixa">
+    <div class="linha">
+      <img src="assets/marca/logo-reverso.png" alt="FornexIA — Dados públicos. Decisões seguras.">
+      <nav aria-label="Rodapé">
+        <a href="#como">Como funciona</a>
+        <a href="#canais">Canais</a>
+        <a href="#seguranca">Segurança</a>
+        <a href="#plano">Plano</a>
+        <a href="chat.html">Entrar</a>
+      </nav>
+    </div>
+    <div class="creditos">
+      <p>FornexIA é um protótipo da Equipe Nexus, criado no Hack Garanhuns Tech 2026. Sem vínculo oficial com empresas ou órgãos citados. Instagram @fornex_ia.</p>
+      <p>Compliance não é só descobrir se o fornecedor tem problema: é conseguir provar como você descobriu. Os exemplos desta página usam dados fictícios e estão marcados como tal.</p>
+    </div>
   </div>
 </footer>
 
@@ -225,6 +425,7 @@ footer p { margin: 0; max-width: 66ch; }
   </button>
 </div>
 
+<script src="assets/grafo.js?v=20261116a"></script>
 <script>
 (function () {
   'use strict';
@@ -247,15 +448,10 @@ footer p { margin: 0; max-width: 66ch; }
   botao.addEventListener('click', function () { abrir(!aberto); });
   document.getElementById('assistente-fechar').addEventListener('click', function () { abrir(false); });
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && aberto) abrir(false); });
-  // Qualquer botão com data-abrir abre o assistente aqui mesmo. Sem JavaScript, os links levam a chat.html.
+  // Qualquer link com data-abrir abre o assistente aqui mesmo. Sem JavaScript, os links levam a chat.html.
   document.querySelectorAll('[data-abrir]').forEach(function (el) {
     el.addEventListener('click', function (e) { e.preventDefault(); abrir(true); });
   });
-
-  /* ---------- Planos, lidos de /api/planos ---------- */
-  var ENTES = { 'pe-garanhuns': 'Município de Garanhuns', 'pe-estado': 'Estado de Pernambuco', 'br-uniao': 'União (governo federal)' };
-  function juntar(nomes) { return nomes.length > 1 ? nomes.slice(0, -1).join(', ') + ' e ' + nomes[nomes.length - 1] : nomes.join(''); }
-  var lista = document.getElementById('lista-planos');
 
   function el(tag, classe, texto) {
     var e = document.createElement(tag);
@@ -263,23 +459,32 @@ footer p { margin: 0; max-width: 66ch; }
     if (texto !== undefined) e.textContent = texto;
     return e;
   }
+
+  /* ---------- Planos, lidos de /api/planos (o preço é o do banco, nunca digitado aqui) ---------- */
+  var ENTES = { 'pe-garanhuns': 'Município de Garanhuns', 'pe-estado': 'Estado de Pernambuco', 'br-uniao': 'União (governo federal)' };
+  function juntar(nomes) { return nomes.length > 1 ? nomes.slice(0, -1).join(', ') + ' e ' + nomes[nomes.length - 1] : nomes.join(''); }
+  var lista = document.getElementById('lista-planos');
   function brl(n, casas) { return n.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: casas, maximumFractionDigits: casas }); }
 
   function mostrarPlanos(planos) {
     lista.replaceChildren();
     planos.forEach(function (p) {
       var c = el('div', 'plano-card');
-      c.appendChild(el('h3', '', p.nome));
+      c.appendChild(el('h3', '', 'Plano ' + p.nome));
       var preco = el('p', 'preco', brl(p.preco_mensal, 0) + ' ');
-      preco.appendChild(el('small', '', '/ mês'));
+      preco.appendChild(el('small', '', 'por mês'));
       c.appendChild(preco);
       var ul = el('ul');
       if (p.franquia > 0) ul.appendChild(el('li', '', p.franquia.toLocaleString('pt-BR') + ' perguntas por mês'));
       if (p.preco_excedente > 0) ul.appendChild(el('li', '', 'Excedente: ' + brl(p.preco_excedente, 2) + ' por pergunta'));
       ul.appendChild(el('li', '', 'Consulta: ' + juntar(p.tenants.map(function (t) { return ENTES[t] || t; }))));
-      ul.appendChild(el('li', '', 'Site e WhatsApp, com a prova de cada fato'));
+      ul.appendChild(el('li', '', 'Site e WhatsApp, com nota de voz e a prova de cada fato'));
       ul.appendChild(el('li', '', 'Até 3 números de WhatsApp por conta, liberados no cadastro'));
       c.appendChild(ul);
+      var b = el('a', 'botao', 'Testar a demonstração');
+      b.href = 'chat.html';
+      b.addEventListener('click', function (e) { e.preventDefault(); abrir(true); });
+      c.appendChild(b);
       lista.appendChild(c);
     });
   }
@@ -290,6 +495,77 @@ footer p { margin: 0; max-width: 66ch; }
     .catch(function () {
       lista.replaceChildren(el('p', 'planos-estado', 'Não consegui carregar os planos agora. Abra o assistente para ver as opções.'));
     });
+
+  /* ---------- Demonstração na abertura: o mesmo mapa do chat, com um roteiro fictício ---------- */
+  if (!window.MapaConsulta) return;
+  var calmo = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var mapa = window.MapaConsulta.criar(document.getElementById('mapa-demo'), { entes: ['pe-estado', 'pe-garanhuns'] });
+  var ePergunta = document.getElementById('demo-pergunta'), eRotulo = document.getElementById('demo-rotulo');
+  var eResposta = document.getElementById('demo-resposta'), eProvas = document.getElementById('demo-provas');
+  var bPausar = document.getElementById('pausar-demo');
+  var CENAS = [
+    { pergunta: 'A Construtora Exemplo tem sanção?',
+      passos: [['consulta', 'buscar_fornecedor', 'Procurando o fornecedor'], ['consulta', 'sancoes_do_fornecedor', 'Consultando sanções'],
+               ['consulta', 'cadastro_do_fornecedor', 'Consultando o cadastro da empresa'], ['fonte', 'PE · 05/06/2025', 'Conferindo a fonte'],
+               ['fonte', 'Receita · 14/11/2026', 'Conferindo a fonte']],
+      resposta: 'Sim: 1 ocorrência no cadastro de sanções do Estado de Pernambuco, multa em aberto. Isso não prova irregularidade. No cadastro da Receita, a empresa está ativa.' },
+    { pergunta: 'Quais contratos ela tem com o Estado?',
+      passos: [['consulta', 'contratos_do_fornecedor', 'Consultando os contratos do fornecedor'], ['fonte', 'PE · 05/11/2026', 'Conferindo a fonte']],
+      resposta: 'Um contrato com a Secretaria Exemplo: Contrato 12/2024, valor contratado de R$ 120.000,00. O valor estimado da licitação é outro número e não se soma a este.' },
+    { pergunta: 'O que a base cobre hoje?',
+      passos: [['consulta', 'cobertura', 'Verificando o que a base cobre']],
+      resposta: 'Contratos, licitações e pagamentos do Estado de Pernambuco e de Garanhuns, e as sanções do Estado. É uma amostra: não encontrar um fornecedor não prova que ele não exista.' }
+  ];
+  var timers = [], digitar = null, indice = 0, pausado = false, parado = false;
+  function limpar() { timers.forEach(clearTimeout); timers = []; if (digitar) { clearInterval(digitar); digitar = null; } }
+  function depois(ms, fn) { timers.push(setTimeout(fn, calmo ? 0 : ms)); }
+  function rodar() {
+    limpar();
+    var c = CENAS[indice % CENAS.length];
+    if (indice % CENAS.length === 0) mapa.reiniciar();
+    indice++;
+    ePergunta.textContent = c.pergunta; eRotulo.textContent = 'Lendo a pergunta'; eResposta.textContent = ''; eProvas.replaceChildren();
+    mapa.novaPergunta();
+    var t = 500, provas = [];
+    c.passos.forEach(function (p) {
+      depois(t, function () {
+        eRotulo.textContent = p[2];
+        if (p[0] === 'consulta') mapa.consulta(p[1]);
+        else { mapa.fonte({ hash_confere: true }); provas.push(p[1]); }
+      });
+      t += 1100;
+    });
+    depois(t + 400, function () {
+      eRotulo.textContent = 'Escrevendo a resposta';
+      mapa.texto();
+      var i = 0;
+      function fim() {
+        eResposta.textContent = c.resposta; eRotulo.textContent = '';
+        provas.forEach(function (pv, n) {
+          var chip = el('span', 'prova-chip', 'Fonte ' + (n + 1) + ' · ' + pv);
+          var selo = el('span', 'selo-hash', 'hash confere');
+          chip.appendChild(selo);
+          eProvas.appendChild(chip);
+        });
+        mapa.fim();
+        if (!calmo) depois(4200, function () { if (pausado) parado = true; else rodar(); });
+      }
+      if (calmo) { fim(); return; }
+      digitar = setInterval(function () {
+        i += 3;
+        eResposta.textContent = c.resposta.slice(0, i);
+        if (i >= c.resposta.length) { clearInterval(digitar); digitar = null; fim(); }
+      }, 22);
+    });
+  }
+  bPausar.addEventListener('click', function () {
+    pausado = !pausado;
+    bPausar.setAttribute('aria-pressed', String(pausado));
+    bPausar.textContent = pausado ? 'Continuar' : 'Pausar';
+    if (!pausado && parado) { parado = false; rodar(); }
+  });
+  if (calmo) bPausar.hidden = true;
+  depois(700, rodar);
 })();
 </script>
 </body>
