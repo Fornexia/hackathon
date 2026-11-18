@@ -100,6 +100,81 @@
     await carregarTelefones()
   }
 
+  // ---------- acompanhar fornecedores (alertas por e-mail) ----------
+  let confirmandoAlerta = null
+  function mensagemAlerta(erro, ok) { mensagem('#erro-alerta', erro); mensagem('#ok-alerta', ok) }
+  const formatarCnpj = d => String(d).replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5')
+
+  function itemDoAlerta(a) {
+    const li = el('li', 'item')
+    const principal = el('div', 'principal')
+    principal.append(el('span', 'status aprovado', 'Acompanhando'), el('div', 'numero', formatarCnpj(a.cnpj)))
+    const criado = dataHora(a.criado_em)
+    if (criado) principal.append(el('div', 'detalhe', 'Desde ' + criado))
+    const acoes = el('div', 'acoes-item')
+    const remover = el('button', 'botao pequeno perigo', confirmandoAlerta === a.id ? 'Confirmar' : 'Parar de acompanhar')
+    remover.type = 'button'
+    remover.setAttribute('aria-label', (confirmandoAlerta === a.id ? 'Confirmar: parar de acompanhar ' : 'Parar de acompanhar ') + formatarCnpj(a.cnpj))
+    remover.addEventListener('click', () => removerAlerta(a, remover))
+    acoes.append(remover)
+    li.append(principal, acoes)
+    return li
+  }
+
+  async function carregarAlertas() {
+    let dados
+    try {
+      dados = await Api.acompanhamentos()
+    } catch (e) {
+      if (e.status === 401) { location.replace('chat.html'); return }
+      mensagemAlerta(e.message, '')
+      return
+    }
+    mostrar('#alerta-verificar', !dados.email_verificado)
+    if (confirmandoAlerta === null) {
+      $('#lista-alerta').replaceChildren(...dados.itens.map(itemDoAlerta))
+      mostrar('#vazio-alerta', dados.itens.length === 0)
+    }
+    $('#alerta-enviar').disabled = dados.itens.length >= dados.limite
+  }
+
+  async function adicionarAlerta(e) {
+    e.preventDefault()
+    mensagemAlerta('', '')
+    const campo = $('#alerta-cnpj'), botao = $('#alerta-enviar')
+    if (!campo.value.trim()) { mensagemAlerta('Informe o CNPJ do fornecedor.', ''); campo.focus(); return }
+    botao.disabled = true
+    try {
+      const novo = await Api.acompanhar(campo.value)
+      campo.value = ''
+      mensagemAlerta('', `Pronto: você acompanha o CNPJ ${formatarCnpj(novo.cnpj)}. Na próxima verificação chega um e-mail com o que a base tem hoje dele.`)
+    } catch (e2) {
+      mensagemAlerta(e2.message, '')
+    } finally {
+      botao.disabled = false
+    }
+    await carregarAlertas()
+  }
+
+  async function removerAlerta(a, botao) {
+    mensagemAlerta('', '')
+    if (confirmandoAlerta !== a.id) {
+      confirmandoAlerta = a.id
+      botao.textContent = 'Confirmar'
+      setTimeout(() => { if (confirmandoAlerta === a.id) { confirmandoAlerta = null; botao.textContent = 'Parar de acompanhar' } }, 5000)
+      return
+    }
+    botao.disabled = true
+    try {
+      await Api.deixarDeAcompanhar(a.id)
+      mensagemAlerta('', 'Você deixou de acompanhar este CNPJ.')
+    } catch (e) {
+      mensagemAlerta(e.message, '')
+    }
+    confirmandoAlerta = null
+    await carregarAlertas()
+  }
+
   // ---------- MCP: token e guia de instalação ----------
   let mcpUrl = ''
   let tokenNovo = null            // { id, token }: só existe logo depois de gerar; não volta do servidor
@@ -251,11 +326,12 @@
     desenharDados(me)
     mostrar('#carregando', false)
     mostrar('#pagina', true)
-    await Promise.all([carregarTelefones(), carregarMcp()])
+    await Promise.all([carregarTelefones(), carregarAlertas(), carregarMcp()])
     temporizador = setInterval(() => { if (document.visibilityState === 'visible') carregarTelefones() }, ATUALIZAR_MS)
   }
 
   $('#form-tel').addEventListener('submit', cadastrarTelefone)
+  $('#form-alerta').addEventListener('submit', adicionarAlerta)
   $('#mcp-gerar').addEventListener('click', gerarToken)
   document.querySelectorAll('[aria-labelledby="t-mcp"] [role="tab"]').forEach(b => b.addEventListener('click', () => trocarAba(b)))
   document.querySelectorAll('[data-copiar]').forEach(b => b.addEventListener('click', () => copiar(b)))
