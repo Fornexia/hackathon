@@ -58,7 +58,7 @@ pessoal. Chaves criadas à mão ficam intactas; se o site não responder, o arqu
 Comandos que a página monta (o token entra no lugar de `SEU_TOKEN`):
 
 ```bash
-claude mcp add --transport http --scope user --header "Authorization: Bearer SEU_TOKEN" fornexia https://<host>/mcp
+claude mcp add --transport http --scope user fornexia https://<host>/mcp --header "Authorization: Bearer SEU_TOKEN"
 export FORNEXIA_TOKEN="SEU_TOKEN" && codex mcp add fornexia --url https://<host>/mcp --bearer-token-env-var FORNEXIA_TOKEN
 ```
 
