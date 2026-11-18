@@ -48,7 +48,7 @@ pode reconferir. Cada cliente enxerga só os entes do seu plano, e a IA não con
 | **Qualidade sob carga** | **90%** das respostas certas e com prova; **6 de 6** ataques barrados | Mesmo teste, corrigido automaticamente pelo gabarito |
 | **Resistência a ataques** | **164 de 165** execuções passaram, a outra foi barrada pelo código; **nenhum vazamento** | 46 ataques de prompt e 2 conversas longas contra o agente real, em até 4 perfis (14/11) |
 | **Busca de fornecedor** | **458 de 460** variações acham o fornecedor certo | Nome sem acento, com letra errada, em ordem trocada ou pelo nome fantasia (14/11) |
-| **Testes automáticos** | **739** a cada pull request | GitHub Actions: consulta (313), chat (262) e site (164, entre login, API e pacote de prova) |
+| **Testes automáticos** | **810 casos**, com **804 aprovados e 6 pulados** no CI desta atualização | GitHub Actions: alertas e ponte (60), consulta (313), chat (262) e site (175, entre login, API e pacote de prova) |
 
 ## O que avançou desde a apresentação de 06/11
 
