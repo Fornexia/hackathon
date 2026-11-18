@@ -47,6 +47,21 @@ A chave também vale no cabeçalho `X-API-Key`. Rotas de dados: `/v1/cobertura`,
 **MCP** (cliente que aceita servidor remoto): URL `http://<host>:8088/mcp` com o cabeçalho `Authorization: Bearer <chave>`. Sem sessão:
 cada chamada é independente, então `tools/list` e `tools/call` funcionam direto. Testado com o **Claude Code** como cliente (`--mcp-config` com `"type":"http"` e `"headers":{"Authorization":"Bearer ..."}`). Atenção: a busca de fornecedor leva `termo` no MCP e `q` na REST.
 
+## Token gerado pela própria pessoa (página da conta)
+
+Na página **Minha conta** do site, a pessoa gera um token MCP (até 3 ativos), copia o comando pronto para o Claude Code ou o Codex e
+revoga quando quiser. O site guarda só o SHA-256 do token. `python api/sincronizar_tokens.py` busca a cada 15 s os hashes ativos e os
+entes do plano de cada conta pela rota protegida do worker (`GET /api/worker/tokens`, com `X-Worker-Key`) e os grava em `api/chaves.json`
+com `origem: "site"`; a API relê o arquivo sozinha. O perfil é o de `consulta/perfis.json` com exatamente os entes do plano e sem dado
+pessoal. Chaves criadas à mão ficam intactas; se o site não responder, o arquivo atual é mantido. Testes: `api/testes/test_sincronizar.py`.
+
+Comandos que a página monta (o token entra no lugar de `SEU_TOKEN`):
+
+```bash
+claude mcp add --transport http --scope user --header "Authorization: Bearer SEU_TOKEN" fornexia https://<host>/mcp
+export FORNEXIA_TOKEN="SEU_TOKEN" && codex mcp add fornexia --url https://<host>/mcp --bearer-token-env-var FORNEXIA_TOKEN
+```
+
 ## Regras de segurança (e onde estão provadas)
 
 | Regra | Teste |

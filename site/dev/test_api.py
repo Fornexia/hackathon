@@ -5,6 +5,7 @@
 O executor fornece banco, configuração e sessões descartáveis. Nunca execute contra a base compartilhada.
 """
 
+import hashlib
 import http.cookiejar
 import json
 import os
@@ -1002,6 +1003,71 @@ class TestRobustez(Base):
             self.assertNotIn("senha", t)
             self.assertNotIn("$2y$", t)
             self.assertNotIn(WORKER_KEY, t)
+
+
+class TestTokensMcp(Base):
+    """Token MCP: gerado na página da conta, aparece uma vez, o banco guarda só o hash e o MCP lê o plano pelo worker."""
+
+    def tokens_no_worker(self):
+        r = worker(self.base, "GET", "/api/worker/tokens")
+        self.assertEqual(r.status, 200, r.corpo)
+        return {t["hash"]: t for t in r.corpo}
+
+    def test_gerar_listar_e_revogar(self):
+        c = self.cliente_com_plano()
+        r = c.req("POST", "/api/mcp/tokens", {})
+        self.assertEqual(r.status, 201, r.corpo)
+        token = r["token"]
+        self.assertTrue(token.startswith("fx_") and len(token) == 35, token)
+        self.assertTrue(r["url"].startswith("https://") and r["url"].endswith("/mcp"))
+        h = hashlib.sha256(token.encode()).hexdigest()
+        # O banco guarda o hash, nunca o token.
+        self.assertEqual(sql(f"SELECT COUNT(*) FROM tokens_mcp WHERE hash='{h}'"), "1")
+        self.assertEqual(sql(f"SELECT COUNT(*) FROM tokens_mcp WHERE hash='{token}' OR prefixo='{token}'"), "0")
+        # A lista da conta mostra só o começo do token.
+        info = c.req("GET", "/api/mcp", csrf=False)
+        self.assertEqual(info.status, 200, info.corpo)
+        self.assertNotIn(token, json.dumps(info.corpo))
+        self.assertEqual([t["prefixo"] for t in info["tokens"]], [token[:10]])
+        # O servidor do MCP recebe o hash e os entes do plano.
+        no_worker = self.tokens_no_worker()
+        self.assertIn(h, no_worker)
+        self.assertTrue(no_worker[h]["tenants"])
+        self.assertNotIn(token, json.dumps(list(no_worker.values())))
+        # Revogado, some da conta e do MCP.
+        d = c.req("DELETE", f"/api/mcp/tokens/{r['id']}")
+        self.assertEqual(d.status, 204, d.corpo)
+        self.assertNotIn(h, self.tokens_no_worker())
+        self.assertEqual(c.req("GET", "/api/mcp", csrf=False)["tokens"], [])
+        self.assertEqual(c.req("DELETE", f"/api/mcp/tokens/{r['id']}").status, 404)
+
+    def test_limite_de_tres_tokens_ativos(self):
+        c = self.cliente_com_plano()
+        ids = [c.req("POST", "/api/mcp/tokens", {})["id"] for _ in range(3)]
+        quarto = c.req("POST", "/api/mcp/tokens", {})
+        self.assertEqual(quarto.status, 400, quarto.corpo)
+        self.assertEqual(c.req("DELETE", f"/api/mcp/tokens/{ids[0]}").status, 204)
+        self.assertEqual(c.req("POST", "/api/mcp/tokens", {}).status, 201)
+
+    def test_exige_login_csrf_e_plano(self):
+        anonimo = Cliente(self.base)
+        self.assertEqual(anonimo.req("POST", "/api/mcp/tokens", {}).status, 401)
+        self.assertEqual(anonimo.req("GET", "/api/mcp", csrf=False).status, 401)
+        sem_plano = Cliente(self.base)
+        sem_plano.cadastrar()
+        self.assertEqual(sem_plano.req("POST", "/api/mcp/tokens", {}).status, 403)
+        c = self.cliente_com_plano()
+        self.assertEqual(c.req("POST", "/api/mcp/tokens", {}, token="csrf-errado").status, 403)
+
+    def test_outra_conta_nao_revoga(self):
+        dono, outro = self.cliente_com_plano(), self.cliente_com_plano()
+        r = dono.req("POST", "/api/mcp/tokens", {})
+        self.assertEqual(outro.req("DELETE", f"/api/mcp/tokens/{r['id']}").status, 404)
+        self.assertIn(hashlib.sha256(r["token"].encode()).hexdigest(), self.tokens_no_worker())
+
+    def test_worker_exige_a_chave(self):
+        for chave in [None, "", "chave-errada"]:
+            self.assertEqual(worker(self.base, "GET", "/api/worker/tokens", chave=chave).status, 401)
 
 
 if __name__ == "__main__":

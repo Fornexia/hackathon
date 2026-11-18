@@ -15,6 +15,9 @@
 //   GET  /api/telefones                   os telefones do usuário
 //   POST /api/telefones                   {numero}: liberado automaticamente
 //   DELETE /api/telefones/{id}
+//   GET  /api/mcp                         endereço do MCP e os tokens ativos da conta (sem o token)
+//   POST /api/mcp/tokens                  gera um token MCP (aparece uma vez)
+//   DELETE /api/mcp/tokens/{id}           revoga
 //
 // Administrador (papel "admin"):
 //   GET  /api/admin/telefones?status=pendente|aprovado|revogado|todos
@@ -24,12 +27,13 @@
 //   POST /api/worker/proxima
 //   POST /api/worker/perguntas/{id}/eventos
 //   GET  /api/worker/telefones
+//   GET  /api/worker/tokens               hashes dos tokens MCP ativos e os entes do plano de cada dono
 
 declare(strict_types=1);
 define('API', true);
 
 require dirname(__DIR__, 2) . '/config.php';   // fora do public_html
-foreach (['base', 'auth', 'conta', 'google', 'chat', 'telefones', 'worker', 'prova'] as $modulo) {
+foreach (['base', 'auth', 'conta', 'google', 'chat', 'telefones', 'worker', 'prova', 'mcp'] as $modulo) {
     require __DIR__ . "/lib_$modulo.php";
 }
 
@@ -62,6 +66,9 @@ $rotas = [
     ['GET',    '#^telefones$#',                       true,  'rota_telefones_listar'],
     ['POST',   '#^telefones$#',                       true,  'rota_telefones_criar'],
     ['DELETE', '#^telefones/(\d+)$#',                 true,  'rota_telefones_remover'],
+    ['GET',    '#^mcp$#',                             true,  'rota_mcp_info'],
+    ['POST',   '#^mcp/tokens$#',                      true,  'rota_mcp_criar'],
+    ['DELETE', '#^mcp/tokens/(\d+)$#',               true,  'rota_mcp_revogar'],
     ['GET',    '#^admin/telefones$#',                 true,  'rota_admin_telefones'],
     ['POST',   '#^admin/telefones/(\d+)/aprovar$#',   true,  'rota_admin_aprovar'],
     ['POST',   '#^admin/telefones/(\d+)/revogar$#',   true,  'rota_admin_revogar'],
@@ -72,6 +79,7 @@ $rotas = [
     ['POST', '#^worker/proxima$#',                 false, 'rota_worker_proxima'],
     ['POST', '#^worker/perguntas/(\d+)/eventos$#', false, 'rota_worker_eventos'],
     ['GET',  '#^worker/telefones$#',               false, 'rota_worker_telefones'],
+    ['GET',  '#^worker/tokens$#',                  false, 'rota_worker_tokens'],
 ];
 
 $metodo = $_SERVER['REQUEST_METHOD'];
