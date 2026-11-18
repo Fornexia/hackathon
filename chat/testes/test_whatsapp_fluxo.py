@@ -97,6 +97,44 @@ class Base(unittest.TestCase):
         return [json.loads(p.read_text(encoding="utf-8")) for p in sorted((self.estado / "outbox").glob("*.json"))]
 
 
+class TestClaudeVM(Base):
+    def test_vm_tem_prioridade_e_preserva_fontes_do_perfil(self):
+        self.chegam(msg(1, remetente=NUM_SITE))
+        remoto = {"resposta": "Resposta da VM.", "modelo": "claude-sonnet-5-5",
+                  "consultas": ["cobertura"], "evidencias": [], "fontes": [], "uso": {}}
+        local = agente_falso()
+        with (mock.patch.dict(os.environ, {"AGENTE_WHATSAPP_VM": "servidor.invalid"}),
+              mock.patch.object(worker.whatsapp_vm, "perguntar_vm", return_value=remoto) as perguntar):
+            self.passo(agente=local)
+        self.assertEqual(local.chamadas, [])
+        self.assertEqual(perguntar.call_args.args[2:4], (["pe-garanhuns"], []))
+        self.assertEqual([p["texto"] for p in self.saida() if p["op"] == "enviar"], ["Resposta da VM."])
+        self.assertEqual(self.logs[0]["modelo"], "claude-sonnet-5-5")
+
+    def test_falha_da_vm_tenta_codex_uma_vez_com_o_mesmo_contexto(self):
+        pergunta = "Quantos CNPJs?"
+        tenants = ["pe-garanhuns"]
+        contexto = [("Oi", "Olá")]
+        worker.historicos["teste:" + worker.chave_entes(tenants)].extend(contexto)
+
+        def codex(texto, entes, historico, leitor, *, provedor):
+            self.assertEqual((texto, entes, historico, provedor), (pergunta, tenants, contexto, "codex"))
+            leitor.modelo = "codex"
+            leitor.resposta = "Resposta local."
+            yield "fim", {}
+
+        with (mock.patch.dict(os.environ, {"AGENTE_WHATSAPP_VM": "servidor.invalid"}),
+              mock.patch.object(worker.whatsapp_vm, "perguntar_vm",
+                                side_effect=worker.whatsapp_vm.FalhaVM("prazo excedido")) as vm,
+              mock.patch.object(worker.agente, "perguntar", side_effect=codex) as local):
+            texto, leitor, desfecho = worker.responder_whatsapp(pergunta, tenants, "teste", "req")
+        vm.assert_called_once_with("servidor.invalid", pergunta, tenants, contexto, "req")
+        local.assert_called_once()
+        self.assertEqual((texto, desfecho, leitor.modelo), ("Resposta local.", "concluida", "codex"))
+        self.assertEqual(leitor.trocas[0]["de"], "claude-vm")
+
+
+
 def normalizar(n):
     return worker.normalizar(n)
 

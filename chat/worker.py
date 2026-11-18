@@ -27,6 +27,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 import agente  # noqa: E402
 import deteccao  # noqa: E402
 import registro  # noqa: E402  (log por subsistema: logs/worker.jsonl, seguranca.jsonl e saude.jsonl)
+import whatsapp_vm
 import voz  # noqa: E402  (conferência do CNPJ falado e eco do que foi ouvido)
 from http_api import criar_cliente  # noqa: E402  (HTTPS só por IPv4: a rota IPv6 da hospedagem falhava no handshake)
 
@@ -351,8 +352,27 @@ def responder_whatsapp(texto: str, tenants: list[str], chave: str, request_id: s
     leitor, fontes, desfecho = agente.Leitor(), [], "erro"
     leitor.request_id = request_id
     chave = f"{chave}:{chave_entes(tenants)}"
+    contexto = list(historicos[chave])
+    vm = os.environ.get("AGENTE_WHATSAPP_VM")
+    troca = None
+    if vm:
+        try:
+            remoto = whatsapp_vm.perguntar_vm(vm, texto, tenants, contexto, request_id)
+        except whatsapp_vm.FalhaVM as erro:
+            troca = {"de": "claude-vm", "para": "codex", "motivo": str(erro), "tentativa": 2}
+            registrar("WhatsApp:", troca["motivo"], "| tentando Codex local")
+        else:
+            leitor.modelo_pedido = "claude-vm"
+            leitor.modelo = remoto["modelo"]
+            leitor.tentados = [leitor.modelo]
+            leitor.resposta = remoto["resposta"]
+            leitor.consultas = remoto["consultas"]
+            leitor.evidencias = remoto["evidencias"]
+            leitor.uso = remoto["uso"]
+            historicos[chave].append((texto, leitor.resposta[:agente.HISTORICO_RESPOSTA]))
+            return texto_whatsapp(leitor.resposta, remoto["fontes"]), leitor, "concluida"
     try:
-        for tipo, dados in agente.perguntar(texto, tenants, list(historicos[chave]), leitor):
+        for tipo, dados in agente.perguntar(texto, tenants, contexto, leitor, provedor="codex" if troca else None):
             if tipo == "fonte":
                 fontes.append(dados)
             elif tipo == "fim":
@@ -365,6 +385,10 @@ def responder_whatsapp(texto: str, tenants: list[str], chave: str, request_id: s
     except Exception as e:
         leitor.excecao = e
         registrar("falha no WhatsApp:", type(e).__name__, str(e)[:200])
+    if troca:
+        leitor.modelo_pedido = "claude-vm"
+        leitor.tentados = ["claude-vm", "codex"]
+        leitor.trocas.insert(0, troca)
     if desfecho != "concluida" or not leitor.resposta:
         return ERRO_PADRAO, leitor, "erro"
     historicos[chave].append((texto, leitor.resposta[:agente.HISTORICO_RESPOSTA]))
