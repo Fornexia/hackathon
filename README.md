@@ -40,7 +40,7 @@ pode reconferir. Cada cliente enxerga só os entes do seu plano, e a IA não con
 | **Segurança** | 20 ataques catalogados | **Bateria de 46 ataques** contra o agente real, **auditoria por um segundo modelo** que procura vazamento até por paráfrase, e perfil que nunca vem do pedido |
 | **Busca** | Nome exato | **Tolerante** a acento, erro de digitação, ordem trocada e nome fantasia |
 | **WhatsApp** | Texto | **Nota de voz** transcrita no próprio computador, com trava para CNPJ falado (14 dígitos e dígito verificador) |
-| **Integração** | Não havia | **API para IAs de terceiros** (REST, MCP e pergunta em português, com chave que define o perfil) e **alertas por e-mail** quando muda algo num CNPJ acompanhado, os dois em versão de demonstração com testes |
+| **Integração** | Não havia | **Conecte sua IA ao FornexIA:** na página da conta, a pessoa gera um token e instala o MCP no **Claude Code** ou no **Codex** com um comando. A mesma API atende REST e perguntas em português. **Alertas por e-mail** de CNPJ acompanhado prontos em versão de demonstração |
 | **Engenharia** | Testes rodados à mão | **CI no GitHub** a cada pull request, roda em **Windows e Linux**, logs por peça do sistema, reconstrução de uma pergunta de ponta a ponta e vigia de quedas |
 | **Negócio** | Planos de demonstração | Plano único, documentos comerciais, análise de rentabilidade, proposta preliminar e manual de marca |
 
@@ -71,6 +71,8 @@ flowchart LR
     A -->|só ferramentas de consulta| M[Servidor MCP transparência]
     M -->|filtro pelo perfil do plano| G[(Grafo Neo4j: fatos e evidências)]
     A -->|resposta com as fontes| P
+    C([IA do cliente: Claude ou Codex]) -->|MCP com token da conta| API[API do FornexIA]
+    API --> M
 ```
 
 1. **Coleta.** Robôs capturam os portais públicos e guardam o arquivo bruto com o hash.
@@ -79,6 +81,29 @@ flowchart LR
 4. **Consulta.** O agente de IA só enxerga as ferramentas de consulta. O perfil (quais entes a pessoa pode ver) vem do plano dela, nunca da conversa.
 5. **Resposta com prova.** Cada fato da resposta aponta para a evidência, e a tela mostra o caminho percorrido no mapa da consulta.
 
+## Conecte sua IA ao FornexIA (MCP)
+
+Qualquer conta pode usar as consultas do FornexIA dentro do próprio Claude Code ou Codex, com o mesmo plano e a mesma prova de cada fato.
+
+1. Entre em [fornexia.figueiredo.dev](https://fornexia.figueiredo.dev) e abra **Minha conta → Conectar sua IA (MCP)**.
+2. Clique em **Gerar token**. Ele aparece uma única vez, e o guia ao lado já sai com os comandos preenchidos.
+3. Rode o comando da sua ferramenta (troque `SEU_TOKEN` pelo token gerado):
+
+```bash
+# Claude Code
+claude mcp add --transport http --scope user --header "Authorization: Bearer SEU_TOKEN" fornexia https://luks108-samgung-x40.tailc7827f.ts.net/mcp
+
+# Codex
+export FORNEXIA_TOKEN="SEU_TOKEN"
+codex mcp add fornexia --url https://luks108-samgung-x40.tailc7827f.ts.net/mcp --bearer-token-env-var FORNEXIA_TOKEN
+```
+
+4. Peça à sua IA: “Use o FornexIA para ver a cobertura da base.” Ela passa a ter as 9 ferramentas de consulta: cobertura, busca de fornecedor,
+   contratos, sanções, cadastro, execução financeira e conferência de evidência.
+
+Também dá para colar na própria IA o texto pronto da aba **Pedir para a IA instalar**, e ela faz a instalação sozinha. O token só consulta
+o que o plano da conta cobre, nunca entrega dado pessoal e pode ser revogado na mesma página; o acesso cai em até 15 segundos.
+
 ## Segurança, privacidade e prova
 
 - **Perfil fora do alcance da IA.** Os entes visíveis vêm do plano da conta e são aplicados na consulta ao banco, não no texto da pergunta.
@@ -86,7 +111,7 @@ flowchart LR
 - **Dado pessoal protegido.** CPF digitado é mascarado nos registros; pessoa física aparece só como código, nunca com nome ou CPF.
 - **Prova reconferível.** O pacote de prova traz pergunta, resposta, trechos e hashes, e um auditor confere sem acesso ao sistema.
 - **Contas seguras.** Senhas com Argon2id, confirmação do e-mail, limite de tentativas, sessão protegida e login com o Google só para e-mail verificado.
-- **API com chave.** Só o hash da chave é guardado, e a chave define o perfil; dado pessoal nunca sai pela API.
+- **Token MCP e API com chave.** O site guarda só o hash do token; o que ele enxerga vem do plano da conta, nunca do pedido. Dado pessoal nunca sai pela API, e a revogação vale em até 15 segundos.
 - **Registro de cada consulta.** Quem perguntou, com que perfil, quais ferramentas foram usadas e quais evidências sustentam a resposta.
 
 ## Área técnica e página Modelos
@@ -118,8 +143,9 @@ Para quem tem conta, o site mostra como o sistema funciona por dentro:
 
 - **Base em produção:** uma amostra com 100 contratos de Pernambuco (70 do Estado, de 2024, e 30 de Garanhuns), 95 sanções e 1.467 linhas
   de execução financeira, cada fato com a evidência. Os coletores da União e o PNCP estão prontos e testados e entram na próxima carga.
-- **API para IAs e alertas por e-mail:** prontos e testados em versão de demonstração. Para abrir a clientes, faltam a tela de acompanhamento
-  de CNPJ no site e o agendamento da coleta.
+- **MCP e API:** abertos pela página da conta, com token. A pergunta em português, que usa o modelo de IA, tem teto diário por token.
+- **Alertas por e-mail:** prontos e testados em versão de demonstração. Para abrir a clientes, faltam a tela de acompanhamento de CNPJ no site
+  e o agendamento da coleta.
 - **Capacidade:** o teste de 18/11 mediu o motor de respostas (fila, agentes, consulta e correção). Acima de 100 pessoas, a capacidade é estimativa;
   cada computador a mais soma agentes à mesma fila.
 - **Atualidade das fontes:** cada resposta diz a data da captura; o cadastro de sanções de Pernambuco disponível é de 05/06/2025.
