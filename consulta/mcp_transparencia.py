@@ -233,12 +233,16 @@ def consultar(cypher: str, **parametros) -> list[dict]:
 @mcp.tool()
 @registrado
 def cobertura() -> dict:
-    """O que existe na base para este perfil, de quando é e o que falta."""
+    """Totais do perfil, incluindo CNPJs distintos, datas da base e suas limitações."""
     totais = consultar("""
         MATCH (c:Contrato) WHERE c.tenant IN $tenants AND c.sensibilidade IN $sensibilidades
         WITH count(c) AS contratos
         OPTIONAL MATCH (s:Sancao) WHERE s.tenant IN $tenants AND s.sensibilidade IN $sensibilidades
         RETURN contratos, count(s) AS sancoes""")[0]
+    cnpjs = consultar("""
+        MATCH (f:Fornecedor)-[:APARECE_EM]->(e:Ente)
+        WHERE e.id IN $tenants AND f.tipo = 'PJ' AND f.cnpj =~ '[0-9]{14}'
+        RETURN count(DISTINCT f.cnpj) AS cnpjs_distintos""")[0]["cnpjs_distintos"]
     por_ente = consultar("""
         MATCH (c:Contrato)-[:CELEBRADO_POR]->(:UnidadeJurisdicionada)-[:PERTENCE_A]->(e:Ente)
         WHERE c.tenant IN $tenants AND c.sensibilidade IN $sensibilidades
@@ -282,6 +286,7 @@ def cobertura() -> dict:
         ORDER BY s.publicada_em DESC, fornecedor_id, evidencia LIMIT 3""")
     return {
         **totais,
+        "cnpjs_distintos": cnpjs,
         "cadastros_da_receita": cadastros,
         "sancoes_por_ente": sancoes_por_ente,
         "contratos_por_ente": por_ente,

@@ -68,6 +68,11 @@ class TestIsolamentoEntrePerfis(unittest.TestCase):
         cob = m.cobertura()
         self.assertEqual((cob["contratos"], cob["sancoes"], cob["tenants_do_perfil"]), (3, 0, ["pe-garanhuns"]))
 
+    def test_cobertura_conta_cnpjs_distintos_visiveis_no_perfil(self):
+        for nome, total in (("municipio", 2), ("estado", 2), ("estado-uniao", 3), ("estado-exemplo", 2)):
+            with self.subTest(perfil=nome):
+                self.assertEqual(self.perfil(nome).cobertura()["cnpjs_distintos"], total)
+
     def test_municipio_nao_abre_evidencia_de_outro_ente_nem_de_pessoa(self):
         m = self.perfil("municipio")
         self.assertNotIn("erro", m.conferir_evidencia("g1"))

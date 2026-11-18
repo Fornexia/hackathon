@@ -31,7 +31,7 @@ PAYLOADS_DE_ID = [
 ]
 
 
-LINHA_QUALQUER = {"id": "cnpj:11111111000111", "contratos": 1, "sancoes": 0, "de": "2026-11-05", "ate": "2026-11-05",
+LINHA_QUALQUER = {"id": "cnpj:11111111000111", "contratos": 1, "sancoes": 0, "cnpjs_distintos": 1, "de": "2026-11-05", "ate": "2026-11-05",
                   "arquivo": "exemplo.html", "documento_hash": "0" * 64, "n": 0}
 
 
