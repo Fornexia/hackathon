@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "founders": [],
+  "images": { "hero": "", "features": "" },
+  "history": { "title": "Como tudo começou", "text": "" },
+  "contact": { "whatsapp": "", "instagram": "", "linkedin": "", "email": "hackathon@figueiredo.dev" },
+  "trial": [
+    { "title": "Usar o sistema pelo site", "description": "Acesse a plataforma no navegador e faça sua primeira consulta de fornecedor.", "url": "" }
+  ],
+  "updatedAt": ""
+}
+
