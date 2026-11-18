@@ -1,4 +1,4 @@
-// Página "Minha conta": dados, plano e telefones do WhatsApp com o estado de cada um.
+// Página "Minha conta": dados, plano, telefones do WhatsApp e o token MCP com o guia para conectar o Claude ou o Codex.
 (() => {
   'use strict'
   const { el, formatarTelefone, dataHora, nomesDosEntes } = window.U
@@ -100,6 +100,141 @@
     await carregarTelefones()
   }
 
+  // ---------- MCP: token e guia de instalação ----------
+  let mcpUrl = ''
+  let tokenNovo = null            // { id, token }: só existe logo depois de gerar; não volta do servidor
+  let confirmandoMcp = null
+  function mensagemMcp(erro, ok) { mensagem('#erro-mcp', erro); mensagem('#ok-mcp', ok) }
+
+  function comandos(token) {
+    const t = token || 'SEU_TOKEN', url = mcpUrl
+    const claude = `claude mcp add --transport http --scope user --header "Authorization: Bearer ${t}" fornexia ${url}`
+    const codex = `codex mcp add fornexia --url ${url} --bearer-token-env-var FORNEXIA_TOKEN`
+    return {
+      claude,
+      codex: `export FORNEXIA_TOKEN="${t}"\n${codex}`,
+      agente: [
+        'Instale o servidor MCP remoto do FornexIA neste computador.',
+        '- Nome: fornexia',
+        `- Endereço (HTTP streamable): ${url}`,
+        `- Autenticação: cabeçalho Authorization: Bearer ${t}`,
+        '',
+        `Se você é o Claude Code, rode: ${claude}`,
+        `Se você é o Codex, grave a variável de ambiente FORNEXIA_TOKEN com o token (no ~/.bashrc ou ~/.zshrc; no Windows, com setx) e rode: ${codex}`,
+        '',
+        'Depois, confirme que o fornexia aparece na lista de servidores MCP, chame a ferramenta "cobertura" dele e me diga quais entes e datas a base cobre.',
+        'Não grave o token em nenhum arquivo de projeto nem em repositório.',
+      ].join('\n'),
+    }
+  }
+
+  function desenharGuia() {
+    const c = comandos(tokenNovo && tokenNovo.token)
+    $('#cmd-claude').textContent = c.claude
+    $('#cmd-codex').textContent = c.codex
+    $('#cmd-agente').textContent = c.agente
+    $('#mcp-url').textContent = mcpUrl
+    $('#guia-dica').textContent = tokenNovo
+      ? 'Os comandos abaixo já estão com o seu token novo.'
+      : 'Gere um token: os comandos abaixo saem preenchidos com ele. Sem token, eles mostram SEU_TOKEN no lugar.'
+  }
+
+  function itemDoToken(t) {
+    const li = el('li', 'item')
+    const principal = el('div', 'principal')
+    principal.append(el('span', 'status aprovado', 'Ativo'), el('div', 'numero', `Token ${t.prefixo}…`))
+    const criado = dataHora(t.criado_em)
+    if (criado) principal.append(el('div', 'detalhe', 'Gerado em ' + criado))
+    const acoes = el('div', 'acoes-item')
+    const revogar = el('button', 'botao pequeno perigo', confirmandoMcp === t.id ? 'Confirmar revogação' : 'Revogar')
+    revogar.type = 'button'
+    revogar.setAttribute('aria-label', (confirmandoMcp === t.id ? 'Confirmar a revogação do token ' : 'Revogar o token ') + t.prefixo)
+    revogar.addEventListener('click', () => revogarToken(t, revogar))
+    acoes.append(revogar)
+    li.append(principal, acoes)
+    return li
+  }
+
+  async function carregarMcp() {
+    let dados
+    try {
+      dados = await Api.mcp()
+    } catch (e) {
+      if (e.status === 401) { location.replace('chat.html'); return }
+      mensagemMcp(e.message, '')
+      return
+    }
+    mcpUrl = dados.url
+    desenharGuia()
+    if (confirmandoMcp === null) {
+      $('#lista-mcp').replaceChildren(...dados.tokens.map(itemDoToken))
+      mostrar('#vazio-mcp', dados.tokens.length === 0)
+    }
+    $('#mcp-gerar').disabled = dados.tokens.length >= dados.limite
+  }
+
+  async function gerarToken() {
+    mensagemMcp('', '')
+    const botao = $('#mcp-gerar')
+    botao.disabled = true
+    try {
+      const novo = await Api.gerarTokenMcp()
+      tokenNovo = { id: novo.id, token: novo.token }
+      mcpUrl = novo.url
+      $('#mcp-token').textContent = novo.token
+      mostrar('#mcp-novo', true)
+      mensagemMcp('', 'Token gerado. Ele passa a funcionar em até 15 segundos.')
+    } catch (e) {
+      mensagemMcp(e.message, '')
+    }
+    await carregarMcp()
+  }
+
+  async function revogarToken(t, botao) {
+    mensagemMcp('', '')
+    if (confirmandoMcp !== t.id) {
+      // Revogar corta o acesso da IA que usa o token: pede um segundo clique.
+      confirmandoMcp = t.id
+      botao.textContent = 'Confirmar revogação'
+      setTimeout(() => { if (confirmandoMcp === t.id) { confirmandoMcp = null; botao.textContent = 'Revogar' } }, 5000)
+      return
+    }
+    botao.disabled = true
+    try {
+      await Api.revogarTokenMcp(t.id)
+      if (tokenNovo && tokenNovo.id === t.id) { tokenNovo = null; mostrar('#mcp-novo', false); $('#mcp-token').textContent = '' }
+      mensagemMcp('', 'Token revogado. O acesso cai em até 15 segundos.')
+    } catch (e) {
+      mensagemMcp(e.message, '')
+    }
+    confirmandoMcp = null
+    await carregarMcp()
+  }
+
+  function trocarAba(aba) {
+    document.querySelectorAll('[aria-labelledby="t-mcp"] [role="tab"]').forEach(b => {
+      const sim = b === aba
+      b.setAttribute('aria-selected', String(sim))
+      $('#' + b.getAttribute('aria-controls')).hidden = !sim
+    })
+  }
+
+  async function copiar(botao) {
+    const texto = $(botao.dataset.copiar).textContent
+    const original = botao.textContent
+    try {
+      await navigator.clipboard.writeText(texto)
+      botao.textContent = 'Copiado'
+    } catch {
+      // Sem acesso à área de transferência: seleciona o texto para a pessoa copiar com Ctrl+C.
+      const faixa = document.createRange()
+      faixa.selectNodeContents($(botao.dataset.copiar))
+      const sel = getSelection(); sel.removeAllRanges(); sel.addRange(faixa)
+      botao.textContent = 'Selecionado: use Ctrl+C'
+    }
+    setTimeout(() => { botao.textContent = original }, 2500)
+  }
+
   // ---------- início ----------
   async function iniciar() {
     let me
@@ -115,11 +250,14 @@
     desenharDados(me)
     mostrar('#carregando', false)
     mostrar('#pagina', true)
-    await carregarTelefones()
+    await Promise.all([carregarTelefones(), carregarMcp()])
     temporizador = setInterval(() => { if (document.visibilityState === 'visible') carregarTelefones() }, ATUALIZAR_MS)
   }
 
   $('#form-tel').addEventListener('submit', cadastrarTelefone)
+  $('#mcp-gerar').addEventListener('click', gerarToken)
+  document.querySelectorAll('[aria-labelledby="t-mcp"] [role="tab"]').forEach(b => b.addEventListener('click', () => trocarAba(b)))
+  document.querySelectorAll('[data-copiar]').forEach(b => b.addEventListener('click', () => copiar(b)))
   $('#verificar-agora').addEventListener('click', async e => {
     e.target.disabled = true
     const status = $('#verificacao-status')

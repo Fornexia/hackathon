@@ -10,7 +10,7 @@
 <link rel="icon" href="icone-32.png" type="image/png" sizes="32x32">
 <link rel="apple-touch-icon" href="icone-192.png">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
-<link rel="stylesheet" href="assets/site.css?v=20261117e">
+<link rel="stylesheet" href="assets/site.css?v=20261118c">
 <script src="assets/tema.js?v=20261117e"></script>
 </head>
 <body>
@@ -60,12 +60,56 @@
       <ul class="lista" id="lista-tel" aria-live="polite"></ul>
       <p class="vazio" id="vazio-tel" hidden>Você ainda não cadastrou nenhum telefone.</p>
     </section>
+
+    <section class="cartao secao" aria-labelledby="t-mcp">
+      <h2 id="t-mcp">Conectar sua IA (MCP)</h2>
+      <p class="apoio">Use as consultas do FornexIA dentro do Claude ou do Codex. A sua IA chama as mesmas ferramentas do nosso assistente,
+        com o plano desta conta e a prova de cada fato. Cada conta pode ter até 3 tokens ativos.</p>
+      <p class="aviso-erro" id="erro-mcp" role="alert" hidden></p>
+      <p class="aviso-ok" id="ok-mcp" role="status" hidden></p>
+      <div class="linha-form"><button class="botao" type="button" id="mcp-gerar">Gerar token</button></div>
+      <div class="mcp-novo" id="mcp-novo" hidden>
+        <p><strong>Seu token.</strong> Copie agora: por segurança, ele não aparece de novo.</p>
+        <div class="token-linha"><code id="mcp-token"></code><button class="botao pequeno" type="button" data-copiar="#mcp-token">Copiar</button></div>
+      </div>
+      <ul class="lista" id="lista-mcp" aria-live="polite"></ul>
+      <p class="vazio" id="vazio-mcp" hidden>Você ainda não gerou nenhum token.</p>
+
+      <h3 class="guia-titulo">Guia de instalação</h3>
+      <p class="apoio" id="guia-dica">Gere um token: os comandos abaixo saem preenchidos com ele.</p>
+      <div class="abas" role="tablist" aria-label="Onde instalar">
+        <button type="button" role="tab" id="aba-claude" aria-controls="guia-claude" aria-selected="true">Claude Code</button>
+        <button type="button" role="tab" id="aba-codex" aria-controls="guia-codex" aria-selected="false">Codex</button>
+        <button type="button" role="tab" id="aba-agente" aria-controls="guia-agente" aria-selected="false">Pedir para a IA instalar</button>
+      </div>
+      <div class="guia" id="guia-claude" role="tabpanel" aria-labelledby="aba-claude">
+        <p>No terminal, rode:</p>
+        <pre class="cru" id="cmd-claude"></pre>
+        <button class="botao pequeno" type="button" data-copiar="#cmd-claude">Copiar comando</button>
+        <p class="detalhe">Confira com <code>claude mcp list</code>. Depois, abra o Claude Code e peça: “Use o FornexIA para ver a cobertura da base.”</p>
+      </div>
+      <div class="guia" id="guia-codex" role="tabpanel" aria-labelledby="aba-codex" hidden>
+        <p>No terminal (Linux ou macOS), rode:</p>
+        <pre class="cru" id="cmd-codex"></pre>
+        <button class="botao pequeno" type="button" data-copiar="#cmd-codex">Copiar comandos</button>
+        <p class="detalhe">O Codex lê o token da variável <code>FORNEXIA_TOKEN</code>. Para ela valer sempre, ponha a linha do <code>export</code> no
+          <code>~/.bashrc</code> ou no <code>~/.zshrc</code>. No Windows (PowerShell), troque o <code>export</code> por <code>setx FORNEXIA_TOKEN "seu token"</code>
+          e abra um terminal novo. Confira com <code>codex mcp list</code>.</p>
+      </div>
+      <div class="guia" id="guia-agente" role="tabpanel" aria-labelledby="aba-agente" hidden>
+        <p>Cole este texto no Claude Code ou no Codex, e a própria IA faz a instalação:</p>
+        <pre class="cru" id="cmd-agente"></pre>
+        <button class="botao pequeno" type="button" data-copiar="#cmd-agente">Copiar texto</button>
+      </div>
+      <p class="detalhe">Endereço do MCP: <code id="mcp-url"></code>. O token só consulta o que o plano desta conta cobre e nunca entrega dado pessoal.
+        Se ele vazar, revogue aqui: o acesso cai em até 15 segundos.</p>
+    </section>
   </div>
 </main>
 
 <script src="assets/util.js?v=20261117e"></script>
-<script src="assets/api.js?v=20261117e"></script>
+<script src="assets/api.js?v=20261118c"></script>
 <script src="assets/topo.js?v=20261117e"></script>
-<script src="assets/conta.js?v=20261117e"></script>
+<script src="assets/conta.js?v=20261118c"></script>
 </body>
 </html>
